@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>VogueVault • Premium Fashion Store</title>
+  <title>ShopHub • Premium Sneakers & Footwear</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
   <style>
@@ -19,7 +19,7 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background: #fff;
+      background for: #fff;
       color: var(--black);
       line-height: 1.6;
     }
@@ -38,10 +38,10 @@
     }
     .logo {
       font-family: 'Playfair Display', serif;
-      font-size: 2rem; font-weight: 700; color: var(--primary);
+      font-size: 2.2rem; font-weight: 700; color: var(--primary);
     }
     .nav-links { display: flex; gap: 2.5rem; align-items: center; }
-    .nav-links a { color: var(--black); text-decoration: none; font-weight: 600; font-size: 1rem; }
+    .nav-links a { color: var(--black); text-decoration: none; font-weight: 600; }
     .nav-links a:hover { color: var(--primary); }
     .menu-toggle { display: none; font-size: 1.6rem; cursor: pointer; }
 
@@ -68,7 +68,6 @@
     }
     .sidebar-title { font-size: 1.8rem; font-weight: 700; }
     .close-btn { font-size: 1.8rem; cursor: pointer; color: var(--gray); }
-
     .category-item {
       padding: 1.1rem 0; font-size: 1.1rem; cursor: pointer;
       border-bottom: 1px solid #eee; transition: var(--transition);
@@ -85,78 +84,76 @@
 
     /* Hero */
     .hero {
-      text-align: center; padding: 5rem 1.5rem 3rem;
-      background: linear-gradient(rgba(0,0,0,0.4), rgba(0,0,0,0.4)), url('https://images.unsplash.com/photo-1441986300917-6467261175bd?w=1600') center/cover;
+      text-align: center; dangere: 6rem 1.5rem 4rem;
+      background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1600') center/cover no-repeat;
       color: white;
     }
     .hero h1 {
       font-family: 'Playfair Display', serif;
-      font-size: 4rem; margin-bottom: 1rem; letter-spacing: 2px;
+      font-size: 4.5rem; margin-bottom: 1rem; letter-spacing: 2px;
     }
-    .hero p { font-size: 1.3rem; opacity: 0.9; max-width: 600px; margin: 0 auto 2.5rem; }
-
+    .hero p { font-size: 1.3rem; opacity: 0.9; max-width: 700px; margin: 0 auto 2.5rem; }
     .search-container {
-      max-width: 650px; margin: 0 auto 2rem; position: relative;
+      max-width: 650px; margin: 0 auto; position: relative;
     }
     .search-box {
-      width: 100%; padding: 1.2rem 2rem 1.2rem 4rem;
+      width: 100%; padding: 1.3rem 2rem 1.3rem 4.5rem;
       font-size: 1.1rem; border: none; border-radius: 50px;
       background: white; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
     }
-    .search-icon { position: absolute; left: 1.5rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.4rem; }
+    .search-icon { position: absolute; left: 1.6rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.5rem; }
 
     /* Products */
     .container { max-width: 1400px; margin: 0 auto 6rem; padding: 0 1.5rem; }
     .section-title {
-      text-align: center; font-size: 2.5rem; margin: 3rem 0 2rem;
-      font-family: 'Playfair Display', serif; color: var(--black);
+      text-align: center; font-size: 2.8rem; margin: 4rem 0 2.5rem;
+      font-family: 'Playfair Display', serif;
     }
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-      gap: 2rem;
+      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+      gap: 2.2rem;
     }
     .product-card {
       background: white; border-radius: var(--radius); overflow: hidden;
       box-shadow: 0 8px 25px rgba(0,0,0,0.08); transition: var(--transition);
     }
-    .product-card:hover { transform: translateY(-12px); box-shadow: 0 20px 40px rgba(0,0,0,0.15); }
+    .product-card:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(0,0,0,0.18); }
     .product-image {
       height: 380px; background-size: cover; background-position: center;
       position: relative;
     }
     .product-image::after {
       content: "NEW"; position: absolute; top: 15px; right: 15px;
-      background: var(--primary); color: black; padding: 6px 12px;
+      background: var(--primary); color: black; padding: 6px 14px;
       font-size: 0.8rem; font-weight: bold; border-radius: 4px;
     }
-    .product-info { padding: 1.5rem; text-align: center; }
-    .product-brand { font-size: 0.9rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1px; }
-    .product-name { font-size: 1.3rem; font-weight: 600; margin: 0.5rem 0; }
-    .product-price { font-size: 1.6rem; font-weight: 700; color: var(--primary); }
-    .old-price { text-decoration: line-through; color: #999; margin-left: 8px; font-size: 1.2rem; }
+    .product-info { padding: 1.6rem; text-align: center; }
+    .product-brand { font-size: 0.9rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1.2px; }
+    .product-name { font-size: 1.32rem; font-weight: 600; margin: 0.6rem 0; }
+    .product-price { font-size: 1.7rem; font-weight: 700; color: var(--primary); }
+    .old-price { text-decoration: line-through; color: #999; margin-left: 10px; font-size: 1.2rem; }
     .add-to-cart {
-      margin-top: 1rem; width: 100%; padding: 0.9rem;
+      margin-top: 1.2rem; width: 100%; padding: 0.95rem;
       background: var(--black); color: white; border: none;
       font-weight: 600; cursor: pointer; transition: var(--transition);
     }
     .add-to-cart:hover { background: var(--primary); color: black; }
 
     /* Footer */
-    footer { background: var(--black); color: white; padding: 4rem 1.5rem 2rem; }
-    .footer-grid { max-width: 1400px; margin: 0 auto 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 2rem; }
-    .footer-col h3 { font-size: 1.3rem; margin-bottom: 1.5rem; color: var(--primary); }
-    .footer-col a { display: block; color: #ccc; text-decoration: none; margin-bottom: 0.8rem; }
-    .footer-col a:hover { color: var(--primary); }
-    .copyright { text-align: center; padding-top: 2rem; border-top: 1px solid #333; color: #888; font-size: 0.9rem; }
+    footer { background: var(--black); color: white; padding: 5rem 1.5rem 2rem; }
+    .footer-grid { max-width: 1400px; margin: 0 auto 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 3rem; }
+    .footer-col h3 { font-size: 1.4rem; margin-bottom: 1.5rem; color: var(--primary); }
+    .footer-col a { display: block; color: #ccc; text-decoration: none; margin-bottom: 0.9rem; transition: var(--transition); }
+    .footer-col a:hover { color: var(--primary); padding-left: 6px; }
+    .copyright { text-align: center; padding-top: 2rem; border-top: 1px solid #333; color: #888; }
 
-    /* Mobile */
     @media (max-width: 768px) {
       .menu-toggle { display: block; }
       .nav-links { position: fixed; top: 68px; left: -100%; width: 100%; height: calc(100vh - 68px);
-        background: white; flex-direction: column; padding: 2rem; transition: left 0.4s; }
+        background: white; flex-direction: column; padding: 2.5rem; transition: left 0.4s; }
       .nav-links.open { left: 0; }
-      .hero h1 { font-size: 2.8rem; }
+      .hero h1 { font-size: 3rem; }
       .products-grid { grid-template-columns: 1fr; }
       .sidebar { width: 100%; }
     }
@@ -164,22 +161,24 @@
 </head>
 <body>
 
-  <!-- Floating Filter Button -->
-  <div class="filter-btn" onclick="toggleSidebar()">Filter</div>
+  <!-- Floating Filter -->
+  <div class="filter-btn" onclick="toggleSidebar()">
+    <i class="fas fa-sliders-h"></i>
+  </div>
 
-  <!-- Category Sidebar -->
+  <!-- Sidebar -->
   <div class="sidebar" id="sidebar">
     <div class="sidebar-header">
       <h2 class="sidebar-title">Shop by</h2>
       <i class="fas fa-times close-btn" onclick="toggleSidebar()"></i>
     </div>
-    <div class="category-item active" data-category="all">All Products</div>
-    <div class="category-item" data-category="women">Women</div>
-    <div class="category-item" data-category="men">Men</div>
-    <div class="category-item" data-category="dresses">Dresses</div>
-    <div class="category-item" data-category="jackets">Jackets & Coats</div>
-    <div class="category-item" data-category="shoes">Shoes</div>
-    <div class="category-item" data-category="bags">Bags & Accessories</div>
+    <div class="category-item active" data-category="all">All Sneakers</div>
+    <div class="category-item" data-category="low-top">Low-Tops</div>
+    <div class="category-item" data-category="high-top">High-Tops</div>
+    <div class="category-item" data-category="running">Running</div>
+    <div class="category-item" data-category="basketball">Basketball</div>
+    <div class="category-item" data-category="lifestyle">Lifestyle</div>
+    <div class="category-item" data-category="limited">Limited Edition</div>
     <div class="category-item" data-category="sale">On Sale</div>
   </div>
   <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -187,14 +186,14 @@
   <!-- Navbar -->
   <nav class="navbar">
     <div class="nav-container">
-      <div class="logo">WaveyVault</div>
+      <div class="logo">ShopHub</div>
       <i class="fas fa-bars menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')"></i>
       <div class="nav-links">
-        <a href="index.html">ShopHub</a>
-        <a href="#">Women</a>
+        <a href="#">New Drops</a>
         <a href="#">Men</a>
+        <a href="#">Women</a>
         <a href="#">Sale</a>
-        <a href="user-dashboard.html">Account</a>
+        <a href="#">Account</a>
         <a href="#">Cart (0)</a>
       </div>
     </div>
@@ -202,52 +201,139 @@
 
   <!-- Hero -->
   <div class="hero">
-    <h1>Autumn Collection 2025</h1>
-    <p>Discover timeless elegance with our handcrafted luxury fashion pieces</p>
+    <h1>ShopHub Shoes</h1>
+    <p>The ultimate destination for premium sneakers, limited drops & streetwear icons.</p>
     <div class="search-container">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" class="search-box" placeholder="Search dresses, jackets, shoes..." />
+      <input type="text" id="searchInput" class="search-box" placeholder="Search Air Force, Jordan, Yeezy, Dunk..." />
     </div>
   </div>
 
+  <!-- Products -->
   <div class="container">
-    <h2 class="section-title">Featured Collection</h2>
+    <h2 class="section-title">Latest Drops</h2>
     <div class="products-grid" id="productsGrid">
 
-      <!-- 12 Real Clothing Products -->
-      <div class="product-card" data-name="silk midi dress floral" data-category="women dresses sale">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1595777457583-07798a1d1695?w=800')"></div>
+      <!-- 12 Premium Sneakers (Hardcoded) -->
+      <div class="product-card" data-name="jordan 1 travis scott" data-category="high-top limited">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1600269454247-4eb2e5d74f7b?w=800')"></div>
         <div class="product-info">
-          <div class="product-brand">Luxe Atelier</div>
-          <div class="product-name">Floral Silk Midi Dress</div>
-          <div class="product-price">$189.00 <span class="old-price">$320.00</span></div>
-          <button class="add-to-cart">Add to Bag</button>
+          <div class="product-brand">Nike x Travis Scott</div>
+          <div class="product-name">Air Jordan 1 Retro High OG</div>
+          <div class="product-price">$1,750.00</div>
+          <button class="add-to-cart">Add to Cart</button>
         </div>
       </div>
 
-      <div class="product-card" data-name="leather jacket biker" data-category="women jackets">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1551028719-00167b16eac5?w=800')"></div>
+      <div class="product-card" data-name="yeezy boost 350 onyx" data-category="lifestyle limited">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1605406575393-5e4e29c6ed72?w=800')"></div>
         <div class="product-info">
-          <div class="product-brand">Rebel Co.</div>
-          <div class="product-name">Classic Leather Biker Jacket</div>
-          <div class="product-price">$399.00</div>
-          <button class="add-to-cart">Add to Bag</button>
+          <div class="product-brand">adidas YEEZY</div>
+          <div class="product-name">Yeezy Boost 350 V2 Onyx</div>
+          <div class="product-price">$480.00</div>
+          <button class="add-to-cart">Add to Cart</button>
         </div>
       </div>
 
-      <!-- Add the other 10 clothing items with proper data-category and data-name -->
-      <!-- Example of one more: -->
-      <div class="product-card" data-name="cashmere sweater men" data-category="men">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1591047139829-4182e56d3a9c?w=800')"></div>
+      <div class="product-card" data-name="nike dunk panda" data-category="low-top">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1606106556330-4efd4b2d4d9c?w=800')"></div>
         <div class="product-info">
-          <div class="product-brand">Nordic Threads</div>
-          <div class="product-name">Italian Cashmere Sweater</div>
-          <div class="product-price">$279.00</div>
-          <button class="add-to-cart">Add to Bag</button>
+          <div class="product-brand">Nike SB</div>
+          <div class="product-name">Dunk Low Panda</div>
+          <div class="product-price">$220.00</div>
+          <button class="add-to-cart">Add to Cart</button>
         </div>
       </div>
 
-      <!-- Continue adding all 12... (I'll include all in full version on request) -->
+      <div class="product-card" data-name="air force 1 white" data-category="low-top">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1544441893-9e4d9e9e6d9f?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">Nike</div>
+          <div class="product-name">Air Force 1 '07 White</div>
+          <div class="product-price">$110.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="jordan 4 bred reimagined" data-category="high-top limited sale">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1631034110090-3282d4c511f0?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">Air Jordan</div>
+          <div class="product-name">Air Jordan 4 Bred Reimagined</div>
+          <div class="product-price">$289.00 <span class="old-price">$350.00</span></div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="new balance 550 white green" data-category="lifestyle">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1603785625788-1d2c2a2d159e?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">New Balance</div>
+          <div class="product-name">550 White/Green</div>
+          <div class="product-price">$149.99</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="adidas samba og" data-category="lifestyle">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">adidas Originals</div>
+          <div class="product-name">Samba OG Cloud White</div>
+          <div class="product-price">$125.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="nike blazer mid 77" data-category="high-top">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1606890658318-7d90e0b89871?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">Nike</div>
+          <div class="product-name">Blazer Mid '77 Vintage</div>
+          <div class="product-price">$105.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="off white out of office" data-category="low-top limited">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1620917666762-7e7f3c0b5e6c?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">Off-White</div>
+          <div class="product-name">Out Of Office "OOO" Low</div>
+          <div class="product-price">$620.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="jordan 11 cherry" data-category="high-top">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1634243792-d660c4e4c2e5?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">Air Jordan</div>
+          <div class="product-name">Air Jordan 11 Retro Cherry</div>
+          <div class="product-price">$225.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="converse chuck 70 high" data-category="high-top">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1571571857165-8d8f8d8d094d?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">Converse</div>
+          <div class="product-name">Chuck 70 Hi Black</div>
+          <div class="product-price">$90.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <div class="product-card" data-name="puma suede classic" data-category="low-top sale">
+        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1600585154363-67eb9e2f722b?w=800')"></div>
+        <div class="product-info">
+          <div class="product-brand">PUMA</div>
+          <div class="product-name">Suede Classic XXI Red</div>
+          <div class="product-price">$69.99 <span class="old-price">$95.00</span></div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
 
     </div>
   </div>
@@ -256,23 +342,34 @@
   <footer>
     <div class="footer-grid">
       <div class="footer-col">
-        <h3>VogueVault</h3>
-        <p>Luxury fashion for the modern wardrobe. Since 2020.</p>
+        <h3>ShopHub Shoes</h3>
+        <p>Your #1 source for hyped sneakers, limited releases & everyday classics.</p>
       </div>
       <div class="footer-col">
         <h3>Shop</h3>
-        <a href="#">Women</a><a href="#">Men</a><a href="#">New In</a><a href="#">Sale</a>
+        <a href="#">New Releases</a>
+        <a href="#">Best Sellers</a>
+        <a href="#">Sale</a>
+        <a href="#">Gift Cards</a>
       </div>
       <div class="footer-col">
-        <h3>Help</h3>
-        <a href="#">Shipping</a><a href="#">Returns</a><a href="#">Size Guide</a><a href="#">Contact</a>
+        <h3>Support</h3>
+        <a href="#">Size Guide</a>
+        <a href="#">Shipping</a>
+        <a href="#">Returns</a>
+        <a href="#">Contact</a>
       </div>
       <div class="footer-col">
-        <h3>Follow</h3>
-        <a href="#">Instagram</a><a href="#">Pinterest</a><a href="#">TikTok</a>
+        <h3>Connect</h3>
+        <a href="#">Instagram</a>
+        <a href="#">TikTok</a>
+        <a href="#">Twitter</a>
+        <a href="#">Discord</a>
       </div>
     </div>
-    <div class="copyright">© 2025 VogueVault. All rights reserved.</div>
+    <div class="copyright">
+      © 2025 ShopHub Shoes • All rights reserved. Built for sneakerheads.
+    </div>
   </footer>
 
   <script>
@@ -304,11 +401,9 @@
         const categories = card.dataset.category.split(' ');
         const matchesSearch = name.includes(query);
         const matchesCategory = activeCategory === 'all' || categories.includes(activeCategory);
-
         card.style.display = (matchesSearch && matchesCategory) ? 'block' : 'none';
       });
     }
   </script>
 </body>
 </html>
-
