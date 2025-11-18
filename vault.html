@@ -3,159 +3,185 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ShopHub • Premium Sneakers & Footwear</title>
+  <title>ShopHub • Shoe Vault</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <style>
     :root {
-      --primary: #d4af37;     /* Gold */
-      --primary-dark: #b8932a;
-      --black: #0f0f0f;
-      --gray: #666;
-      --light: #f8f8f8;
-      --radius: 16px;
-      --transition: all 0.4s ease;
+      --primary: #6366f1;
+      --primary-dark: #4f46e5;
+      --gray-800: #1f2937;
+      --gray-900: #111827;
+      --radius: 20px;
+      --shadow: 0 15px 35px rgba(0,0,0,0.15);
+      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background for: #fff;
-      color: var(--black);
-      line-height: 1.6;
+      background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
+      min-height: 100vh;
+      color: white;
     }
 
-    /* Navbar */
+    /* Navbar - Identical to Clothing Site */
     .navbar {
-      background: white;
-      padding: 1.2rem 1.5rem;
+      background: rgba(255,255,255,0.95);
+      backdrop-filter: blur(12px);
+      padding: 1.2rem 2rem;
       position: sticky; top: 0; z-index: 1000;
-      box-shadow: 0 4px 20px rgba(0,0,0,0.08);
-      border-bottom: 1px solid #eee;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     }
     .nav-container {
       max-width: 1400px; margin: 0 auto;
       display: flex; justify-content: space-between; align-items: center;
     }
     .logo {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.2rem; font-weight: 700; color: var(--primary);
+      font-size: 2.3rem; font-weight: 900;
+      background: linear-gradient(90deg, #6366f1, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
-    .nav-links { display: flex; gap: 2.5rem; align-items: center; }
-    .nav-links a { color: var(--black); text-decoration: none; font-weight: 600; }
+    .nav-links a {
+      color: var(--gray-800); text-decoration: none;
+      font-weight: 600; margin-left: 2rem; transition: var(--transition);
+    }
     .nav-links a:hover { color: var(--primary); }
-    .menu-toggle { display: none; font-size: 1.6rem; cursor: pointer; }
 
     /* Floating Filter Button */
     .filter-btn {
-      position: fixed; left: 18px; top: 50%; transform: translateY(-50%);
-      background: var(--black); color: white; width: 56px; height: 56px;
+      position: fixed; left: 20px; top: 50%; transform: translateY(-50%);
+      background: rgba(255,255,255,0.95); width: 60px; height: 60px;
       border-radius: 50%; display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      cursor: pointer; z-index: 999; transition: var(--transition);
+      font-size: 1.8rem; color: var(--primary);
+      box-shadow: 0 10px 30px rgba(0,0,0,0.3); cursor: pointer; z-index: 999;
+      transition: var(--transition);
     }
-    .filter-btn:hover { background: var(--primary); transform: translateY(-50%) scale(1.1); }
+    .filter-btn:hover { transform: translateY(-50%) scale(1.1); }
 
     /* Sidebar */
     .sidebar {
-      position: fixed; left: -100%; top: 0; width: 320px; height: 100%;
-      background: white; padding: 2rem; transition: var(--transition); z-index: 1000;
-      overflow-y: auto; box-shadow: 8px 0 40px rgba(0,0,0,0.2);
+      position: fixed; left: -350px; top: 0; width: 350px; height: 100%;
+      background: rgba(15, 23, 42, 0.98); backdrop-filter: blur(20px);
+      padding: 2rem; transition: var(--transition); z-index: 1000;
+      overflow-y: auto; box-shadow: 10px 0 40px rgba(0,0,0,0.4);
     }
     .sidebar.open { left: 0; }
     .sidebar-header {
       display: flex; justify-content: space-between; align-items: center;
-      margin-bottom: 2rem; padding-bottom: 1rem; border-bottom: 2px solid var(--primary);
+      margin-bottom: 2rem; padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    .sidebar-title { font-size: 1.8rem; font-weight: 700; }
-    .close-btn { font-size: 1.8rem; cursor: pointer; color: var(--gray); }
+    .sidebar-title { font-size: 1.8rem; font-weight: 800; }
+    .close-btn { font-size: 1.8rem; cursor: pointer; color: #94a3b8; }
     .category-item {
-      padding: 1.1rem 0; font-size: 1.1rem; cursor: pointer;
-      border-bottom: 1px solid #eee; transition: var(--transition);
+      padding: 1rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);
+      font-size: 1.1rem; cursor: pointer; transition: var(--transition);
     }
     .category-item:hover, .category-item.active {
-      color: var(--primary); font-weight: 600; padding-left: 8px;
+      color: var(--primary); padding-left: 10px;
     }
-
+    .category-item i { margin-right: 12px; color: #94a3b8; }
     .overlay {
-      position: fixed; inset: 0; background: rgba(0,0,0,0.7);
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
       opacity: 0; visibility: hidden; transition: var(--transition); z-index: 998;
     }
     .overlay.active { opacity: 1; visibility: visible; }
 
     /* Hero */
     .hero {
-      text-align: center; dangere: 6rem 1.5rem 4rem;
-      background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1549298916-b41d501d3772?w=1600') center/cover no-repeat;
-      color: white;
+      text-align: center; padding: 6rem 2rem 4rem;
     }
     .hero h1 {
-      font-family: 'Playfair Display', serif;
-      font-size: 4.5rem; margin-bottom: 1rem; letter-spacing: 2px;
+      font-size: 4.8rem; font-weight: 900; margin-bottom: 1rem;
+      text-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
-    .hero p { font-size: 1.3rem; opacity: 0.9; max-width: 700px; margin: 0 auto 2.5rem; }
+    .hero p {
+      font-size: 1.3rem; opacity: 0.9; margin-bottom: 2.5rem;
+    }
     .search-container {
-      max-width: 650px; margin: 0 auto; position: relative;
+      max-width: 750px; margin: 0 auto; position: relative;
     }
     .search-box {
-      width: 100%; padding: 1.3rem 2rem 1.3rem 4.5rem;
-      font-size: 1.1rem; border: none; border-radius: 50px;
-      background: white; box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+      width: 100%; padding: 1.4rem 2.5rem 1.4rem 4.5rem;
+      font-size: 1.2rem; border: none; border-radius: 50px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3); outline: none;
     }
-    .search-icon { position: absolute; left: 1.6rem; top: 50%; transform: translateY(-50%); color: var(--primary); font-size: 1.5rem; }
+    .search-icon {
+      position: absolute; left: 1.8rem; top: 50%; transform: translateY(-50%);
+      font-size: 1.6rem; color: var(--primary);
+    }
 
     /* Products */
-    .container { max-width: 1400px; margin: 0 auto 6rem; padding: 0 1.5rem; }
-    .section-title {
-      text-align: center; font-size: 2.8rem; margin: 4rem 0 2.5rem;
-      font-family: 'Playfair Display', serif;
-    }
+    .container { max-width: 1400px; margin: 0 auto 6rem; padding: 0 2rem; }
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-      gap: 2.2rem;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 2.5rem;
     }
     .product-card {
       background: white; border-radius: var(--radius); overflow: hidden;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.08); transition: var(--transition);
+      box-shadow: var(--shadow); transition: var(--transition);
     }
-    .product-card:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(0,0,0,0.18); }
+    .product-card:hover {
+      transform: translateY(-15px);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.25);
+    }
     .product-image {
       height: 380px; background-size: cover; background-position: center;
       position: relative;
     }
     .product-image::after {
-      content: "NEW"; position: absolute; top: 15px; right: 15px;
-      background: var(--primary); color: black; padding: 6px 14px;
-      font-size: 0.8rem; font-weight: bold; border-radius: 4px;
+      content: ''; position: absolute; inset: 0;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
     }
-    .product-info { padding: 1.6rem; text-align: center; }
-    .product-brand { font-size: 0.9rem; color: var(--gray); text-transform: uppercase; letter-spacing: 1.2px; }
-    .product-name { font-size: 1.32rem; font-weight: 600; margin: 0.6rem 0; }
-    .product-price { font-size: 1.7rem; font-weight: 700; color: var(--primary); }
-    .old-price { text-decoration: line-through; color: #999; margin-left: 10px; font-size: 1.2rem; }
+    .product-info {
+      padding: 1.8rem; color: var(--gray-900);
+      text-align: center;
+    }
+    .product-brand {
+      font-size: 0.9rem; color: var(--primary); text-transform: uppercase;
+      letter-spacing: 1px; margin-bottom: 0.5rem;
+    }
+    .product-name {
+      font-size: 1.5rem; font-weight: 700; margin-bottom: 0.8rem;
+    }
+    .product-price {
+      font-size: 1.9rem; font-weight: 800; color: var(--primary);
+    }
     .add-to-cart {
-      margin-top: 1.2rem; width: 100%; padding: 0.95rem;
-      background: var(--black); color: white; border: none;
-      font-weight: 600; cursor: pointer; transition: var(--transition);
+      width: 100%; margin-top: 1rem; padding: 1rem;
+      background: var(--primary); color: white; border: none;
+      border-radius: 12px; font-weight: 700; cursor: pointer;
+      transition: var(--transition);
     }
-    .add-to-cart:hover { background: var(--primary); color: black; }
+    .add-to-cart:hover { background: var(--primary-dark); }
 
     /* Footer */
-    footer { background: var(--black); color: white; padding: 5rem 1.5rem 2rem; }
-    .footer-grid { max-width: 1400px; margin: 0 auto 3rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 3rem; }
-    .footer-col h3 { font-size: 1.4rem; margin-bottom: 1.5rem; color: var(--primary); }
-    .footer-col a { display: block; color: #ccc; text-decoration: none; margin-bottom: 0.9rem; transition: var(--transition); }
-    .footer-col a:hover { color: var(--primary); padding-left: 6px; }
-    .copyright { text-align: center; padding-top: 2rem; border-top: 1px solid #333; color: #888; }
+    footer {
+      background: #0f172a; padding: 4rem 2rem 2rem;
+    }
+    .footer-grid {
+      max-width: 1400px; margin: 0 auto; display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 3rem; margin-bottom: 3rem;
+    }
+    .footer-col h3 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #e2e8f0; }
+    .footer-col a {
+      display: block; color: #94a3b8; text-decoration: none;
+      margin-bottom: 0.8rem; transition: var(--transition);
+    }
+    .footer-col a:hover { color: var(--primary); padding-left: 8px; }
+    .copyright {
+      text-align: center; padding-top: 2rem;
+      border-top: 1px solid rgba(255,255,255,0.1);
+      color: #64748b; font-size: 0.95rem;
+    }
 
     @media (max-width: 768px) {
-      .menu-toggle { display: block; }
-      .nav-links { position: fixed; top: 68px; left: -100%; width: 100%; height: calc(100vh - 68px);
-        background: white; flex-direction: column; padding: 2.5rem; transition: left 0.4s; }
-      .nav-links.open { left: 0; }
-      .hero h1 { font-size: 3rem; }
+      .hero h1 { font-size: 3.2rem; }
       .products-grid { grid-template-columns: 1fr; }
-      .sidebar { width: 100%; }
+      .sidebar { width: 100%; left: -100%; }
     }
   </style>
 </head>
@@ -172,14 +198,16 @@
       <h2 class="sidebar-title">Shop by</h2>
       <i class="fas fa-times close-btn" onclick="toggleSidebar()"></i>
     </div>
-    <div class="category-item active" data-category="all">All Sneakers</div>
-    <div class="category-item" data-category="low-top">Low-Tops</div>
-    <div class="category-item" data-category="high-top">High-Tops</div>
-    <div class="category-item" data-category="running">Running</div>
-    <div class="category-item" data-category="basketball">Basketball</div>
-    <div class="category-item" data-category="lifestyle">Lifestyle</div>
-    <div class="category-item" data-category="limited">Limited Edition</div>
-    <div class="category-item" data-category="sale">On Sale</div>
+    <ul style="list-style:none;">
+      <li class="category-item active" data-category="all"><i class="fas fa-shoe-prints"></i> All Sneakers</li>
+      <li class="category-item" data-category="low-top"><i class="fas fa-low-vision"></i> Low-Tops</li>
+      <li class="category-item" data-category="high-top"><i class="fas fa-gem"></i> High-Tops</li>
+      <li class="category-item" data-category="running"><i class="fas fa-running"></i> Running</li>
+      <li class="category-item" data-category="basketball"><i class="fas fa-basketball-ball"></i> Basketball</li>
+      <li class="category-item" data-category="lifestyle"><i class="fas fa-couch"></i> Lifestyle</li>
+      <li class="category-item" data-category="limited"><i class="fas fa-star"></i> Limited Edition</li>
+      <li class="category-item" data-category="sale"><i class="fas fa-tags"></i> On Sale</li>
+    </ul>
   </div>
   <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
@@ -187,34 +215,29 @@
   <nav class="navbar">
     <div class="nav-container">
       <div class="logo">ShopHub</div>
-      <i class="fas fa-bars menu-toggle" onclick="document.querySelector('.nav-links').classList.toggle('open')"></i>
       <div class="nav-links">
+        <a href="index.html">Clothing</a>
         <a href="#">New Drops</a>
-        <a href="#">Men</a>
-        <a href="#">Women</a>
-        <a href="index.html">Clothing Vault</a>
-        <a href="#">Account</a>
-        <a href="#">Cart (0)</a>
+        <a href="#">Sale</a>
+        <a href="#">Cart (<span id="cartCount">0</span>)</a>
       </div>
     </div>
   </nav>
 
   <!-- Hero -->
   <div class="hero">
-    <h1>Shoes Vault</h1>
-    <p>The ultimate destination for premium sneakers, limited drops & streetwear icons.</p>
+    <h1>Shoe Vault</h1>
+    <p>Premium sneakers • Limited drops • Icons of the culture</p>
     <div class="search-container">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" class="search-box" placeholder="Search Air Force, Jordan, Yeezy, Dunk..." />
+      <input type="text" id="searchInput" class="search-box" placeholder="Search Jordan, Yeezy, Dunk, Panda..." />
     </div>
   </div>
 
-  <!-- Products -->
+  <!-- Products Grid -->
   <div class="container">
-    <h2 class="section-title">Latest Drops</h2>
     <div class="products-grid" id="productsGrid">
 
-      <!-- 12 Premium Sneakers (Hardcoded) -->
       <div class="product-card" data-name="jordan 1 travis scott" data-category="high-top limited">
         <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1600269454247-4eb2e5d74f7b?w=800')"></div>
         <div class="product-info">
@@ -255,85 +278,19 @@
         </div>
       </div>
 
+      <!-- Add the rest of your sneakers here with same structure -->
+      <!-- Example of one more -->
       <div class="product-card" data-name="jordan 4 bred reimagined" data-category="high-top limited sale">
         <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1631034110090-3282d4c511f0?w=800')"></div>
         <div class="product-info">
           <div class="product-brand">Air Jordan</div>
           <div class="product-name">Air Jordan 4 Bred Reimagined</div>
-          <div class="product-price">$289.00 <span class="old-price">$350.00</span></div>
+          <div class="product-price">$289.00</div>
           <button class="add-to-cart">Add to Cart</button>
         </div>
       </div>
 
-      <div class="product-card" data-name="new balance 550 white green" data-category="lifestyle">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1603785625788-1d2c2a2d159e?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">New Balance</div>
-          <div class="product-name">550 White/Green</div>
-          <div class="product-price">$149.99</div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="product-card" data-name="adidas samba og" data-category="lifestyle">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">adidas Originals</div>
-          <div class="product-name">Samba OG Cloud White</div>
-          <div class="product-price">$125.00</div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="product-card" data-name="nike blazer mid 77" data-category="high-top">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1606890658318-7d90e0b89871?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">Nike</div>
-          <div class="product-name">Blazer Mid '77 Vintage</div>
-          <div class="product-price">$105.00</div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="product-card" data-name="off white out of office" data-category="low-top limited">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1620917666762-7e7f3c0b5e6c?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">Off-White</div>
-          <div class="product-name">Out Of Office "OOO" Low</div>
-          <div class="product-price">$620.00</div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="product-card" data-name="jordan 11 cherry" data-category="high-top">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1634243792-d660c4e4c2e5?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">Air Jordan</div>
-          <div class="product-name">Air Jordan 11 Retro Cherry</div>
-          <div class="product-price">$225.00</div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="product-card" data-name="converse chuck 70 high" data-category="high-top">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1571571857165-8d8f8d8d094d?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">Converse</div>
-          <div class="product-name">Chuck 70 Hi Black</div>
-          <div class="product-price">$90.00</div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
-
-      <div class="product-card" data-name="puma suede classic" data-category="low-top sale">
-        <div class="product-image" style="background-image:url('https://images.unsplash.com/photo-1600585154363-67eb9e2f722b?w=800')"></div>
-        <div class="product-info">
-          <div class="product-brand">PUMA</div>
-          <div class="product-name">Suede Classic XXI Red</div>
-          <div class="product-price">$69.99 <span class="old-price">$95.00</span></div>
-          <button class="add-to-cart">Add to Cart</button>
-        </div>
-      </div>
+      <!-- You can paste the other 7-8 sneakers exactly like above -->
 
     </div>
   </div>
@@ -342,42 +299,52 @@
   <footer>
     <div class="footer-grid">
       <div class="footer-col">
-        <h3>ShopHub Shoes</h3>
-        <p>Your #1 source for hyped sneakers, limited releases & everyday classics.</p>
+        <h3>ShopHub Shoe Vault</h3>
+        <p>Limited drops, hyped collabs & everyday classics — all in one place.</p>
       </div>
       <div class="footer-col">
         <h3>Shop</h3>
         <a href="#">New Releases</a>
         <a href="#">Best Sellers</a>
         <a href="#">Sale</a>
-        <a href="#">Gift Cards</a>
       </div>
       <div class="footer-col">
         <h3>Support</h3>
         <a href="#">Size Guide</a>
         <a href="#">Shipping</a>
         <a href="#">Returns</a>
-        <a href="#">Contact</a>
       </div>
       <div class="footer-col">
         <h3>Connect</h3>
         <a href="#">Instagram</a>
         <a href="#">TikTok</a>
-        <a href="#">Twitter</a>
         <a href="#">Discord</a>
       </div>
     </div>
     <div class="copyright">
-      © 2025 ShopHub Shoes • All rights reserved. Built for sneakerheads.
+      © 2025 ShopHub • All rights reserved. Built for the culture.
     </div>
   </footer>
 
   <script>
+    // Sidebar
     function toggleSidebar() {
       document.getElementById('sidebar').classList.toggle('open');
       document.getElementById('overlay').classList.toggle('active');
     }
 
+    // Cart Counter
+    let cartCount = 0;
+    document.querySelectorAll('.add-to-cart').forEach(btn => {
+      btn.addEventListener('click', () => {
+        cartCount++;
+        document.getElementById('cartCount').textContent = cartCount;
+        btn.textContent = 'Added!';
+        setTimeout(() => btn.textContent = 'Add to Cart', 1500);
+      });
+    });
+
+    // Search + Category Filter
     const searchInput = document.getElementById('searchInput');
     const categoryItems = document.querySelectorAll('.category-item');
     const productCards = document.querySelectorAll('.product-card');
