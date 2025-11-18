@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ShopHub • Premium Characters & Collectibles</title>
+  <title>ShopHub • Premium Streetwear & Designer Clothing</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
   <style>
@@ -19,7 +19,7 @@
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
       min-height: 100vh;
       color: white;
     }
@@ -57,7 +57,7 @@
     }
     .nav-links a:hover { color: var(--primary); }
 
-    /* Category Sidebar Button */
+    /* Filter Button & Sidebar */
     .filter-btn {
       position: fixed;
       left: 20px;
@@ -79,7 +79,6 @@
     }
     .filter-btn:hover { transform: translateY(-50%) scale(1.1); }
 
-    /* Sidebar */
     .sidebar {
       position: fixed;
       left: -350px;
@@ -103,18 +102,9 @@
       padding-bottom: 1rem;
       border-bottom: 1px solid rgba(255,255,255,0.1);
     }
-    .sidebar-title {
-      font-size: 1.8rem;
-      font-weight: 800;
-    }
-    .close-btn {
-      font-size: 1.8rem;
-      cursor: pointer;
-      color: #94a3b8;
-    }
-    .category-list {
-      list-style: none;
-    }
+    .sidebar-title { font-size: 1.8rem; font-weight: 800; }
+    .close-btn { font-size: 1.8rem; cursor: pointer; color: #94a3b8; }
+    .category-list { list-style: none; }
     .category-item {
       padding: 1rem 0;
       border-bottom: 1px solid rgba(255,255,255,0.05);
@@ -122,13 +112,9 @@
       cursor: pointer;
       transition: var(--transition);
     }
-    .category-item:hover {
-      color: var(--primary);
-      padding-left: 10px;
-    }
+    .category-item:hover { color: var(--primary); padding-left: 10px; }
     .category-item i { margin-right: 12px; color: #94a3b8; }
 
-    /* Overlay */
     .overlay {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
@@ -140,25 +126,30 @@
     }
     .overlay.active { opacity: 1; visibility: visible; }
 
-    /* Hero + Search */
+    /* Hero */
     .hero {
       text-align: center;
-      padding: 5rem 2rem 3rem;
+      padding: 6rem 2rem 4rem;
     }
     .hero h1 {
-      font-size: 4.5rem;
+      font-size: 4.8rem;
       font-weight: 900;
       margin-bottom: 1rem;
       text-shadow: 0 10px 30px rgba(0,0,0,0.4);
     }
+    .hero p {
+      font-size: 1.3rem;
+      opacity: 0.9;
+      margin-bottom: 2.5rem;
+    }
     .search-container {
       max-width: 750px;
-      margin: 0 auto 4rem;
+      margin: 0 auto;
       position: relative;
     }
     .search-box {
       width: 100%;
-      padding: 1.3rem 2.5rem;
+      padding: 1.4rem 2.5rem;
       padding-left: 4.5rem;
       font-size: 1.2rem;
       border: none;
@@ -186,15 +177,54 @@
       grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
       gap: 2.5rem;
     }
-    .product-card { /* same as before */ }
-    .product-card:hover { transform: translateY(-15px); box-shadow: 0 30px 70px rgba(0,0,0,0.25); }
-    .product-image { height: 320px; background-size: cover; background-position: center; position: relative; }
-    .product-image::after { content:''; position:absolute; bottom:0; left:0; right:0; height:100%; background:linear-gradient(transparent, rgba(0,0,0,0.7)); }
-    .product-info { padding: 2rem; background: white; color: var(--gray-900); }
-    .product-name { font-size: 1.6rem; font-weight: 700; }
-    .product-price { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 1rem 0; }
+    .product-card {
+      background: white;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+      transition: var(--transition);
+    }
+    .product-card:hover {
+      transform: translateY(-15px);
+      box-shadow: 0 30px 70px rgba(0,0,0,0.25);
+    }
+    .product-image {
+      height: 380px;
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .product-image::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 100%;
+      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+    }
+    .product-info {
+      padding: 1.8rem;
+      color: var(--gray-900);
+    }
+    .product-name {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .product-category {
+      font-size: 0.9rem;
+      color: #6366f1;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 0.8rem;
+    }
+    .product-price {
+      font-size: 1.9rem;
+      font-weight: 800;
+      color: var(--primary);
+    }
     .add-to-cart {
       width: 100%;
+      margin-top: 1rem;
       padding: 1rem;
       background: var(--primary);
       color: white;
@@ -210,7 +240,6 @@
     footer {
       background: #0f172a;
       padding: 4rem 2rem 2rem;
-      margin-top: auto;
     }
     .footer-grid {
       max-width: 1400px;
@@ -220,11 +249,7 @@
       gap: 3rem;
       margin-bottom: 3rem;
     }
-    .footer-col h3 {
-      font-size: 1.4rem;
-      margin-bottom: 1.5rem;
-      color: #e2e8f0;
-    }
+    .footer-col h3 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #e2e8f0; }
     .footer-col a {
       display: block;
       color: #94a3b8;
@@ -233,14 +258,9 @@
       transition: var(--transition);
     }
     .footer-col a:hover { color: var(--primary); padding-left: 8px; }
-    .social-links {
-      display: flex;
-      gap: 1rem;
-      margin-top: 1rem;
-    }
+    .social-links { display: flex; gap: 1rem; margin-top: 1rem; }
     .social-links a {
-      width: 44px;
-      height: 44px;
+      width: 44px; height: 44px;
       background: rgba(99,102,241,0.2);
       border-radius: 50%;
       display: flex;
@@ -259,10 +279,9 @@
     }
 
     @media (max-width: 768px) {
-      .hero h1 { font-size: 3rem; }
+      .hero h1 { font-size: 3.2rem; }
       .products-grid { grid-template-columns: 1fr; }
       .sidebar { width: 100%; left: -100%; }
-      .sidebar.open { left: 0; }
     }
   </style>
 </head>
@@ -280,14 +299,14 @@
       <i class="fas fa-times close-btn" onclick="toggleSidebar()"></i>
     </div>
     <ul class="category-list">
-      <li class="category-item"><i class="fas fa-sword"></i> Warriors & Samurai</li>
-      <li class="category-item"><i class="fas fa-dragon"></i> Mythical Beasts</li>
-      <li class="category-item"><i class="fas fa-mask"></i> Ninjas & Assassins</li>
-      <li class="category-item"><i class="fas fa-fire"></i> Phoenix & Fire</li>
-      <li class="category-item"><i class="fas fa-snowflake"></i> Ice & Arctic</li>
-      <li class="category-item"><i class="fas fa-cogs"></i> Steampunk</li>
-      <li class="category-item"><i class="fas fa-robot"></i> Cyberpunk</li>
+      <li class="category-item"><i class="fas fa-tshirt"></i> Streetwear</li>
+      <li class="category-item"><i class="fas fa-jacket"></i> Jackets & Coats</li>
+      <li class="category-item"><i class="fas fa-female"></i> Women's</li>
+      <li class="category-item"><i class="fas fa-male"></i> Men's</li>
+      <li class="category-item"><i class="fas fa-snowflake"></i> Winter Collection</li>
+      <li class="category-item"><i class="fas fa-sun"></i> Summer Drop</li>
       <li class="category-item"><i class="fas fa-star"></i> Limited Edition</li>
+      <li class="category-item"><i class="fas fa-tags"></i> Sale</li>
     </ul>
   </div>
   <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
@@ -297,47 +316,115 @@
     <div class="nav-container">
       <div class="logo">ShopHub</div>
       <div class="nav-links">
-        <a href="userDashboard.html">My Orders</a>
-        <a href="AdminDashboard.html">Admin</a>
-        <a href="vault.html">Shoes</a>
+        <a href="#">My Orders</a>
+        <a href="#">Wishlist</a>
         <a href="#">Cart (0)</a>
       </div>
     </div>
   </nav>
 
-  <!-- Hero + Search -->
+  <!-- Hero -->
   <div class="hero">
-    <h1>Premium Characters</h1>
-    <p>Discover rare digital & physical collectibles from legendary universes</p>
+    <h1>ShopHub Clothing</h1>
+    <p>Premium streetwear, designer pieces & limited drops — curated for the culture.</p>
     <div class="search-container">
       <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" class="search-box" placeholder="Search characters, heroes, villains..." />
+      <input type="text" id="searchInput" class="search-box" placeholder="Search hoodies, jackets, tees, pants..." />
     </div>
   </div>
 
   <!-- Products Grid -->
   <div class="container">
     <div class="products-grid" id="productsGrid">
-      <!-- Same 6 character cards from previous version -->
-      <div class="product-card" data-name="neon samurai cyberpunk warrior">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1612036782180-6f0b6cd846fe?w=800')"></div>
+
+      <!-- Product 1 -->
+      <div class="product-card" data-name="midnight bomber jacket leather">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1551028719-00167b629994?w=800')"></div>
         <div class="product-info">
-          <div class="product-name">Neon Samurai</div>
+          <div class="product-category">Jackets</div>
+          <div class="product-name">Midnight Leather Bomber</div>
+          <div class="product-price">$279.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <!-- Product 2 -->
+      <div class="product-card" data-name="oversized graphic hoodie black">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1509942774463-acf5106f50d8?w=800')"></div>
+        <div class="product-info">
+          <div class="product-category">Streetwear</div>
+          <div class="product-name">Eclipse Oversized Hoodie</div>
           <div class="product-price">$89.99</div>
           <button class="add-to-cart">Add to Cart</button>
         </div>
       </div>
-      <!-- Repeat other 5 cards here (same as before) -->
-      <!-- I'll include just one more for brevity -->
-      <div class="product-card" data-name="crystal dragon legendary beast">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1541368500412-7e96b94f7b5a?w=800')"></div>
+
+      <!-- Product 3 -->
+      <div class="product-card" data-name="vintage denim jacket washed">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=800')"></div>
         <div class="product-info">
-          <div class="product-name">Crystal Dragon</div>
-          <div class="product-price">$149.99</div>
+          <div class="product-category">Men's</div>
+          <div class="product-name">1998 Washed Denim Jacket</div>
+          <div class="product-price">$149.00</div>
           <button class="add-to-cart">Add to Cart</button>
         </div>
       </div>
-      <!-- Add the other 4 cards exactly like before -->
+
+      <!-- Product 4 -->
+      <div class="product-card" data-name="cargo pants techwear black">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=800')"></div>
+        <div class="product-info">
+          <div class="product-category">Techwear</div>
+          <div class="product-name">Shadow Cargo Pants</div>
+          <div class="product-price">$119.99</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <!-- Product 5 -->
+      <div class="product-card" data-name="cream knit sweater women">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1611318368081-39714e349c05?w=800')"></div>
+        <div class="product-info">
+          <div class="product-category">Women's</div>
+          <div class="product-name">Vanilla Cloud Knit Sweater</div>
+          <div class="product-price">$94.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <!-- Product 6 -->
+      <div class="product-card" data-name="limited chrome hoodie reflective">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1622440268107-547a13f9be02?w=800')"></div>
+        <div class="product-info">
+          <div class="product-category">Limited Edition</div>
+          <div class="product-name">Chrome Reflective Hoodie</div>
+          <div class="product-price">$199.99</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <!-- Product 7 -->
+      <div class="product-card" data-name="puffer jacket winter purple">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1548126031-0ab61a58c3b8?w=800')"></div>
+        <div class="product-info">
+          <div class="product-category">Winter</div>
+          <div class="product-name">Aurora Puffer Jacket</div>
+          <div class="product-price">$329.00</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
+      <!-- Product 8 -->
+      <div class="product-card" data-name="vintage band tee black">
+        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1582659761484-659e2e13ab90?w=800')"></div>
+        <div class="product-info">
+          <div class="product-category">Streetwear</div>
+          <div class="product-name">Neon Nights Band Tee</div>
+          <div class="product-price">$44.99</div>
+          <button class="add-to-cart">Add to Cart</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -346,38 +433,38 @@
     <div class="footer-grid">
       <div class="footer-col">
         <h3>ShopHub</h3>
-        <p>Your #1 destination for premium digital & physical character collectibles.</p>
+        <p>Premium streetwear & designer clothing for those who set trends, not follow them.</p>
         <div class="social-links">
+          <a href="#"><i class="fab fa-instagram"></i></a>
+          <a href="#"><i class="fab fa-tiktok"></i></a>
           <a href="#"><i class="fab fa-twitter"></i></a>
           <a href="#"><i class="fab fa-discord"></i></a>
-          <a href="#"><i class="fab fa-instagram"></i></a>
-          <a href="#"><i class="fab fa-youtube"></i></a>
         </div>
       </div>
       <div class="footer-col">
         <h3>Shop</h3>
-        <a href="#">New Arrivals</a>
+        <a href="#">New Drops</a>
         <a href="#">Best Sellers</a>
-        <a href="#">Limited Edition</a>
+        <a href="#">Sale</a>
         <a href="#">Gift Cards</a>
       </div>
       <div class="footer-col">
         <h3>Support</h3>
-        <a href="#">Help Center</a>
-        <a href="#">Shipping Info</a>
+        <a href="#">Size Guide</a>
+        <a href="#">Shipping</a>
         <a href="#">Returns</a>
-        <a href="#">Contact Us</a>
+        <a href="#">Contact</a>
       </div>
       <div class="footer-col">
         <h3>Company</h3>
-        <a href="#">About Us</a>
+        <a href="#">About</a>
         <a href="#">Careers</a>
         <a href="#">Press</a>
-        <a href="#">Affiliates</a>
+        <a href="#">Collab</a>
       </div>
     </div>
     <div class="copyright">
-      © 2025 ShopHub. All rights reserved. Made with <i class="fas fa-heart" style="color:#ef4444"></i> for collectors.
+      © 2025 ShopHub Clothing • All rights reserved. Made for the culture.
     </div>
   </footer>
 
@@ -387,11 +474,11 @@
       document.getElementById('overlay').classList.toggle('active');
     }
 
-    // Live Search (same as before)
+    // Live Search
     document.getElementById('searchInput').addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase();
       document.querySelectorAll('.product-card').forEach(card => {
-        const name = card.getAttribute('data-name');
+        const name = card.getAttribute('data-name').toLowerCase();
         card.style.display = name.includes(query) ? 'block' : 'none';
       });
     });
