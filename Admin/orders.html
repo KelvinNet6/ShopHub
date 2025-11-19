@@ -77,5 +77,21 @@
   </div>
 
   <script src="script.js"></script>
+   <script>
+  async function loadSidebar() {
+    const res = await fetch("sidebar.html");
+    const html = await res.text();
+    document.getElementById("sidebar-container").innerHTML = html;
+
+    // Highlight the active link
+    const current = location.pathname.split("/").pop();
+    document.querySelectorAll(".nav-link").forEach(link => {
+      if (link.getAttribute("href") === current) {
+        link.classList.add("active");
+      }
+    });
+  }
+  loadSidebar();
+</script>
 </body>
 </html>
