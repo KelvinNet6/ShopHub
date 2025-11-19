@@ -1,1 +1,81 @@
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Products • ShopHub Admin</title>
+
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+</head>
+
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sidebar">
+  <div class="logo">ShopHub</div>
+  <ul class="nav-menu">
+    <li><a href="#" class="nav-link"><i class="fas fa-tachometer-alt"></i><span>Dashboard</span></a></li>
+    <li><a class="nav-link active"><i class="fas fa-box"></i><span>Products</span></a></li>
+    <li><a href="#" class="nav-link"><i class="fas fa-shopping-cart"></i><span>Orders</span></a></li>
+    <li><a href="#" class="nav-link"><i class="fas fa-users"></i><span>Customers</span></a></li>
+    <li><a href="#" class="nav-link"><i class="fas fa-chart-bar"></i><span>Analytics</span></a></li>
+  </ul>
+</aside>
+
+<!-- MAIN CONTENT -->
+<main class="main-content">
+  <div class="page-header">
+    <h1>Products</h1>
+    <button class="add-btn" id="addProductBtn">+ Add Product</button>
+  </div>
+
+  <div class="search-wrapper">
+    <input type="text" class="search-input" id="searchInput" placeholder="Search by name, brand, price or ID...">
+  </div>
+
+  <div class="table-container">
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th><th>Name</th><th>Category</th><th>Brand</th><th>Price</th><th>Stock</th><th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="productTableBody"></tbody>
+    </table>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="modal-bg" id="modalBg">
+  <div class="modal">
+    <span class="close-modal" id="closeModal">×</span>
+    <h2 id="modalTitle">Add Product</h2>
+
+    <label>Category</label>
+    <select id="category"></select>
+
+    <label>Brand</label>
+    <select id="brand"></select>
+
+    <label>Name</label>
+    <input type="text" id="name">
+
+    <label>Price ($)</label>
+    <input type="number" id="price" step="0.01">
+
+    <label>Stock</label>
+    <input type="number" id="stock">
+
+    <button class="save-btn" id="saveProductBtn">Save Product</button>
+  </div>
+</div>
+
+<!-- JS -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
