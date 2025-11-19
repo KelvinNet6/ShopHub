@@ -26,6 +26,8 @@ body {
   overflow-x: hidden;
 }
 
+.header { background: white; padding: 1.5rem 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; } .welcome { font-size: 1.9rem; font-weight: 700; }
+
 /* ------------ SIDEBAR ------------ */
 .sidebar {
   width: 80px;
