@@ -75,7 +75,22 @@ function setupDOM() {
   const catSelect = document.getElementById("category");
   if (catSelect) catSelect.onchange = loadBrandOptions;
 }
+document.addEventListener("DOMContentLoaded", () => {
+  setupDOM();
+  setupCustomerDOM();
 
+  // Load everything
+  Promise.all([
+    loadProducts(),
+    loadOrders(),
+    loadCustomers() // this now calls updateStats() inside
+  ]).then(() => {
+    if (document.querySelector(".stats-grid")) updateStats(); // extra safety
+    if (document.getElementById("salesChart")) loadAnalytics();
+  });
+
+  document.getElementById("dateRange")?.addEventListener("change", loadAnalytics);
+});
 function setupCustomerDOM() {
   customerModalBg = document.getElementById("customerModalBg");
   const closeBtn = document.getElementById("closeCustomerModal");
@@ -83,6 +98,35 @@ function setupCustomerDOM() {
   if (customerModalBg) customerModalBg.onclick = e => e.target === customerModalBg && (customerModalBg.style.display = "none");
 }
 
+// ADD THIS FUNCTION — This is what was missing!
+async function updateStats() {
+  // Total Customers
+  document.getElementById("totalCustomers") && 
+    (document.getElementById("totalCustomers").textContent = customers.length);
+
+  // Total Revenue (all time)
+  const { data, error } = await supabaseClient
+    .from("orders")
+    .select("total");
+
+  if (!error && data) {
+    const revenue = data.reduce((sum, o) => sum + Number(o.total), 0);
+    document.getElementById("totalRevenueDash") && 
+      (document.getElementById("totalRevenueDash").textContent = "$" + revenue.toLocaleString());
+  }
+
+  // Total Orders
+  const { count } = await supabaseClient
+    .from("orders")
+    .select("*", { count: "exact", head: true });
+
+  document.getElementById("totalOrdersDash") && 
+    (document.getElementById("totalOrdersDash").textContent = count || 0);
+
+  // Total Products
+  document.getElementById("totalProductsDash") && 
+    (document.getElementById("totalProductsDash").textContent = products.length);
+}
 // ==================== PRODUCTS (Example - keep your full working version) ====================
 async function loadProducts() {
   const { data, error } = await supabaseClient.from("products").select("*").order("created_at", { ascending: false });
@@ -242,10 +286,16 @@ window.viewOrder = (id) => {
 };
 
 // ==================== CUSTOMERS — FULLY FIXED ====================
+// REPLACE YOUR ENTIRE loadCustomers() and renderCustomers() with this:
+
 async function loadCustomers() {
   const { data, error } = await supabaseClient
     .from("customers")
-    .select("*, orders(count), orders!orders_customer_id_fkey(total:sum(total))")
+    .select(`
+      id, name, email, phone, address, created_at,
+      orders(count),
+      orders!orders_customer_id_fkey(total:sum(total))
+    `)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -255,33 +305,49 @@ async function loadCustomers() {
   }
 
   customers = (data || []).map(c => ({
-    ...c,
-    orders_count: c.orders?.[0]?.count || 0,
-    total_spent: Number(c.orders?.[0]?.total || 0)
+    id: c.id,
+    name: c.name || "Unknown",
+    email: c.email || null,
+    phone: c.phone || null,
+    address: c.address || null,
+    created_at: c.created_at,
+    orders_count: c.orders[0]?.count || 0,
+    total_spent: Number(c.orders[0]?.total || 0)
   }));
 
   renderCustomers(customers);
+  updateStats(); // This fixes dashboard stats!
 }
 
 function renderCustomers(list) {
   const tbody = document.getElementById("customersTableBody");
   const totalEl = document.getElementById("totalCustomers");
-  if (!tbody) return;
 
+  if (!tbody) return;
   if (totalEl) totalEl.textContent = list.length;
 
-  tbody.innerHTML = list.length ? "" : `<tr><td colspan="6" class="text-center py-8 text-gray-500">No customers found</td></tr>`;
+  if (list.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-gray-500">No customers found</td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = ""; // clear first
 
   list.forEach(c => {
-    tbody.innerHTML += `
-      <tr class="hover:bg-gray-50 cursor-pointer" onclick="viewCustomer(${c.id})">
-        <td class="font-medium">${c.name}</td>
-        <td>${c.email || '—'}</td>
-        <td>${c.phone || '—'}</td>
-        <td class="text-center">${c.orders_count}</td>
-        <td class="font-medium">$${c.total_spent.toFixed(2)}</td>
-        <td class="text-sm text-gray-500">${formatDate(c.created_at)}</td>
-      </tr>`;
+    const row = document.createElement("tr");
+    row.className = "hover:bg-gray-50 cursor-pointer";
+    row.onclick = () => viewCustomer(c.id);
+
+    row.innerHTML = `
+      <td class="font-medium py-3">${c.name}</td>
+      <td class="text-gray-600">${c.email || '—'}</td>
+      <td class="text-gray-600">${c.phone || '—'}</td>
+      <td class="text-center font-medium">${c.orders_count}</td>
+      <td class="font-medium text-green-600">$${c.total_spent.toFixed(2)}</td>
+      <td class="text-sm text-gray-500">${formatDate(c.created_at)}</td>
+    `;
+
+    tbody.appendChild(row);
   });
 }
 
