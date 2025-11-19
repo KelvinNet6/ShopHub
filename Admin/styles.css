@@ -371,3 +371,8 @@ tr:hover { background: #f9fafb; }
   0%,100% { opacity:0; transform:translateX(-50%) translateY(20px); }
   15%,85% { opacity:1; transform:translateX(-50%) translateY(0); }
 }
+
+.charts-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 2rem; margin-top: 2rem; }
+    .chart-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
+    .chart-card h3 { margin: 0 0 1rem 0; color: #1e293b; font-size: 1.1rem; }
+    canvas { max-height: 300px; }
