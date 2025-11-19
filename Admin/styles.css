@@ -28,6 +28,7 @@ body {
 
 .header { background: white; padding: 1.5rem 2rem; border-radius: var(--radius); box-shadow: var(--shadow); margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; } .welcome { font-size: 1.9rem; font-weight: 700; }
 
+.admin-avatar { width: 52px; height: 52px; background: var(--primary); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 1.5rem; }
 /* ------------ SIDEBAR ------------ */
 .sidebar {
   width: 80px;
