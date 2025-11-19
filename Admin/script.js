@@ -190,16 +190,26 @@ function renderOrders(list) {
   }
 
   list.forEach(o => {
-    const items = JSON.parse(o.items || "[]");
+    let items = [];
+    try {
+      // This safely parses both real JSON and stringified JSON
+      items = typeof o.items === "string" ? JSON.parse(o.items) : o.items || [];
+    } catch (e) {
+      console.warn("Bad items data:", o.items);
+      items = [];
+    }
+
+    const itemsCount = items.length;
+
     tbody.innerHTML += `
       <tr>
         <td><strong>#${o.order_id}</strong></td>
         <td>${formatDate(o.date)}</td>
-        <td><div><strong>${o.customer}</strong><br><small>${o.email}</small></div></td>
-        <td>${items.length} item${items.length > 1 ? "s" : ""}</td>
+        <td><div><strong>${o.customer}</strong><br><small>${o.email || ''}</small></div></td>
+        <td>${itemsCount} item${itemsCount > 1 ? "s" : ""}</td>
         <td><strong>$${Number(o.total).toFixed(2)}</strong></td>
-        <td><span class="badge payment-${o.payment}">${o.payment.toUpperCase()}</span></td>
-        <td><span class="badge status-${o.status}">${o.status.toUpperCase()}</span></td>
+        <td><span class="badge payment-${o.payment}">${(o.payment || 'card').toUpperCase()}</span></td>
+        <td><span class="badge status-${o.status}">${(o.status || 'pending').toUpperCase()}</span></td>
         <td><button class="view-btn" onclick="viewOrder('${o.id}')">View</button></td>
       </tr>`;
   });
@@ -236,8 +246,8 @@ function filterOrders() {
 window.viewOrder = (id) => {
   const order = orders.find(o => o.id === id);
   if (!order) return;
-  currentOrderId = id;
 
+  currentOrderId = id;
   document.getElementById("modalOrderId").textContent = `#${order.order_id}`;
   document.getElementById("modalCustomer").textContent = order.customer;
   document.getElementById("modalEmail").textContent = order.email || "—";
@@ -245,19 +255,30 @@ window.viewOrder = (id) => {
   document.getElementById("modalTotal").textContent = `$${Number(order.total).toFixed(2)}`;
 
   const itemsDiv = document.getElementById("modalItems");
+  itemsDiv.innerHTML = "<em>Loading items...</em>";
+
+  let items = [];
+  try {
+    items = typeof order.items === "string" ? JSON.parse(order.items) : order.items || [];
+  } catch (e) {
+    itemsDiv.innerHTML = "<em>Invalid items data</em>";
+    console.error("Failed to parse items:", order.items);
+    return;
+  }
+
   itemsDiv.innerHTML = "";
-  JSON.parse(order.items || "[]").forEach(item => {
+  items.forEach(item => {
     const div = document.createElement("div");
     div.className = "order-item";
-    div.innerHTML = `<span>${item.qty} × ${item.name}</span><span>$${(item.qty * item.price).toFixed(2)}</span>`;
+    div.innerHTML = `<span>${item.qty || 1} × ${item.name || 'Unknown'}</span><span>$${( (item.qty || 1) * (item.price || 0) ).toFixed(2)}</span>`;
     itemsDiv.appendChild(div);
   });
 
+  // Populate status dropdown
   const select = document.getElementById("statusSelect");
   select.innerHTML = "";
   ["pending","processing","shipped","delivered","cancelled"].forEach(s => {
-    const opt = new Option(s.charAt(0).toUpperCase() + s.slice(1), s, false, s === order.status);
-    select.add(opt);
+    select.add(new Option(s.charAt(0).toUpperCase() + s.slice(1), s, false, s === order.status));
   });
 
   modalBg.style.display = "flex";
