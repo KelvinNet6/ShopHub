@@ -1,280 +1,337 @@
-// ==================== SUPABASE CLIENT ====================
-const SUPABASE_URL = "https://nhyucbgjocmwrkqbjjme.supabase.co";
-const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE";
+// SUPABASE INIT
+const supabase = supabasejs.createClient(
+  "https://nhyucbgjocmwrkqbjjme.supabase.co",
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
+);
 
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+// Detect current page
+const PAGE = location.pathname.split("/").pop();
 
-// ==================== GLOBALS ====================
-let products = [], orders = [], customers = [];
-let editingProductId = null;
-let charts = {};
+document.addEventListener("DOMContentLoaded", () => {
+  if (PAGE === "index.html" || PAGE === "") loadDashboard();
+  if (PAGE === "customers.html") loadCustomers();
+  if (PAGE === "products.html") loadProducts();
+  if (PAGE === "orders.html") loadOrders();
+  if (PAGE === "analytics.html") loadAnalytics();
+});
 
-// ==================== UTILS ====================
-const showToast = (msg, error = false) => {
-  const t = document.createElement("div");
-  t.textContent = msg;
-  t.style.cssText = `position:fixed;bottom:20px;right:20px;padding:1rem 1.5rem;border-radius:8px;z-index:9999;color:white;font-size:14px;${error ? 'background:#ef4444' : 'background:#10b981'};box-shadow:0 4px 12px rgba(0,0,0,0.15);transition:opacity 0.3s;`;
-  document.body.appendChild(t);
-  setTimeout(() => t.style.opacity = "0", 3000);
-  setTimeout(() => t.remove(), 3500);
-};
+// =====================================
+// UTILITY
+// =====================================
+function fmtDate(d) {
+  return new Date(d).toLocaleDateString();
+}
 
-const formatDate = (d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+function closeAllModals() {
+  document.querySelectorAll(".modal-bg").forEach(m => m.style.display = "none");
+}
 
-const safeJSONParse = (val) => {
-  if (Array.isArray(val)) return val;
-  if (!val || typeof val !== "string") return [];
-  try { return JSON.parse(val); } catch (e) { console.warn("JSON parse error:", val); return []; }
-};
-
-// ==================== DASHBOARD ====================
+// =====================================
+// ---------------- DASHBOARD ----------------
+// =====================================
 async function loadDashboard() {
-  try {
-    const [{ data: ordersData, count: ordersCount }, { count: productsCount }, { count: customersCount }] = await Promise.all([
-      supabase.from("orders").select("total", { count: "exact" }),
-      supabase.from("products").select("id", { count: "exact", head: true }),
-      supabase.from("customers").select("id", { count: "exact", head: true })
-    ]);
+  const [{ data: orders }, { data: products }, { data: customers }] = await Promise.all([
+    supabase.from("orders").select("total"),
+    supabase.from("products").select("id"),
+    supabase.from("customers").select("id")
+  ]);
 
-    const revenue = ordersData?.reduce((sum, o) => sum + Number(o.total), 0) || 0;
+  const revenue = orders.reduce((s, o) => s + Number(o.total), 0);
 
-    document.getElementById("sales") && (document.getElementById("sales").textContent = "$" + revenue.toLocaleString());
-    document.getElementById("orders") && (document.getElementById("orders").textContent = ordersCount || 0);
-    document.getElementById("products") && (document.getElementById("products").textContent = productsCount || 0);
-    document.getElementById("customers") && (document.getElementById("customers").textContent = customersCount || 0);
-  } catch (err) {
-    console.error("Dashboard error:", err);
-    showToast("Failed to load dashboard", true);
-  }
+  document.getElementById("sales").textContent = `$${revenue.toFixed(2)}`;
+  document.getElementById("orders").textContent = orders.length;
+  document.getElementById("products").textContent = products.length;
+  document.getElementById("customers").textContent = customers.length;
+
+  loadRecentOrders();
 }
 
-// ==================== PRODUCTS PAGE ====================
+async function loadRecentOrders() {
+  const { data } = await supabase
+    .from("orders")
+    .select("*, customers(name)")
+    .order("id", { ascending: false })
+    .limit(5);
+
+  document.getElementById("ordersTableBody").innerHTML = data.map(o => `
+    <tr>
+      <td>#${o.id}</td>
+      <td>${o.customers.name}</td>
+      <td>${fmtDate(o.created_at)}</td>
+      <td>$${o.total}</td>
+      <td class="status ${o.status}">${o.status}</td>
+    </tr>
+  `).join("");
+}
+
+// =====================================
+// ---------------- CUSTOMERS ----------------
+// =====================================
+async function loadCustomers() {
+  const { data } = await supabase.from("customers").select("*").order("id");
+
+  document.getElementById("totalCustomers").textContent = data.length;
+
+  document.getElementById("customersTableBody").innerHTML = data.map(c => `
+    <tr>
+      <td>${c.name}</td>
+      <td>${c.email || "-"}</td>
+      <td>${c.phone || "-"}</td>
+      <td>
+        <button class="btn view" onclick="openCustomer(${c.id})">
+          <i class="fa fa-eye"></i> View
+        </button>
+      </td>
+    </tr>
+  `).join("");
+}
+
+async function openCustomer(id) {
+  const { data: customer } = await supabase
+    .from("customers")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("*")
+    .eq("customer_id", id);
+
+  document.getElementById("customerModalName").textContent = customer.name;
+  document.getElementById("customerModalEmail").textContent = customer.email;
+  document.getElementById("customerModalPhone").textContent = customer.phone;
+  document.getElementById("customerModalAddress").textContent = customer.address;
+  document.getElementById("customerModalJoined").textContent = fmtDate(customer.created_at);
+
+  document.getElementById("customerModalOrders").textContent = orders.length;
+  document.getElementById("customerModalSpent").textContent = 
+    "$" + orders.reduce((s,o)=>s+Number(o.total),0).toFixed(2);
+
+  document.getElementById("customerOrdersList").innerHTML =
+    orders.map(o => `<div>#${o.id} — $${o.total} (${o.status})</div>`).join("");
+
+  document.getElementById("customerModalBg").style.display = "flex";
+}
+
+document.getElementById("closeCustomerModal")?.addEventListener("click", closeAllModals);
+
+// =====================================
+// ---------------- PRODUCTS ----------------
+// =====================================
 async function loadProducts() {
-  const tbody = document.getElementById("productTableBody");
-  if (!tbody) return;
+  const [{ data: categories }, { data: brands }, { data: products }] = await Promise.all([
+    supabase.from("categories").select("*"),
+    supabase.from("brands").select("*"),
+    supabase.from("products").select("*, categories(name), brands(name)").order("id")
+  ]);
 
-  const { data, error } = await supabase.from("products").select("*").order("created_at", { ascending: false });
-  if (error) { showToast("Failed to load products: " + error.message, true); console.error(error); return; }
+  // fill dropdowns
+  document.getElementById("category").innerHTML = 
+    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
 
-  products = data || [];
-  tbody.innerHTML = products.length ? "" : `<tr><td colspan="7" class="text-center py-12 text-gray-500">No products found</td></tr>`;
+  document.getElementById("brand").innerHTML = 
+    brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
 
-  products.forEach(p => {
-    tbody.innerHTML += `
-      <tr>
-        <td>${p.id.slice(-8)}</td>
-        <td class="font-medium">${p.name}</td>
-        <td>${p.category || '—'}</td>
-        <td>${p.brand || '—'}</td>
-        <td>$${Number(p.price).toFixed(2)}</td>
-        <td>${p.stock}</td>
-        <td>
-          <button onclick="openProductModal('${p.id}')" class="text-blue-600 hover:underline mr-4">Edit</button>
-          <button onclick="deleteProduct('${p.id}')" class="text-red-600 hover:underline">Delete</button>
-        </td>
-      </tr>`;
-  });
+  // fill table
+  document.getElementById("productTableBody").innerHTML = products.map(p => `
+    <tr>
+      <td>${p.id}</td>
+      <td>${p.name}</td>
+      <td>${p.categories?.name || "-"}</td>
+      <td>${p.brands?.name || "-"}</td>
+      <td>$${p.price}</td>
+      <td>${p.stock}</td>
+      <td>
+        <button class="btn edit" onclick="editProduct(${p.id})">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button class="btn delete" onclick="deleteProduct(${p.id})">
+          <i class="fa fa-trash"></i>
+        </button>
+      </td>
+    </tr>
+  `).join("");
+
+  document.getElementById("addProductBtn")?.addEventListener("click", openAddProduct);
 }
 
-window.openProductModal = (id = null) => {
-  editingProductId = id;
-  const p = id ? products.find(x => x.id === id) : null;
+function openAddProduct() {
+  document.getElementById("modalTitle").textContent = "Add Product";
+  document.getElementById("saveProductBtn").onclick = saveProduct;
+  document.getElementById("modalBg").style.display = "flex";
+}
 
-  document.getElementById("name").value = p?.name || "";
-  document.getElementById("category").value = p?.category || "";
-  document.getElementById("brand").value = p?.brand || "";
-  document.getElementById("price").value = p?.price || "";
-  document.getElementById("stock").value = p?.stock || "";
-
-  const modal = document.querySelector("#modalBg") || document.querySelector(".modal-bg");
-  if (modal) modal.style.display = "flex";
-};
-
-window.deleteProduct = async (id) => {
-  if (!confirm("Delete this product permanently?")) return;
-  const { error } = await supabase.from("products").delete().eq("id", id);
-  if (error) {
-    showToast("Delete failed: " + error.message, true);
-  } else {
-    showToast("Product deleted");
-    loadProducts();
-  }
-};
-
-// Save Product
-document.getElementById("saveProductBtn")?.addEventListener("click", async () => {
-  const payload = {
-    name: document.getElementById("name").value.trim(),
-    category: document.getElementById("category").value.trim(),
-    brand: document.getElementById("brand").value.trim(),
-    price: parseFloat(document.getElementById("price").value),
-    stock: parseInt(document.getElementById("stock").value, 10)
+async function saveProduct() {
+  const body = {
+    name: document.getElementById("name").value,
+    category_id: document.getElementById("category").value,
+    brand_id: document.getElementById("brand").value,
+    price: Number(document.getElementById("price").value),
+    stock: Number(document.getElementById("stock").value),
   };
 
-  if (!payload.name || isNaN(payload.price) || isNaN(payload.stock) || payload.price < 0 || payload.stock < 0) {
-    showToast("Please fill all fields correctly", true);
-    return;
-  }
+  await supabase.from("products").insert(body);
+  location.reload();
+}
 
-  try {
-    let error;
-    if (editingProductId) {
-      ({ error } = await supabase.from("products").update(payload).eq("id", editingProductId));
-    } else {
-      ({ error } = await supabase.from("products").insert([payload]));
-    }
+async function editProduct(id) {
+  const { data: p } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
 
-    if (error) throw error;
+  document.getElementById("modalTitle").textContent = "Edit Product";
 
-    showToast(editingProductId ? "Product updated!" : "Product added!");
-    document.querySelector("#modalBg")?.style = "display:none";
-    if (document.querySelector(".modal-bg")) document.querySelector(".modal-bg").style.display = "none";
-    loadProducts();
-  } catch (err) {
-    showToast("Save failed: " + err.message, true);
-  }
-});
+  document.getElementById("name").value = p.name;
+  document.getElementById("price").value = p.price;
+  document.getElementById("stock").value = p.stock;
+  document.getElementById("brand").value = p.brand_id;
+  document.getElementById("category").value = p.category_id;
 
-// ==================== ORDERS PAGE ====================
+  document.getElementById("saveProductBtn").onclick = () => updateProduct(id);
+  document.getElementById("modalBg").style.display = "flex";
+}
+
+async function updateProduct(id) {
+  const data = {
+    name: document.getElementById("name").value,
+    price: Number(document.getElementById("price").value),
+    stock: Number(document.getElementById("stock").value),
+    brand_id: document.getElementById("brand").value,
+    category_id: document.getElementById("category").value,
+  };
+
+  await supabase.from("products").update(data).eq("id", id);
+  location.reload();
+}
+
+async function deleteProduct(id) {
+  if (!confirm("Delete this product?")) return;
+  await supabase.from("products").delete().eq("id", id);
+  location.reload();
+}
+
+document.getElementById("closeModal")?.addEventListener("click", closeAllModals);
+
+// =====================================
+// ---------------- ORDERS ----------------
+// =====================================
 async function loadOrders() {
-  const tbody = document.getElementById("ordersTableBody");
-  if (!tbody) return;
-
-  const { data, error } = await supabase.from("orders").select("*").order("date", { ascending: false });
-  if (error) { showToast("Failed to load orders", true); return; }
-
-  orders = data || [];
-  renderOrders(orders);
-}
-
-function renderOrders(list) {
-  const tbody = document.getElementById("ordersTableBody");
-  if (!tbody) return;
-
-  tbody.innerHTML = list.length ? "" : `<tr><td colspan="8" class="text-center py-12 text-gray-500">No orders found</td></tr>`;
-
-  list.forEach(o => {
-    const items = safeJSONParse(o.items);
-    tbody.innerHTML += `
-      <tr class="cursor-pointer hover:bg-gray-50" onclick="viewOrder('${o.id}')">
-        <td>#${o.order_id || o.id.slice(-6)}</td>
-        <td>${formatDate(o.date)}</td>
-        <td>${o.customer_name || 'Guest'}</td>
-        <td>${items.length}</td>
-        <td>$${Number(o.total).toFixed(2)}</td>
-        <td>${o.payment || '—'}</td>
-        <td><span class="px-3 py-1 rounded text-xs ${
-          o.status === 'delivered' ? 'bg-green-100 text-green-800' :
-          o.status === 'cancelled' ? 'bg-red-100 text-red-800' :
-          o.status === 'shipped' ? 'bg-blue-100 text-blue-800' :
-          o.status === 'processing' ? 'bg-purple-100 text-purple-800' :
-          'bg-yellow-100 text-yellow-800'
-        }">${o.status || 'pending'}</span></td>
-        <td><button onclick="event.stopPropagation(); viewOrder('${o.id}')">View</button></td>
-      </tr>`;
-  });
-}
-
-window.viewOrder = (id) => {
-  const o = orders.find(x => x.id === id);
-  if (!o) return;
-
-  document.getElementById("modalOrderId").textContent = "#" + (o.order_id || o.id.slice(-6));
-  document.getElementById("modalCustomer").textContent = o.customer_name || 'Guest';
-  document.getElementById("modalEmail").textContent = o.customer_email || '—';
-  document.getElementById("modalDate").textContent = formatDate(o.date);
-  document.getElementById("modalAddress").textContent = o.address ? JSON.stringify(o.address) : '—';
-  document.getElementById("modalTotal").textContent = "$" + Number(o.total).toFixed(2);
-
-  const items = safeJSONParse(o.items);
-  document.getElementById("modalItems").innerHTML = items.length
-    ? items.map(i => `<div class="py-2">• ${i.name} × ${i.qty} — $${(i.price * i.qty).toFixed(2)}</div>`).join("")
-    : "<em>No items</em>";
-
-  const modal = document.querySelector("#orderModal") || document.querySelector("#modalBg");
-  if (modal) modal.style.display = "flex";
-};
-
-// ==================== ANALYTICS PAGE ====================
-async function loadAnalytics() {
-  const days = document.getElementById("dateRange")?.value || 30;
-  const fromDate = new Date(Date.now() - days * 24 * 60 * 60 * 1000).toISOString();
-
-  const { data: ordersData, error } = await supabase
+  const { data } = await supabase
     .from("orders")
-    .select("date, total, status, items")
-    .gte("date", fromDate);
+    .select("*, customers(name, email)")
+    .order("id", { ascending: false });
 
-  if (error || !ordersData) { showToast("Analytics load failed", true); return; }
+  document.getElementById("totalOrders").textContent = data.length;
 
-  const revenue = ordersData.reduce((a, o) => a + Number(o.total), 0);
-  const avgOrder = ordersData.length ? revenue / ordersData.length : 0;
-
-  document.getElementById("totalRevenue") && (document.getElementById("totalRevenue").textContent = "$" + revenue.toLocaleString());
-  document.getElementById("avgOrderValue") && (document.getElementById("avgOrderValue").textContent = "$" + avgOrder.toFixed(2));
-
-  // Destroy old charts
-  Object.values(charts).forEach(c => c?.destroy());
-  charts = {};
-
-  // Sales Trend
-  const dailySales = {};
-  ordersData.forEach(o => {
-    const key = new Date(o.date).toLocaleDateString("en-US", { month: "short", day: "numeric" });
-    dailySales[key] = (dailySales[key] || 0) + Number(o.total);
-  });
-
-  charts.sales = new Chart(document.getElementById("salesChart"), {
-    type: "line",
-    data: { labels: Object.keys(dailySales), datasets: [{ label: "Revenue", data: Object.values(dailySales), borderColor: "#10b981", tension: 0.4, fill: true }] },
-    options: { responsive: true, plugins: { legend: { display: false } } }
-  });
-
-  // Status Doughnut
-  const statusCount = { pending: 0, processing: 0, shipped: 0, delivered: 0, cancelled: 0 };
-  ordersData.forEach(o => statusCount[o.status || "pending"]++);
-  charts.status = new Chart(document.getElementById("ordersChart"), {
-    type: "doughnut",
-    data: { labels: Object.keys(statusCount), datasets: [{ data: Object.values(statusCount), backgroundColor: ["#f59e0b","#3b82f6","#8b5cf6","#10b981","#ef4444"] }] },
-    options: { responsive: true }
-  });
-
-  // Category Pie
-  const catSales = {};
-  ordersData.forEach(o => {
-    safeJSONParse(o.items).forEach(i => {
-      const cat = i.category || "Other";
-      catSales[cat] = (catSales[cat] || 0) + (i.qty * i.price);
-    });
-  });
-
-  charts.categories = new Chart(document.getElementById("categoriesChart"), {
-    type: "pie",
-    data: { labels: Object.keys(catSales), datasets: [{ data: Object.values(catSales), backgroundColor: ["#6366f1","#10b981","#f59e0b","#ef4444","#8b5cf6"] }] },
-    options: { responsive: true }
-  });
+  document.getElementById("ordersTableBody").innerHTML = data.map(o => `
+    <tr>
+      <td>#${o.id}</td>
+      <td>${fmtDate(o.created_at)}</td>
+      <td>${o.customers.name}</td>
+      <td>$${o.total}</td>
+      <td>${o.payment_method}</td>
+      <td class="status ${o.status}">${o.status}</td>
+      <td>
+        <button class="btn view" onclick="openOrder(${o.id})">
+          <i class="fa fa-eye"></i>
+        </button>
+      </td>
+    </tr>
+  `).join("");
 }
 
-// ==================== INIT ====================
-document.addEventListener("DOMContentLoaded", () => {
-  const path = location.pathname.split("/").pop() || "index.html";
+async function openOrder(id) {
+  const { data: order } = await supabase
+    .from("orders")
+    .select("*, customers(name, email)")
+    .eq("id", id)
+    .single();
 
-  // Close modals on background click
-  document.querySelectorAll(".modal-bg, .close-modal").forEach(el => {
-    el.onclick = (e) => {
-      if (e.target.classList.contains("modal-bg") || e.target.classList.contains("close-modal")) {
-        document.querySelectorAll(".modal-bg, #modalBg, #orderModal").forEach(m => m.style.display = "none");
-      }
-    };
+  const { data: items } = await supabase
+    .from("order_items")
+    .select("*, products(name)")
+    .eq("order_id", id);
+
+  document.getElementById("modalOrderId").textContent = "#" + order.id;
+  document.getElementById("modalCustomer").textContent = order.customers.name;
+  document.getElementById("modalEmail").textContent = order.customers.email;
+  document.getElementById("modalDate").textContent = fmtDate(order.created_at);
+  document.getElementById("modalAddress").textContent = order.shipping_address;
+
+  document.getElementById("modalItems").innerHTML =
+    items.map(i => `<div>${i.products.name} × ${i.quantity} — $${i.price}</div>`).join("");
+
+  document.getElementById("modalTotal").textContent = "$" + order.total;
+
+  const select = document.getElementById("statusSelect");
+  select.innerHTML = ["pending","processing","shipped","delivered","cancelled"]
+    .map(s => `<option value="${s}" ${order.status===s?"selected":""}>${s}</option>`)
+    .join("");
+
+  select.onchange = () => updateOrderStatus(id, select.value);
+
+  document.getElementById("modalBg").style.display = "flex";
+}
+
+async function updateOrderStatus(id, status) {
+  await supabase.from("orders").update({ status }).eq("id", id);
+  loadOrders();
+}
+
+function closeModal() {
+  closeAllModals();
+}
+
+// =====================================
+// ---------------- ANALYTICS ----------------
+// =====================================
+async function loadAnalytics() {
+  const days = Number(document.getElementById("dateRange").value);
+  const since = new Date(Date.now() - days * 86400000).toISOString();
+
+  const { data: orders } = await supabase
+    .from("orders")
+    .select("*, order_items(price, quantity)")
+    .gte("created_at", since);
+
+  // Revenue
+  const revenue = orders.reduce((s,o)=>s+Number(o.total), 0);
+  document.getElementById("totalRevenue").textContent = `$${revenue.toFixed(2)}`;
+
+  const aov = revenue / Math.max(orders.length, 1);
+  document.getElementById("avgOrderValue").textContent = `$${aov.toFixed(2)}`;
+
+  // Sales Chart
+  new Chart(document.getElementById("salesChart"), {
+    type: "line",
+    data: {
+      labels: orders.map(o => fmtDate(o.created_at)),
+      datasets: [{
+        label: "Sales",
+        data: orders.map(o => o.total),
+        borderColor: "#6366f1",
+        tension: 0.4
+      }]
+    }
   });
 
-  if (path.includes("index") || path === "") loadDashboard();
-  if (path.includes("products")) loadProducts();
-  if (path.includes("orders")) loadOrders();
-  if (path.includes("analytics")) {
-    loadAnalytics();
-    document.getElementById("dateRange")?.addEventListener("change", loadAnalytics);
-  }
+  // Status Chart
+  const counts = orders.reduce((acc, o)=>{
+    acc[o.status] = (acc[o.status]||0)+1;
+    return acc;
+  }, {});
 
-  document.getElementById("addProductBtn")?.addEventListener("click", () => openProductModal());
-});
+  new Chart(document.getElementById("ordersChart"), {
+    type: "bar",
+    data: {
+      labels: Object.keys(counts),
+      datasets: [{
+        data: Object.values(counts),
+        backgroundColor: ["#EF4444","#3B82F6","#10B981","#F59E0B","#6B7280"]
+      }]
+    }
+  });
+}
