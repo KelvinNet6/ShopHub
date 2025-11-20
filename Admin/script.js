@@ -195,11 +195,13 @@ async function deleteProduct(id) {
   location.reload();
 }
 
-// =====================================
-// ORDERS
-// =====================================
+// ORDERS - NOW WITH EDIT & DELETE BUTTONS
 async function loadOrders() {
-  const { data } = await supabase.from("orders").select("*, customers(name,email)").order("id",{ascending:false});
+  const { data } = await supabase
+    .from("orders")
+    .select("*, customers(name,email)")
+    .order("id", { ascending: false });
+
   document.getElementById("totalOrders").textContent = data.length;
 
   document.getElementById("ordersTableBody").innerHTML = data.map(o => `
@@ -210,9 +212,15 @@ async function loadOrders() {
       <td>$${o.total}</td>
       <td>${o.payment_method}</td>
       <td class="status ${o.status}">${o.status}</td>
-      <td>
-        <button class="btn view" onclick="openOrder(${o.id})">
+      <td class="actions">
+        <button class="btn view" onclick="openOrder(${o.id})" title="View">
           <i class="fa fa-eye"></i>
+        </button>
+        <button class="btn edit" onclick="editOrder(${o.id})" title="Edit">
+          <i class="fa fa-edit"></i>
+        </button>
+        <button class="btn delete" onclick="deleteOrder(${o.id})" title="Delete">
+          <i class="fa fa-trash"></i>
         </button>
       </td>
     </tr>
@@ -244,6 +252,57 @@ async function updateOrderStatus(id,status) {
   loadOrders();
 }
 
+// Edit Order (opens modal with form)
+async function editOrder(id) {
+  const { data: order } = await supabase.from("orders").select("*").eq("id", id).single();
+
+  // Reuse the same modal as View, but make fields editable
+  document.getElementById("modalOrderId").textContent = `#${order.id} (Editing)`;
+  document.getElementById("modalCustomer").innerHTML = `<strong>Customer:</strong> ${order.customers.name}`;
+  document.getElementById("modalEmail").innerHTML = `<strong>Email:</strong> ${order.customers.email}`;
+  document.getElementById("modalDate").textContent = fmtDate(order.created_at);
+  
+  // Make status editable
+  document.getElementById("modalAddress").innerHTML = `
+    <strong>Shipping Address:</strong><br>
+    <textarea id="editShippingAddress" style="width:100%;padding:8px;margin-top:5px;">${order.shipping_address || ''}</textarea>
+  `;
+
+  const select = document.getElementById("statusSelect");
+  select.innerHTML = ["pending","processing","shipped","delivered","cancelled"]
+    .map(s => `<option value="${s}" ${order.status===s?"selected":""}>${s}</option>`).join("");
+
+  // Change "View" button to "Save Changes"
+  const saveBtn = document.createElement("button");
+  saveBtn.textContent = "Save Changes";
+  saveBtn.className = "btn primary";
+  saveBtn.onclick = async () => {
+    await supabase.from("orders").update({
+      status: select.value,
+      shipping_address: document.getElementById("editShippingAddress").value
+    }).eq("id", id);
+    closeAllModals();
+    loadOrders();
+  };
+
+  // Replace modal footer
+  const modalFooter = document.querySelector("#modalBg .modal-footer") || document.createElement("div");
+  modalFooter.innerHTML = "";
+  modalFooter.appendChild(saveBtn);
+  document.querySelector("#modalBg .modal-content").appendChild(modalFooter);
+
+  document.getElementById("modalBg").style.display = "flex";
+}
+
+// Delete Order
+async function deleteOrder(id) {
+  if (!confirm(`Delete Order #${id} permanently? This cannot be undone.`)) return;
+
+  await supabase.from("order_items").delete().eq("order_id", id);
+  await supabase.from("orders").delete().eq("id", id);
+  loadToast("Order deleted successfully", "success");
+  loadOrders();
+}
 // =====================================
 // ANALYTICS
 // =====================================
