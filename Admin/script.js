@@ -1,25 +1,25 @@
-// Initialize Supabase safely
-// =====================================
 document.addEventListener("DOMContentLoaded", async () => {
-  if (typeof Supabase === "undefined") {
+  if (typeof supabase === "undefined") {
     console.error("Supabase library not loaded. Check your script order!");
     return;
   }
 
-  // Initialize the client
   const supabaseUrl = "https://nhyucbgjocmwrkqbjjme.supabase.co";
-  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"; 
-  window.supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE";
+
+  // Correct way to create client
+  const { createClient } = supabase;
+  window.supabase = createClient(supabaseUrl, supabaseKey);
 
   // Detect current page
   const PAGE = location.pathname.split("/").pop();
-
   if (PAGE === "index.html" || PAGE === "") loadDashboard();
   if (PAGE === "customers.html") loadCustomers();
   if (PAGE === "products.html") loadProducts();
   if (PAGE === "orders.html") loadOrders();
   if (PAGE === "analytics.html") loadAnalytics();
 });
+
 
 // =====================================
 // UTILITY FUNCTIONS
