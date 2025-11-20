@@ -291,49 +291,79 @@
   }
 
   // --- REGISTER WITH EMAIL ---
-  async function registerWithEmail() {
-    const name = document.getElementById('regName').value;
-    const email = document.getElementById('regEmail').value;
-    const password = document.getElementById('regPassword').value;
-    const msg = document.getElementById('registerMessage');
+async function registerWithEmail() {
+  const name = document.getElementById('regName').value;
+  const email = document.getElementById('regEmail').value;
+  const password = document.getElementById('regPassword').value;
+  const msg = document.getElementById('registerMessage');
 
-    const { data, error } = await client.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: name }
-      }
-    });
-
-    if (error) {
-      msg.innerHTML = `<div class="error">${error.message}</div>`;
-    } else {
-      msg.innerHTML = `<div class="success">Account created! Check your email to confirm.</div>`;
-      setTimeout(flipToLogin, 1500);
-    }
-  }
-
-  // --- GOOGLE LOGIN ---
-  async function loginWithGoogle() {
-    const { data, error } = await client.auth.signInWithOAuth({
-      provider: 'google',
-      options: {
-        redirectTo: window.location.href
-      }
-    });
-
-    if (error) {
-      document.getElementById('loginMessage').innerHTML =
-        `<div class="error">${error.message}</div>`;
-    }
-  }
-
-  // --- AUTH STATE LISTENER ---
-  client.auth.onAuthStateChange((event, session) => {
-    if (session?.user) {
-      console.log("Logged in:", session.user.email);
+  const { data, error } = await client.auth.signUp({
+    email,
+    password,
+    options: {
+      data: { full_name: name }
     }
   });
+
+  if (error) {
+    msg.innerHTML = `<div class="error">${error.message}</div>`;
+    return;
+  }
+
+  // Insert into database (only if user exists)
+  if (data.user) {
+    await client.from("profiles").insert({
+      id: data.user.id,
+      full_name: name,
+      email: email
+    });
+  }
+
+  msg.innerHTML = `<div class="success">Account created! Check your email to confirm.</div>`;
+  setTimeout(flipToLogin, 1500);
+}
+
+
+  // --- GOOGLE LOGIN ---
+ async function loginWithGoogle() {
+  const { data, error } = await client.auth.signInWithOAuth({
+    provider: 'google',
+    options: {
+      redirectTo: window.location.href
+    }
+  });
+
+  if (error) {
+    document.getElementById('loginMessage').innerHTML =
+      `<div class="error">${error.message}</div>`;
+  }
+}
+
+  // --- AUTH STATE LISTENER ---
+  client.auth.onAuthStateChange(async (event, session) => {
+  if (event === "SIGNED_IN" && session?.user) {
+    const user = session.user;
+
+    // Check if profile exists
+    const { data: existingProfile } = await client
+      .from("profiles")
+      .select("id")
+      .eq("id", user.id)
+      .single();
+
+    // Create profile if new Google user
+    if (!existingProfile) {
+      await client.from("profiles").insert({
+        id: user.id,
+        full_name: user.user_metadata.full_name || "Google User",
+        email: user.email
+      });
+    }
+
+    console.log("Logged in:", user.email);
+  }
+});
+
 </script>
 
 </body>
