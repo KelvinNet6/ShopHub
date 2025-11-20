@@ -1,13 +1,19 @@
-// Initialize Supabase
-const supabaseUrl = "https://nhyucbgjocmwrkqbjjme.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"; // use anon for frontend testing
-const supabase = Supabase.createClient(supabaseUrl, supabaseKey);
+// Initialize Supabase safely
+// =====================================
+document.addEventListener("DOMContentLoaded", async () => {
+  if (typeof Supabase === "undefined") {
+    console.error("Supabase library not loaded. Check your script order!");
+    return;
+  }
 
+  // Initialize the client
+  const supabaseUrl = "https://nhyucbgjocmwrkqbjjme.supabase.co";
+  const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"; 
+  window.supabase = Supabase.createClient(supabaseUrl, supabaseKey);
 
-// Detect current page
-const PAGE = location.pathname.split("/").pop();
+  // Detect current page
+  const PAGE = location.pathname.split("/").pop();
 
-document.addEventListener("DOMContentLoaded", () => {
   if (PAGE === "index.html" || PAGE === "") loadDashboard();
   if (PAGE === "customers.html") loadCustomers();
   if (PAGE === "products.html") loadProducts();
@@ -16,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // =====================================
-// UTILITY
+// UTILITY FUNCTIONS
 // =====================================
 function fmtDate(d) {
   return new Date(d).toLocaleDateString();
@@ -26,8 +32,11 @@ function closeAllModals() {
   document.querySelectorAll(".modal-bg").forEach(m => m.style.display = "none");
 }
 
+document.getElementById("closeModal")?.addEventListener("click", closeAllModals);
+document.getElementById("closeCustomerModal")?.addEventListener("click", closeAllModals);
+
 // =====================================
-// ---------------- DASHBOARD ----------------
+// DASHBOARD
 // =====================================
 async function loadDashboard() {
   const [{ data: orders }, { data: products }, { data: customers }] = await Promise.all([
@@ -65,11 +74,10 @@ async function loadRecentOrders() {
 }
 
 // =====================================
-// ---------------- CUSTOMERS ----------------
+// CUSTOMERS
 // =====================================
 async function loadCustomers() {
   const { data } = await supabase.from("customers").select("*").order("id");
-
   document.getElementById("totalCustomers").textContent = data.length;
 
   document.getElementById("customersTableBody").innerHTML = data.map(c => `
@@ -87,16 +95,8 @@ async function loadCustomers() {
 }
 
 async function openCustomer(id) {
-  const { data: customer } = await supabase
-    .from("customers")
-    .select("*")
-    .eq("id", id)
-    .single();
-
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("*")
-    .eq("customer_id", id);
+  const { data: customer } = await supabase.from("customers").select("*").eq("id", id).single();
+  const { data: orders } = await supabase.from("orders").select("*").eq("customer_id", id);
 
   document.getElementById("customerModalName").textContent = customer.name;
   document.getElementById("customerModalEmail").textContent = customer.email;
@@ -105,19 +105,14 @@ async function openCustomer(id) {
   document.getElementById("customerModalJoined").textContent = fmtDate(customer.created_at);
 
   document.getElementById("customerModalOrders").textContent = orders.length;
-  document.getElementById("customerModalSpent").textContent = 
-    "$" + orders.reduce((s,o)=>s+Number(o.total),0).toFixed(2);
-
-  document.getElementById("customerOrdersList").innerHTML =
-    orders.map(o => `<div>#${o.id} — $${o.total} (${o.status})</div>`).join("");
+  document.getElementById("customerModalSpent").textContent = "$" + orders.reduce((s,o)=>s+Number(o.total),0).toFixed(2);
+  document.getElementById("customerOrdersList").innerHTML = orders.map(o => `<div>#${o.id} — $${o.total} (${o.status})</div>`).join("");
 
   document.getElementById("customerModalBg").style.display = "flex";
 }
 
-document.getElementById("closeCustomerModal")?.addEventListener("click", closeAllModals);
-
 // =====================================
-// ---------------- PRODUCTS ----------------
+// PRODUCTS
 // =====================================
 async function loadProducts() {
   const [{ data: categories }, { data: brands }, { data: products }] = await Promise.all([
@@ -126,14 +121,9 @@ async function loadProducts() {
     supabase.from("products").select("*, categories(name), brands(name)").order("id")
   ]);
 
-  // fill dropdowns
-  document.getElementById("category").innerHTML = 
-    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+  document.getElementById("category").innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+  document.getElementById("brand").innerHTML = brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
 
-  document.getElementById("brand").innerHTML = 
-    brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
-
-  // fill table
   document.getElementById("productTableBody").innerHTML = products.map(p => `
     <tr>
       <td>${p.id}</td>
@@ -176,20 +166,13 @@ async function saveProduct() {
 }
 
 async function editProduct(id) {
-  const { data: p } = await supabase
-    .from("products")
-    .select("*")
-    .eq("id", id)
-    .single();
-
+  const { data: p } = await supabase.from("products").select("*").eq("id", id).single();
   document.getElementById("modalTitle").textContent = "Edit Product";
-
   document.getElementById("name").value = p.name;
   document.getElementById("price").value = p.price;
   document.getElementById("stock").value = p.stock;
   document.getElementById("brand").value = p.brand_id;
   document.getElementById("category").value = p.category_id;
-
   document.getElementById("saveProductBtn").onclick = () => updateProduct(id);
   document.getElementById("modalBg").style.display = "flex";
 }
@@ -202,7 +185,6 @@ async function updateProduct(id) {
     brand_id: document.getElementById("brand").value,
     category_id: document.getElementById("category").value,
   };
-
   await supabase.from("products").update(data).eq("id", id);
   location.reload();
 }
@@ -213,17 +195,11 @@ async function deleteProduct(id) {
   location.reload();
 }
 
-document.getElementById("closeModal")?.addEventListener("click", closeAllModals);
-
 // =====================================
-// ---------------- ORDERS ----------------
+// ORDERS
 // =====================================
 async function loadOrders() {
-  const { data } = await supabase
-    .from("orders")
-    .select("*, customers(name, email)")
-    .order("id", { ascending: false });
-
+  const { data } = await supabase.from("orders").select("*, customers(name,email)").order("id",{ascending:false});
   document.getElementById("totalOrders").textContent = data.length;
 
   document.getElementById("ordersTableBody").innerHTML = data.map(o => `
@@ -244,61 +220,40 @@ async function loadOrders() {
 }
 
 async function openOrder(id) {
-  const { data: order } = await supabase
-    .from("orders")
-    .select("*, customers(name, email)")
-    .eq("id", id)
-    .single();
-
-  const { data: items } = await supabase
-    .from("order_items")
-    .select("*, products(name)")
-    .eq("order_id", id);
+  const { data: order } = await supabase.from("orders").select("*, customers(name,email)").eq("id",id).single();
+  const { data: items } = await supabase.from("order_items").select("*, products(name)").eq("order_id",id);
 
   document.getElementById("modalOrderId").textContent = "#" + order.id;
   document.getElementById("modalCustomer").textContent = order.customers.name;
   document.getElementById("modalEmail").textContent = order.customers.email;
   document.getElementById("modalDate").textContent = fmtDate(order.created_at);
   document.getElementById("modalAddress").textContent = order.shipping_address;
-
-  document.getElementById("modalItems").innerHTML =
-    items.map(i => `<div>${i.products.name} × ${i.quantity} — $${i.price}</div>`).join("");
-
+  document.getElementById("modalItems").innerHTML = items.map(i => `<div>${i.products.name} × ${i.quantity} — $${i.price}</div>`).join("");
   document.getElementById("modalTotal").textContent = "$" + order.total;
 
   const select = document.getElementById("statusSelect");
   select.innerHTML = ["pending","processing","shipped","delivered","cancelled"]
-    .map(s => `<option value="${s}" ${order.status===s?"selected":""}>${s}</option>`)
-    .join("");
-
+    .map(s => `<option value="${s}" ${order.status===s?"selected":""}>${s}</option>`).join("");
   select.onchange = () => updateOrderStatus(id, select.value);
 
   document.getElementById("modalBg").style.display = "flex";
 }
 
-async function updateOrderStatus(id, status) {
-  await supabase.from("orders").update({ status }).eq("id", id);
+async function updateOrderStatus(id,status) {
+  await supabase.from("orders").update({status}).eq("id",id);
   loadOrders();
 }
 
-function closeModal() {
-  closeAllModals();
-}
-
 // =====================================
-// ---------------- ANALYTICS ----------------
+// ANALYTICS
 // =====================================
 async function loadAnalytics() {
   const days = Number(document.getElementById("dateRange").value);
   const since = new Date(Date.now() - days * 86400000).toISOString();
 
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("*, order_items(price, quantity)")
-    .gte("created_at", since);
+  const { data: orders } = await supabase.from("orders").select("*, order_items(price, quantity)").gte("created_at", since);
 
-  // Revenue
-  const revenue = orders.reduce((s,o)=>s+Number(o.total), 0);
+  const revenue = orders.reduce((s,o)=>s+Number(o.total),0);
   document.getElementById("totalRevenue").textContent = `$${revenue.toFixed(2)}`;
 
   const aov = revenue / Math.max(orders.length, 1);
@@ -319,19 +274,13 @@ async function loadAnalytics() {
   });
 
   // Status Chart
-  const counts = orders.reduce((acc, o)=>{
-    acc[o.status] = (acc[o.status]||0)+1;
-    return acc;
-  }, {});
-
+  const counts = orders.reduce((acc,o)=>{ acc[o.status]=(acc[o.status]||0)+1; return acc; },{});
   new Chart(document.getElementById("ordersChart"), {
     type: "bar",
     data: {
       labels: Object.keys(counts),
-      datasets: [{
-        data: Object.values(counts),
-        backgroundColor: ["#EF4444","#3B82F6","#10B981","#F59E0B","#6B7280"]
-      }]
+      datasets: [{ data: Object.values(counts), backgroundColor: ["#EF4444","#3B82F6","#10B981","#F59E0B","#6B7280"] }]
     }
   });
 }
+
