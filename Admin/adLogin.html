@@ -6,17 +6,19 @@
   <title>Login & Register - Flip Card</title>
   <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  
+  <!-- Apple Sign In SDK -->
+  <meta name="apple-signin-client-id" content="your.service.id.here"> <!-- CHANGE THIS -->
+  <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
+
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-    
+   
     * {
       margin: 0;
       padding: 0;
       box-sizing: border-box;
       font-family: 'Poppins', sans-serif;
     }
-
     body {
       min-height: 100vh;
       background: linear-gradient(-45deg, #0f0c29, #302b63, #0f0c29, #24243e);
@@ -28,14 +30,11 @@
       padding: 20px;
       overflow: hidden;
     }
-
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
       50% { background-position: 100% 50%; }
       100% { background-position: 0% 50%; }
     }
-
-    /* Floating particles effect */
     body::before {
       content: '';
       position: absolute;
@@ -46,29 +45,24 @@
       pointer-events: none;
       animation: float 20s infinite linear;
     }
-
     @keyframes float {
       0% { transform: translateY(0px) rotate(0deg); }
       100% { transform: translateY(-50px) rotate(10deg); }
     }
-
     .container {
       perspective: 1000px;
       z-index: 10;
     }
-
     .flip-card {
       width: 380px;
-      height: 520px;
+      height: 580px; /* Increased height for extra button */
       position: relative;
       transform-style: preserve-3d;
       transition: transform 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
-
     .flip-card.flipped {
       transform: rotateY(180deg);
     }
-
     .card {
       position: absolute;
       width: 100%;
@@ -86,7 +80,6 @@
       justify-content: center;
       color: white;
     }
-
     .login-card { z-index: 2; }
     .register-card { transform: rotateY(180deg); }
 
@@ -99,12 +92,10 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-
     .input-group {
       position: relative;
       margin-bottom: 25px;
     }
-
     .input-group input {
       width: 100%;
       padding: 14px 15px 14px 50px;
@@ -116,17 +107,14 @@
       outline: none;
       transition: all 0.3s;
     }
-
     .input-group input:focus {
       border-color: #a29bfe;
       box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.2);
       background: rgba(255, 255, 255, 0.25);
     }
-
     .input-group input::placeholder {
       color: rgba(255, 255, 255, 0.6);
     }
-
     .input-group i {
       position: absolute;
       left: 18px;
@@ -134,7 +122,6 @@
       color: rgba(255, 255, 255, 0.7);
       font-size: 18px;
     }
-
     button {
       width: 100%;
       padding: 15px;
@@ -146,18 +133,15 @@
       transition: all 0.3s;
       margin-top: 10px;
     }
-
     button:main {
       background: linear-gradient(90deg, #a29bfe, #74b9ff);
       color: white;
     }
-
     button:main:hover {
       transform: translateY(-3px);
       box-shadow: 0 10px 25px rgba(162, 155, 254, 0.4);
     }
-
-    .google-btn {
+    .social-btn {
       background: rgba(255, 255, 255, 0.15);
       color: white;
       border: 1px solid rgba(255, 255, 255, 0.3);
@@ -166,16 +150,14 @@
       justify-content: center;
       gap: 12px;
     }
-
-    .google-btn:hover {
+    .social-btn:hover {
       background: rgba(255, 255, 255, 0.25);
       border-color: #a29bfe;
     }
-
-    .google-btn i {
-      font-size: 20px;
-      color: #ea4335;
-    }
+    .google-btn i { color: #ea4335; }
+    .apple-btn { background: #000 !important; border: none !important; }
+    .apple-btn:hover { background: #1c1c1c !important; }
+    .apple-btn i { font-size: 20px; }
 
     .switch-text {
       text-align: center;
@@ -183,27 +165,23 @@
       font-size: 14px;
       color: rgba(255, 255, 255, 0.8);
     }
-
     .switch-text a {
       color: #a29bfe;
       font-weight: 600;
       cursor: pointer;
       text-decoration: none;
     }
-
     .switch-text a:hover {
       text-decoration: underline;
     }
-
     .error { color: #ff6b6b; margin-top: 10px; text-align: center; }
     .success { color: #51cf66; margin-top: 10px; text-align: center; }
   </style>
 </head>
 <body>
-
   <div class="container">
     <div class="flip-card" id="flipCard">
-      
+     
       <!-- Login Card -->
       <div class="card login-card">
         <h2>Welcome Back 👋</h2>
@@ -216,9 +194,15 @@
           <input type="password" id="loginPassword" placeholder="Password" required />
         </div>
         <button onclick="loginWithEmail()">Login</button>
-        <button class="google-btn" onclick="loginWithGoogle()">
+
+        <button class="social-btn google-btn" onclick="loginWithGoogle()">
           <i class="fab fa-google"></i> Continue with Google
         </button>
+
+        <button class="social-btn apple-btn" onclick="loginWithApple()">
+          <i class="fab fa-apple"></i> Continue with Apple
+        </button>
+
         <div class="switch-text">
           New here? <a onclick="flipToRegister()">Create an account</a>
         </div>
@@ -241,9 +225,15 @@
           <input type="password" id="regPassword" placeholder="Create Password" required />
         </div>
         <button onclick="registerWithEmail()">Create Account</button>
-        <button class="google-btn" onclick="loginWithGoogle()">
+
+        <button class="social-btn google-btn" onclick="loginWithGoogle()">
           <i class="fab fa-google"></i> Sign up with Google
         </button>
+
+        <button class="social-btn apple-btn" onclick="loginWithApple()">
+          <i class="fab fa-apple"></i> Sign up with Apple
+        </button>
+
         <div class="switch-text">
           Already have an account? <a onclick="flipToLogin()">Login here</a>
         </div>
@@ -252,119 +242,108 @@
     </div>
   </div>
 
- <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    // --- INIT SUPABASE ---
+    const client = supabase.createClient(
+      "https://nhyucbgjocmwrkqbjjme.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
+    );
 
-<script>
-  // --- INIT SUPABASE ---
-  const client = supabase.createClient(
-    "https://nhyucbgjocmwrkqbjjme.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
-  );
+    const flipCard = document.getElementById('flipCard');
 
-  const flipCard = document.getElementById('flipCard');
-
-  function flipToRegister() {
-    flipCard.classList.add('flipped');
-  }
-
-  function flipToLogin() {
-    flipCard.classList.remove('flipped');
-  }
-
-  // --- LOGIN WITH EMAIL ---
-  async function loginWithEmail() {
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    const msg = document.getElementById('loginMessage');
-
-    const { data, error } = await client.auth.signInWithPassword({
-      email,
-      password
-    });
-
-    if (error) {
-      msg.innerHTML = `<div class="error">${error.message}</div>`;
-    } else {
-      msg.innerHTML = `<div class="success">Logged in successfully!</div>`;
-      setTimeout(() => location.reload(), 1500);
+    function flipToRegister() {
+      flipCard.classList.add('flipped');
     }
-  }
-
-  // --- REGISTER WITH EMAIL ---
-async function registerWithEmail() {
-  const name = document.getElementById('regName').value;
-  const email = document.getElementById('regEmail').value;
-  const password = document.getElementById('regPassword').value;
-  const msg = document.getElementById('registerMessage');
-
-  const { data, error } = await client.auth.signUp({
-    email,
-    password,
-    options: {
-      data: { full_name: name }
+    function flipToLogin() {
+      flipCard.classList.remove('flipped');
     }
-  });
 
-  if (error) {
-    msg.innerHTML = `<div class="error">${error.message}</div>`;
-    return;
-  }
-
-  // Insert into database (only if user exists)
-  if (data.user) {
-    await client.from("profiles").insert({
-      id: data.user.id,
-      full_name: name,
-      email: email
-    });
-  }
-
-  msg.innerHTML = `<div class="success">Account created! Check your email to confirm.</div>`;
-  setTimeout(flipToLogin, 1500);
-}
-
-
-  // --- GOOGLE LOGIN ---
- async function loginWithGoogle() {
-  const { data, error } = await client.auth.signInWithOAuth({
-    provider: 'google',
-    options: {
-      redirectTo: window.location.href
+    // --- EMAIL LOGIN & REGISTER (unchanged) ---
+    async function loginWithEmail() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMessage');
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        msg.innerHTML = `<div class="error">${error.message}</div>`;
+      } else {
+        msg.innerHTML = `<div class="success">Logged in successfully!</div>`;
+        setTimeout(() => location.reload(), 1500);
+      }
     }
-  });
 
-  if (error) {
-    document.getElementById('loginMessage').innerHTML =
-      `<div class="error">${error.message}</div>`;
-  }
-}
+    async function registerWithEmail() {
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const msg = document.getElementById('registerMessage');
 
-  // --- AUTH STATE LISTENER ---
-  client.auth.onAuthStateChange(async (event, session) => {
-  if (event === "SIGNED_IN" && session?.user) {
-    const user = session.user;
+      const { data, error } = await client.auth.signUp({
+        email, password,
+        options: { data: { full_name: name }}
+      });
 
-    // Check if profile exists
-    const { data: existingProfile } = await client
-      .from("profiles")
-      .select("id")
-      .eq("id", user.id)
-      .single();
+      if (error) {
+        msg.innerHTML = `<div class="error">${error.message}</div>`;
+        return;
+      }
 
-    // Create profile if new Google user
-    if (!existingProfile) {
-      await client.from("profiles").insert({
-        id: user.id,
-        full_name: user.user_metadata.full_name || "Google User",
-        email: user.email
+      if (data.user) {
+        await client.from("profiles").insert({
+          id: data.user.id,
+          full_name: name,
+          email: email
+        });
+      }
+
+      msg.innerHTML = `<div class="success">Account created! Check your email to confirm.</div>`;
+      setTimeout(flipToLogin, 2000);
+    }
+
+    // --- GOOGLE LOGIN ---
+    async function loginWithGoogle() {
+      await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
       });
     }
 
-    console.log("Logged in:", user.email);
-  }
-});
+    // --- APPLE LOGIN (Supabase + Apple OAuth) ---
+    async function loginWithApple() {
+      await client.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: window.location.origin + window.location.pathname
+        }
+      });
+    }
 
-</script>
+    // --- AUTH STATE LISTENER (Handles Google & Apple users) ---
+    client.auth.onAuthStateChange(async (event, session) => {
+      if (event === "SIGNED_IN" && session?.user) {
+        const user = session.user;
 
+        const { data: profile } = await client
+          .from("profiles")
+          .select("id")
+          .eq("id", user.id)
+          .single();
+
+        if (!profile) {
+          const fullName = user.user_metadata.full_name ||
+                          user.user_metadata.name ||
+                          "Apple User";
+
+          await client.from("profiles").insert({
+            id: user.id,
+            full_name: fullName,
+            email: user.email || user.user_metadata.email
+          });
+        }
+        console.log("Signed in:", user.email || user.id);
+      }
+    });
+  </script>
 </body>
 </html>
