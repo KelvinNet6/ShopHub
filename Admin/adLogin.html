@@ -256,7 +256,7 @@
 
 <script>
   // --- INIT SUPABASE ---
-  const supabase = supabase.createClient(
+  const client = supabase.createClient(
     "https://YOUR_PROJECT_ID.supabase.co",
     "YOUR_ANON_PUBLIC_KEY"
   );
@@ -277,7 +277,7 @@
     const password = document.getElementById('loginPassword').value;
     const msg = document.getElementById('loginMessage');
 
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await client.auth.signInWithPassword({
       email,
       password
     });
@@ -297,7 +297,7 @@
     const password = document.getElementById('regPassword').value;
     const msg = document.getElementById('registerMessage');
 
-    const { data, error } = await supabase.auth.signUp({
+    const { data, error } = await client.auth.signUp({
       email,
       password,
       options: {
@@ -315,7 +315,7 @@
 
   // --- GOOGLE LOGIN ---
   async function loginWithGoogle() {
-    const { data, error } = await supabase.auth.signInWithOAuth({
+    const { data, error } = await client.auth.signInWithOAuth({
       provider: 'google',
       options: {
         redirectTo: window.location.href
@@ -329,11 +329,12 @@
   }
 
   // --- AUTH STATE LISTENER ---
-  supabase.auth.onAuthStateChange((event, session) => {
+  client.auth.onAuthStateChange((event, session) => {
     if (session?.user) {
       console.log("Logged in:", session.user.email);
     }
   });
 </script>
+
 </body>
 </html>
