@@ -376,3 +376,20 @@ tr:hover { background: #f9fafb; }
     .chart-card { background: white; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.06); }
     .chart-card h3 { margin: 0 0 1rem 0; color: #1e293b; font-size: 1.1rem; }
     canvas { max-height: 300px; }
+
+/* Perfect alignment for action buttons */
+table th:nth-child(7),
+table td:nth-child(7) {
+  text-align: center;
+  width: 130px;
+}
+
+.actions .btn {
+  margin: 0 4px;
+  padding: 6px 10px;
+  font-size: 14px;
+}
+
+.actions .btn i {
+  pointer-events: none;
+}
