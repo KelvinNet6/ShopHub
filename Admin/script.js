@@ -194,26 +194,43 @@ async function deleteProduct(id) {
   await supabase.from("products").delete().eq("id", id);
   location.reload();
 }
-
 async function loadOrders() {
   const { data } = await supabase
     .from("orders")
     .select("*, customers(name,email)")
     .order("id", { ascending: false });
 
-  document.getElementById("totalOrders").textContent = data.length;
+  // Update total orders count (only exists on orders.html)
+  const totalEl = document.getElementById("totalOrders");
+  if (totalEl) totalEl.textContent = data.length;
 
-  // ADD THIS LINE — THIS IS THE KEY!
-  document.querySelector("#ordersTable thead tr").innerHTML = `
-    <th>Order ID</th>
-    <th>Date</th>
-    <th>Customer</th>
-    <th>Total</th>
-    <th>Payment</th>
-    <th>Status</th>
-    <th>Actions</th>   <!-- NEW COLUMN -->
-  `;
+  // === RECENT ORDERS ON DASHBOARD (index.html) ===
+  const recentBody = document.getElementById("ordersTableBody");
+  if (recentBody && !recentBody.closest("table").querySelector("th:nth-child(7)")) {
+    // This is the dashboard — only 5 rows, no Actions column
+    recentBody.innerHTML = data.slice(0, 5).map(o => `
+      <tr>
+        <td>#${o.id}</td>
+        <td>${o.customers.name}</td>
+        <td>${fmtDate(o.created_at)}</td>
+        <td>$${o.total}</td>
+        <td><span class="status ${o.status}">${o.status}</span></td>
+      </tr>
+    `).join("");
+    return; // Stop here on dashboard
+  }
 
+  // === FULL ORDERS PAGE (orders.html) ===
+  // Add "Actions" header if not exists
+  const table = document.querySelector("#ordersTableBody")?.closest("table");
+  if (table) {
+    const headerRow = table.querySelector("thead tr");
+    if (headerRow && headerRow.children.length === 6) {
+      headerRow.insertAdjacentHTML("beforeend", "<th>Actions</th>");
+    }
+  }
+
+  // Render full table with action buttons
   document.getElementById("ordersTableBody").innerHTML = data.map(o => `
     <tr>
       <td>#${o.id}</td>
@@ -223,9 +240,9 @@ async function loadOrders() {
       <td>${o.payment_method}</td>
       <td><span class="status ${o.status}">${o.status}</span></td>
       <td class="actions">
-        <button class="btn view" onclick="openOrder(${o.id})" title="View"><i class="fa fa-eye"></i></button>
-        <button class="btn edit" onclick="editOrder(${o.id})" title="Edit"><i class="fa fa-edit"></i></button>
-        <button class="btn delete" onclick="deleteOrder(${o.id})" title="Delete"><i class="fa fa-trash"></i></button>
+        <button class="btn view" onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
+        <button class="btn edit" onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
+        <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
       </td>
     </tr>
   `).join("");
