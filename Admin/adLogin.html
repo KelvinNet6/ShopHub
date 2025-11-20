@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Login & Register - Flip Card</title>
+  
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+  
+  <!-- Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Poppins', sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: linear-gradient(-45deg, #0f0c29, #302b63, #0f0c29, #24243e);
+      background-size: 400% 400%;
+      animation: gradientBG 18s ease infinite;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    @keyframes gradientBG {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    /* Floating particles effect */
+    body::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; width: 100%; height: 100%;
+      background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
+                  radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+      pointer-events: none;
+      animation: float 20s infinite linear;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0px) rotate(0deg); }
+      100% { transform: translateY(-50px) rotate(10deg); }
+    }
+
+    .container {
+      perspective: 1000px;
+      z-index: 10;
+    }
+
+    .flip-card {
+      width: 380px;
+      height: 520px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    .flip-card.flipped {
+      transform: rotateY(180deg);
+    }
+
+    .card {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      background: rgba(255, 255, 255, 0.12);
+      backdrop-filter: blur(15px);
+      -webkit-backdrop-filter: blur(15px);
+      border-radius: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      color: white;
+    }
+
+    .login-card { z-index: 2; }
+    .register-card { transform: rotateY(180deg); }
+
+    h2 {
+      text-align: center;
+      margin-bottom: 35px;
+      font-size: 28px;
+      font-weight: 700;
+      background: linear-gradient(90deg, #a29bfe, #74b9ff);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .input-group {
+      position: relative;
+      margin-bottom: 25px;
+    }
+
+    .input-group input {
+      width: 100%;
+      padding: 14px 15px 14px 50px;
+      background: rgba(255, 255, 255, 0.15);
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      border-radius: 12px;
+      color: white;
+      font-size: 15px;
+      outline: none;
+      transition: all 0.3s;
+    }
+
+    .input-group input:focus {
+      border-color: #a29bfe;
+      box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.2);
+      background: rgba(255, 255, 255, 0.25);
+    }
+
+    .input-group input::placeholder {
+      color: rgba(255, 255, 255, 0.6);
+    }
+
+    .input-group i {
+      position: absolute;
+      left: 18px;
+      top: 16px;
+      color: rgba(255, 255, 255, 0.7);
+      font-size: 18px;
+    }
+
+    button {
+      width: 100%;
+      padding: 15px;
+      border: none;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    button:main {
+      background: linear-gradient(90deg, #a29bfe, #74b9ff);
+      color: white;
+    }
+
+    button:main:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 25px rgba(162, 155, 254, 0.4);
+    }
+
+    .google-btn {
+      background: rgba(255, 255, 255, 0.15);
+      color: white;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    .google-btn:hover {
+      background: rgba(255, 255, 255, 0.25);
+      border-color: #a29bfe;
+    }
+
+    .google-btn i {
+      font-size: 20px;
+      color: #ea4335;
+    }
+
+    .switch-text {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 14px;
+      color: rgba(255, 255, 255, 0.8);
+    }
+
+    .switch-text a {
+      color: #a29bfe;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .switch-text a:hover {
+      text-decoration: underline;
+    }
+
+    .error { color: #ff6b6b; margin-top: 10px; text-align: center; }
+    .success { color: #51cf66; margin-top: 10px; text-align: center; }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div class="flip-card" id="flipCard">
+      
+      <!-- Login Card -->
+      <div class="card login-card">
+        <h2>Welcome Back 👋</h2>
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="loginEmail" placeholder="Email Address" required />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="loginPassword" placeholder="Password" required />
+        </div>
+        <button onclick="loginWithEmail()">Login</button>
+        <button class="google-btn" onclick="loginWithGoogle()">
+          <i class="fab fa-google"></i> Continue with Google
+        </button>
+        <div class="switch-text">
+          New here? <a onclick="flipToRegister()">Create an account</a>
+        </div>
+        <div id="loginMessage"></div>
+      </div>
+
+      <!-- Register Card -->
+      <div class="card register-card">
+        <h2>Join Us Today</h2>
+        <div class="input-group">
+          <i class="fas fa-user"></i>
+          <input type="text" id="regName" placeholder="Full Name" required />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-envelope"></i>
+          <input type="email" id="regEmail" placeholder="Email Address" required />
+        </div>
+        <div class="input-group">
+          <i class="fas fa-lock"></i>
+          <input type="password" id="regPassword" placeholder="Create Password" required />
+        </div>
+        <button onclick="registerWithEmail()">Create Account</button>
+        <button class="google-btn" onclick="loginWithGoogle()">
+          <i class="fab fa-google"></i> Sign up with Google
+        </button>
+        <div class="switch-text">
+          Already have an account? <a onclick="flipToLogin()">Login here</a>
+        </div>
+        <div id="registerMessage"></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Replace with your Firebase config
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT.firebaseapp.com",
+      projectId: "YOUR_PROJECT",
+      storageBucket: "YOUR_PROJECT.appspot.com",
+      messagingSenderId: "1234567890",
+      appId: "YOUR_APP_ID"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    const flipCard = document.getElementById('flipCard');
+
+    function flipToRegister() {
+      flipCard.classList.add('flipped');
+    }
+
+    function flipToLogin() {
+      flipCard.classList.remove('flipped');
+    }
+
+    function loginWithEmail() {
+      const email = document.getElementById('loginEmail').value;
+      const password = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMessage');
+
+      auth.signInWithEmailAndPassword(email, password)
+        .then(() => {
+          msg.innerHTML = '<div class="success">Logged in successfully!</div>';
+          setTimeout(() => location.reload(), 1500);
+        })
+        .catch(err => msg.innerHTML = `<div class="error">${err.message}</div>`);
+    }
+
+    function registerWithEmail() {
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const password = document.getElementById('regPassword').value;
+      const msg = document.getElementById('registerMessage');
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then(cred => cred.user.updateProfile({ displayName: name }))
+        .then(() => {
+          msg.innerHTML = '<div class="success">Account created!</div>';
+          setTimeout(flipToLogin, 1500);
+        })
+        .catch(err => msg.innerHTML = `<div class="error">${err.message}</div>`);
+    }
+
+    function loginWithGoogle() {
+      const provider = new firebase.auth.GoogleAuthProvider();
+      auth.signInWithPopup(provider)
+        .then(() => {
+          document.getElementById('loginMessage').innerHTML = 
+            '<div class="success">Welcome with Google!</div>';
+          setTimeout(() => location.reload(), 1500);
+        })
+        .catch(err => {
+          document.getElementById('loginMessage').innerHTML = 
+            `<div class="error">${err.message}</div>`;
+        });
+    }
+
+    // Optional: Listen to auth state
+    auth.onAuthStateChanged(user => {
+      if (user) console.log("Logged in:", user.displayName || user.email);
+    });
+  </script>
+</body>
+</html>
