@@ -195,7 +195,6 @@ async function deleteProduct(id) {
   location.reload();
 }
 
-// ORDERS – FIXED: Action buttons now in their own column
 async function loadOrders() {
   const { data } = await supabase
     .from("orders")
@@ -204,6 +203,17 @@ async function loadOrders() {
 
   document.getElementById("totalOrders").textContent = data.length;
 
+  // ADD THIS LINE — THIS IS THE KEY!
+  document.querySelector("#ordersTable thead tr").innerHTML = `
+    <th>Order ID</th>
+    <th>Date</th>
+    <th>Customer</th>
+    <th>Total</th>
+    <th>Payment</th>
+    <th>Status</th>
+    <th>Actions</th>   <!-- NEW COLUMN -->
+  `;
+
   document.getElementById("ordersTableBody").innerHTML = data.map(o => `
     <tr>
       <td>#${o.id}</td>
@@ -211,22 +221,15 @@ async function loadOrders() {
       <td>${o.customers.name}</td>
       <td>$${o.total}</td>
       <td>${o.payment_method}</td>
-      <td class="status ${o.status}">${o.status}</td>
+      <td><span class="status ${o.status}">${o.status}</span></td>
       <td class="actions">
-        <button class="btn view" onclick="openOrder(${o.id})">
-          <i class="fa fa-eye"></i>
-        </button>
-        <button class="btn edit" onclick="editOrder(${o.id})">
-          <i class="fa fa-edit"></i>
-        </button>
-        <button class="btn delete" onclick="deleteOrder(${o.id})">
-          <i class="fa fa-trash"></i>
-        </button>
+        <button class="btn view" onclick="openOrder(${o.id})" title="View"><i class="fa fa-eye"></i></button>
+        <button class="btn edit" onclick="editOrder(${o.id})" title="Edit"><i class="fa fa-edit"></i></button>
+        <button class="btn delete" onclick="deleteOrder(${o.id})" title="Delete"><i class="fa fa-trash"></i></button>
       </td>
     </tr>
   `).join("");
 }
-
 async function openOrder(id) {
   const { data: order } = await supabase.from("orders").select("*, customers(name,email)").eq("id",id).single();
   const { data: items } = await supabase.from("order_items").select("*, products(name)").eq("order_id",id);
