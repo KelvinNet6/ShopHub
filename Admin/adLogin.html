@@ -257,76 +257,88 @@
     </div>
   </div>
 
-  <script>
-    // Replace with your Firebase config
-    const firebaseConfig = {
-      apiKey: "YOUR_API_KEY",
-      authDomain: "YOUR_PROJECT.firebaseapp.com",
-      projectId: "YOUR_PROJECT",
-      storageBucket: "YOUR_PROJECT.appspot.com",
-      messagingSenderId: "1234567890",
-      appId: "YOUR_APP_ID"
-    };
+ <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
+<script>
+  // --- INIT SUPABASE ---
+  const supabase = supabase.createClient(
+    "https://YOUR_PROJECT_ID.supabase.co",
+    "YOUR_ANON_PUBLIC_KEY"
+  );
 
-    const flipCard = document.getElementById('flipCard');
+  const flipCard = document.getElementById('flipCard');
 
-    function flipToRegister() {
-      flipCard.classList.add('flipped');
-    }
+  function flipToRegister() {
+    flipCard.classList.add('flipped');
+  }
 
-    function flipToLogin() {
-      flipCard.classList.remove('flipped');
-    }
+  function flipToLogin() {
+    flipCard.classList.remove('flipped');
+  }
 
-    function loginWithEmail() {
-      const email = document.getElementById('loginEmail').value;
-      const password = document.getElementById('loginPassword').value;
-      const msg = document.getElementById('loginMessage');
+  // --- LOGIN WITH EMAIL ---
+  async function loginWithEmail() {
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const msg = document.getElementById('loginMessage');
 
-      auth.signInWithEmailAndPassword(email, password)
-        .then(() => {
-          msg.innerHTML = '<div class="success">Logged in successfully!</div>';
-          setTimeout(() => location.reload(), 1500);
-        })
-        .catch(err => msg.innerHTML = `<div class="error">${err.message}</div>`);
-    }
-
-    function registerWithEmail() {
-      const name = document.getElementById('regName').value;
-      const email = document.getElementById('regEmail').value;
-      const password = document.getElementById('regPassword').value;
-      const msg = document.getElementById('registerMessage');
-
-      auth.createUserWithEmailAndPassword(email, password)
-        .then(cred => cred.user.updateProfile({ displayName: name }))
-        .then(() => {
-          msg.innerHTML = '<div class="success">Account created!</div>';
-          setTimeout(flipToLogin, 1500);
-        })
-        .catch(err => msg.innerHTML = `<div class="error">${err.message}</div>`);
-    }
-
-    function loginWithGoogle() {
-      const provider = new firebase.auth.GoogleAuthProvider();
-      auth.signInWithPopup(provider)
-        .then(() => {
-          document.getElementById('loginMessage').innerHTML = 
-            '<div class="success">Welcome with Google!</div>';
-          setTimeout(() => location.reload(), 1500);
-        })
-        .catch(err => {
-          document.getElementById('loginMessage').innerHTML = 
-            `<div class="error">${err.message}</div>`;
-        });
-    }
-
-    // Optional: Listen to auth state
-    auth.onAuthStateChanged(user => {
-      if (user) console.log("Logged in:", user.displayName || user.email);
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email,
+      password
     });
-  </script>
+
+    if (error) {
+      msg.innerHTML = `<div class="error">${error.message}</div>`;
+    } else {
+      msg.innerHTML = `<div class="success">Logged in successfully!</div>`;
+      setTimeout(() => location.reload(), 1500);
+    }
+  }
+
+  // --- REGISTER WITH EMAIL ---
+  async function registerWithEmail() {
+    const name = document.getElementById('regName').value;
+    const email = document.getElementById('regEmail').value;
+    const password = document.getElementById('regPassword').value;
+    const msg = document.getElementById('registerMessage');
+
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        data: { full_name: name }
+      }
+    });
+
+    if (error) {
+      msg.innerHTML = `<div class="error">${error.message}</div>`;
+    } else {
+      msg.innerHTML = `<div class="success">Account created! Check your email to confirm.</div>`;
+      setTimeout(flipToLogin, 1500);
+    }
+  }
+
+  // --- GOOGLE LOGIN ---
+  async function loginWithGoogle() {
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: {
+        redirectTo: window.location.href
+      }
+    });
+
+    if (error) {
+      document.getElementById('loginMessage').innerHTML =
+        `<div class="error">${error.message}</div>`;
+    }
+  }
+
+  // --- AUTH STATE LISTENER ---
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (session?.user) {
+      console.log("Logged in:", session.user.email);
+    }
+  });
+</script>
 </body>
 </html>
