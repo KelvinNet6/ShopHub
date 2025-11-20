@@ -195,7 +195,7 @@ async function deleteProduct(id) {
   location.reload();
 }
 
-// ORDERS - NOW WITH EDIT & DELETE BUTTONS
+// ORDERS – FIXED: Action buttons now in their own column
 async function loadOrders() {
   const { data } = await supabase
     .from("orders")
@@ -213,13 +213,13 @@ async function loadOrders() {
       <td>${o.payment_method}</td>
       <td class="status ${o.status}">${o.status}</td>
       <td class="actions">
-        <button class="btn view" onclick="openOrder(${o.id})" title="View">
+        <button class="btn view" onclick="openOrder(${o.id})">
           <i class="fa fa-eye"></i>
         </button>
-        <button class="btn edit" onclick="editOrder(${o.id})" title="Edit">
+        <button class="btn edit" onclick="editOrder(${o.id})">
           <i class="fa fa-edit"></i>
         </button>
-        <button class="btn delete" onclick="deleteOrder(${o.id})" title="Delete">
+        <button class="btn delete" onclick="deleteOrder(${o.id})">
           <i class="fa fa-trash"></i>
         </button>
       </td>
