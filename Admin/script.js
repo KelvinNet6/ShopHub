@@ -257,7 +257,7 @@ async function loadOrders() {
         </td>
         <td style="font-size:13.5px; line-height:1.6;">${items}</td>
         <td style="color:#10b981; font-weight:600;">$${Number(o.total).toFixed(2)}</td>
-        <td style="text-transform:capitalize;">{o.payment_method}</td>
+        <td style="text-transform:capitalize;">${o.payment_method}</td>
         <td><span class="status ${o.status}">${o.status}</span></td>
         <td class="actions">
           <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
