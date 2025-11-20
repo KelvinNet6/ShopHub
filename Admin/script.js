@@ -195,33 +195,28 @@ async function deleteProduct(id) {
   location.reload();
 }
 async function loadOrders() {
-  // Fetch orders + customer + all order items + product names in one query
   const { data: orders } = await supabase
     .from("orders")
     .select(`
       *,
       customers(name, email),
-      order_items (
-        quantity,
-        price,
-        products ( name )
-      )
+      order_items(quantity, products(name))
     `)
     .order("id", { ascending: false });
 
-  // Update total count (only on orders.html)
+  const tbody = document.getElementById("ordersTableBody");
+  if (!tbody) return;
+
+  const table = tbody.closest("table");
+  const headerCols = table.querySelectorAll("thead th").length;
+
+  // Update total count on orders.html
   const totalEl = document.getElementById("totalOrders");
   if (totalEl) totalEl.textContent = orders.length;
 
-  const tableBody = document.getElementById("ordersTableBody");
-  if (!tableBody) return;
-
-  const table = tableBody.closest("table");
-  const theadRow = table.querySelector("thead tr");
-
-  // DASHBOARD (index.html) → only 5 recent orders, no items or actions
-  if (theadRow && theadRow.children.length === 5) {
-    tableBody.innerHTML = orders.slice(0, 5).map(o => `
+  // === LANDING PAGE / DASHBOARD (5 columns) ===
+  if (headerCols === 5) {
+    tbody.innerHTML = orders.slice(0, 5).map(o => `
       <tr>
         <td>#${o.id}</td>
         <td>${o.customers.name}</td>
@@ -233,32 +228,41 @@ async function loadOrders() {
     return;
   }
 
-  // ORDERS PAGE (orders.html) → full table
-  // Add missing columns: Items + Actions
-  if (theadRow && theadRow.children.length === 6) {
-    theadRow.insertAdjacentHTML("beforeend", "<th>Items</th><th>Actions</th>");
+  // === FULL ORDERS PAGE (8 columns) ===
+  // Make sure we have exactly 8 columns
+  const theadRow = table.querySelector("thead tr");
+  if (theadRow.children.length < 8) {
+    // Add missing headers if needed
+    while (theadRow.children.length < 8) {
+      if (theadRow.children.length === 6) {
+        theadRow.insertAdjacentHTML("beforeend", "<th>Items</th><th>Actions</th>");
+      } else if (theadRow.children.length === 7) {
+        theadRow.insertAdjacentHTML("beforeend", "<th>Actions</th>");
+      }
+    }
   }
 
-  // Render full orders with Items and Actions
-  tableBody.innerHTML = orders.map(o => {
-    const items = o.order_items || [];
-    const itemsList = items.length > 0
-      ? items.map(item => `${item.products.name} ×${item.quantity}`).join("<br>")
-      : "<em style='color:#999'>No items</em>";
+  tbody.innerHTML = orders.map(o => {
+    const items = (o.order_items || [])
+      .map(i => `${i.products.name} ×${i.quantity}`)
+      .join("<br>") || "<em style='color:#999'>—</em>";
 
     return `
       <tr>
-        <td>#${o.id}</td>
+        <td><strong>#${o.id}</strong></td>
         <td>${fmtDate(o.created_at)}</td>
-        <td>${o.customers.name}<br><small>${o.customers.email}</small></td>
-        <td><strong>$${Number(o.total).toFixed(2)}</strong></td>
-        <td>${o.payment_method}</td>
+        <td>
+          <div><strong>${o.customers.name}</strong></div>
+          <small style="color:#64748b;">${o.customers.email}</small>
+        </td>
+        <td style="font-size:13.5px; line-height:1.6;">${items}</td>
+        <td style="color:#10b981; font-weight:600;">$${Number(o.total).toFixed(2)}</td>
+        <td style="text-transform:capitalize;">{o.payment_method}</td>
         <td><span class="status ${o.status}">${o.status}</span></td>
-        <td style="font-size:13px; line-height:1.4;">${itemsList}</td>
         <td class="actions">
-          <button class="btn view" onclick="openOrder(${o.id})" title="View"><i class="fa fa-eye"></i></button>
-          <button class="btn edit" onclick="editOrder(${o.id})" title="Edit"><i class="fa fa-edit"></i></button>
-          <button class="btn delete" onclick="deleteOrder(${o.id})" title=""><i class="fa fa-trash"></i></button>
+          <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
+          <button class="btn edit"   onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
+          <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
         </td>
       </tr>
     `;
