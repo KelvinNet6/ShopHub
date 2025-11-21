@@ -405,7 +405,7 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBtn.style.pointerEvents = "auto";
       } else {
         // Force redirect to login page
-        window.location.href = "../Admin/adLogin.html";
+        window.location.href = "adLogin.html";
       }
     });
   }
@@ -413,7 +413,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Optional: Protect admin pages — redirect to login if not authenticated
   supabase.auth.getSession().then(({ data: { session } }) => {
     if (!session) {
-      window.location.href = "../Admin/adLoginlogin.html";
+      window.location.href = "adLogin.html";
     }
   });
 });
