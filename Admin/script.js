@@ -383,4 +383,37 @@ async function loadAnalytics() {
     }
   });
 }
+// =====================================
+document.addEventListener("DOMContentLoaded", () => {
+  const logoutBtn = document.getElementById("logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
 
+      // Optional: Show "Logging out..." feedback
+      const span = logoutBtn.querySelector("span") || logoutBtn;
+      const originalText = span.textContent;
+      span.textContent = "Logging out...";
+      logoutBtn.style.pointerEvents = "none"; // disable double-click
+
+      // Sign out from Supabase
+      const { error } = await supabase.auth.signOut();
+
+      if (error) {
+        alert("Logout failed: " + error.message);
+        span.textContent = originalText;
+        logoutBtn.style.pointerEvents = "auto";
+      } else {
+        // Force redirect to login page
+        window.location.href = "../Admin/adLogin.html";
+      }
+    });
+  }
+
+  // Optional: Protect admin pages — redirect to login if not authenticated
+  supabase.auth.getSession().then(({ data: { session } }) => {
+    if (!session) {
+      window.location.href = "../Admin/adLoginlogin.html";
+    }
+  });
+});
