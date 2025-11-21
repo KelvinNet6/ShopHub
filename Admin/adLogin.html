@@ -25,12 +25,10 @@
       pointer-events: none; animation: float 20s infinite linear;
     }
     @keyframes float { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-50px) rotate(10deg); } }
-
     .container { perspective: 1000px; z-index: 10; }
     .flip-card { width: 380px; height: 620px; position: relative; transform-style: preserve-3d;
       transition: transform 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55); }
     .flip-card.flipped { transform: rotateY(180deg); }
-
     .card {
       position: absolute; width: 100%; height: 100%; backface-visibility: hidden;
       background: rgba(255,255,255,0.12); backdrop-filter: blur(15px); border-radius: 20px;
@@ -39,7 +37,6 @@
     }
     .login-card { z-index: 2; }
     .register-card { transform: rotateY(180deg); }
-
     h2 {
       text-align: center; margin-bottom: 35px; font-size: 28px; font-weight: 700;
       background: linear-gradient(90deg, #a29bfe, #74b9ff);
@@ -54,7 +51,6 @@
     .input-group input:focus { border-color: #a29bfe; box-shadow: 0 0 0 4px rgba(162,155,254,0.2); background: rgba(255,255,255,0.25); }
     .input-group input::placeholder { color: rgba(255,255,255,0.6); }
     .input-group i { position: absolute; left: 18px; top: 16px; color: rgba(255,255,255,0.7); font-size: 18px; }
-
     .main {
       width: 100%; padding: 15px; border: none; border-radius: 12px;
       font-size: 16px; font-weight: 600; cursor: pointer;
@@ -62,7 +58,6 @@
       margin-top: 10px; transition: all 0.3s;
     }
     .main:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(162,155,254,0.4); }
-
     .social-btn {
       background: rgba(255,255,255,0.15); color: white; border: 1px solid rgba(255,255,255,0.3);
       display: flex; align-items: center; justify-content: center; gap: 12px;
@@ -73,7 +68,6 @@
     .google-btn i { color: #ea4335; }
     .apple-btn { background: #000 !important; border: none !important; }
     .apple-btn:hover { background: #1c1c1c !important; }
-
     .switch-text { text-align: center; margin-top: 30px; font-size: 14px; color: rgba(255,255,255,0.8); }
     .switch-text a { color: #a29bfe; font-weight: 600; cursor: pointer; text-decoration: none; }
     .switch-text a:hover { text-decoration: underline; }
@@ -149,41 +143,48 @@
     function flipToRegister() { flipCard.classList.add('flipped'); }
     function flipToLogin() { flipCard.classList.remove('flipped'); }
 
-    // LOGIN
+    // LOGIN WITH EMAIL
     async function loginWithEmail() {
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
       const msg = document.getElementById('loginMessage');
 
-      if (!email || !password) return msg.innerHTML = `<div class="error">Fill all fields</div>`;
+      if (!email || !password) {
+        msg.innerHTML = `<div class="error">Please fill all fields</div>`;
+        return;
+      }
 
-      const { error } = await client.auth.signInWithPassword({ email, password });
+      const { data, error } = await client.auth.signInWithPassword({ email, password });
+
       if (error) {
         msg.innerHTML = `<div class="error">${error.message}</div>`;
       } else {
         msg.innerHTML = `<div class="success">Login successful! Redirecting...</div>`;
+        // Redirect happens automatically via onAuthStateChange
       }
     }
 
-    // REGISTER + AUTO LOGIN (NO EMAIL CONFIRMATION NEEDED)
+    // REGISTER + AUTO LOGIN
     async function registerWithEmail() {
       const name = document.getElementById('regName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
       const password = document.getElementById('regPassword').value;
       const msg = document.getElementById('registerMessage');
 
-      if (!name || !email || !password) return msg.innerHTML = `<div class="error">Fill all fields</div>`;
+      if (!name || !email || !password) {
+        msg.innerHTML = `<div class="error">Please fill all fields</div>`;
+        return;
+      }
 
       const { data, error } = await client.auth.signUp({
-        email,
-        password,
+        email, password,
         options: { data: { full_name: name } }
       });
 
       if (error) {
         msg.innerHTML = `<div class="error">${error.message}</div>`;
       } else {
-        // Auto-create profile
+        // Create profile
         await client.from('profiles').upsert({
           id: data.user.id,
           full_name: name,
@@ -191,53 +192,65 @@
           role: 'user'
         });
 
-        // Auto-login the user immediately
-        const { error: loginError } = await client.auth.signInWithPassword({ email, password });
-        if (loginError) {
-          msg.innerHTML = `<div class="success">Account created! Logging in...</div>`;
-        } else {
-          msg.innerHTML = `<div class="success">Welcome ${name}! Redirecting...</div>`;
-        }
+        // Auto-login
+        await client.auth.signInWithPassword({ email, password });
+        msg.innerHTML = `<div class="success">Welcome ${name}! Redirecting...</div>`;
       }
     }
 
     // SOCIAL LOGINS
     function loginWithGoogle() {
-      client.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: window.location.href } });
-    }
-    function loginWithApple() {
-      client.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
+      client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
     }
 
-    // ROLE-BASED REDIRECT (User vs Admin)
+    function loginWithApple() {
+      client.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: window.location.origin + window.location.pathname }
+      });
+    }
+
+    // MAIN REDIRECT LOGIC — THIS WAS BROKEN BEFORE!
     client.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const user = session.user;
 
-        let { data: profile } = await client.from('profiles').select('role').eq('id', user.id).single();
+        // Get or create profile
+        let { data: profile } = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();  // Use maybeSingle() to avoid error if not exists
 
         if (!profile) {
-          const name = user.user_metadata.full_name || user.email.split('@')[0] || 'User';
+          const name = user.user_metadata.full_name || user.email?.split('@')[0] || 'User';
           await client.from('profiles').insert({
-            id: user.id, full_name: name, email: user.email, role: 'user'
+            id: user.id,
+            full_name: name,
+            email: user.email,
+            role: 'user'
           });
           profile = { role: 'user' };
         }
 
-        // YOUR REAL DASHBOARD PATHS
+        // CORRECT PATHS — Change these to your actual dashboard files
         if (profile.role === 'admin') {
-          window.location.href = 'landing.html';
+          window.location.href = 'landing.html';        // Admin dashboard
         } else {
-          window.location.href = '/userDashboard.html';
+          window.location.href = '/userDashboard.html';        // User dashboard
         }
       }
     });
 
-    // Auto-redirect if already logged in on page load
+    // Check if already logged in on page load
     (async () => {
       const { data: { session } } = await client.auth.getSession();
-      if (session?.user) {
-        client.auth.onAuthStateChange()('SIGNED_IN', session);
+      if (session) {
+        // Trigger the redirect logic
+        client.auth.onAuthStateChange()( 'SIGNED_IN', session );
       }
     })();
   </script>
