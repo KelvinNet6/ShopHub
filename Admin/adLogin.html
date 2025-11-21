@@ -4,19 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Login & Register - Flip Card</title>
-  <!-- Icons -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <!-- Apple Sign In SDK -->
-  <meta name="apple-signin-client-id" content="your.service.id.here"> <!-- CHANGE THIS -->
-  <script type="text/javascript" src="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js"></script>
-
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
-   
+
     * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
+      margin: 0; padding: 0; box-sizing: border-box;
       font-family: 'Poppins', sans-serif;
     }
     body {
@@ -24,11 +17,8 @@
       background: linear-gradient(-45deg, #0f0c29, #302b63, #0f0c29, #24243e);
       background-size: 400% 400%;
       animation: gradientBG 18s ease infinite;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-      overflow: hidden;
+      display: flex; align-items: center; justify-content: center;
+      padding: 20px; overflow: hidden;
     }
     @keyframes gradientBG {
       0% { background-position: 0% 50%; }
@@ -36,144 +26,95 @@
       100% { background-position: 0% 50%; }
     }
     body::before {
-      content: '';
-      position: absolute;
-      top: 0; left: 0; width: 100%; height: 100%;
-      background: radial-gradient(circle at 20% 80%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                  radial-gradient(circle at 80% 20%, rgba(120, 119, 198, 0.3) 0%, transparent 50%),
-                  radial-gradient(circle at 40% 40%, rgba(120, 119, 198, 0.2) 0%, transparent 50%);
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 20% 80%, rgba(120,119,198,0.3), transparent 50%),
+                  radial-gradient(circle at 80% 20%, rgba(120,119,198,0.3), transparent 50%),
+                  radial-gradient(circle at 40% 40%, rgba(120,119,198,0.2), transparent 50%);
       pointer-events: none;
       animation: float 20s infinite linear;
     }
-    @keyframes float {
-      0% { transform: translateY(0px) rotate(0deg); }
-      100% { transform: translateY(-50px) rotate(10deg); }
-    }
-    .container {
-      perspective: 1000px;
-      z-index: 10;
-    }
+    @keyframes float { 0% { transform: translateY(0) rotate(0deg); } 100% { transform: translateY(-50px) rotate(10deg); } }
+
+    .container { perspective: 1000px; z-index: 10; }
     .flip-card {
-      width: 380px;
-      height: 580px; /* Increased height for extra button */
-      position: relative;
-      transform-style: preserve-3d;
+      width: 380px; height: 620px;
+      position: relative; transform-style: preserve-3d;
       transition: transform 0.9s cubic-bezier(0.68, -0.55, 0.265, 1.55);
     }
-    .flip-card.flipped {
-      transform: rotateY(180deg);
-    }
+    .flip-card.flipped { transform: rotateY(180deg); }
+
     .card {
-      position: absolute;
-      width: 100%;
-      height: 100%;
+      position: absolute; width: 100%; height: 100%;
       backface-visibility: hidden;
-      background: rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(15px);
-      -webkit-backdrop-filter: blur(15px);
-      border-radius: 20px;
-      border: 1px solid rgba(255, 255, 255, 0.18);
-      box-shadow: 0 25px 45px rgba(0, 0, 0, 0.3);
-      padding: 40px;
-      display: flex;
-      flex-direction: column;
-      justify-content: center;
-      color: white;
+      background: rgba(255,255,255,0.12);
+      backdrop-filter: blur(15px); border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.18);
+      box-shadow: 0 25px 45px rgba(0,0,0,0.3);
+      padding: 40px; display: flex; flex-direction: column;
+      justify-content: center; color: white;
     }
     .login-card { z-index: 2; }
     .register-card { transform: rotateY(180deg); }
 
     h2 {
-      text-align: center;
-      margin-bottom: 35px;
-      font-size: 28px;
-      font-weight: 700;
+      text-align: center; margin-bottom: 35px; font-size: 28px; font-weight: 700;
       background: linear-gradient(90deg, #a29bfe, #74b9ff);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
     }
     .input-group {
-      position: relative;
-      margin-bottom: 25px;
+      position: relative; margin-bottom: 25px;
     }
     .input-group input {
-      width: 100%;
-      padding: 14px 15px 14px 50px;
-      background: rgba(255, 255, 255, 0.15);
-      border: 1px solid rgba(255, 255, 255, 0.25);
-      border-radius: 12px;
-      color: white;
-      font-size: 15px;
-      outline: none;
+      width: 100%; padding: 14px 15px 14px 50px;
+      background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.25);
+      border-radius: 12px; color: white; font-size: 15px; outline: none;
       transition: all 0.3s;
     }
     .input-group input:focus {
-      border-color: #a29bfe;
-      box-shadow: 0 0 0 4px rgba(162, 155, 254, 0.2);
-      background: rgba(255, 255, 255, 0.25);
+      border-color: #a29bfe; box-shadow: 0 0 0 4px rgba(162,155,254,0.2);
+      background: rgba(255,255,255,0.25);
     }
-    .input-group input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
+    .input-group input::placeholder { color: rgba(255,255,255,0.6); }
     .input-group i {
-      position: absolute;
-      left: 18px;
-      top: 16px;
-      color: rgba(255, 255, 255, 0.7);
-      font-size: 18px;
+      position: absolute; left: 18px; top: 16px;
+      color: rgba(255,255,255,0.7); font-size: 18px;
     }
-    button {
-      width: 100%;
-      padding: 15px;
-      border: none;
-      border-radius: 12px;
-      font-size: 16px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.3s;
-      margin-top: 10px;
-    }
-    button:main {
+
+    /* Fixed: Proper class for main buttons */
+    .main {
+      width: 100%; padding: 15px; border: none; border-radius: 12px;
+      font-size: 16px; font-weight: 600; cursor: pointer;
       background: linear-gradient(90deg, #a29bfe, #74b9ff);
-      color: white;
+      color: white; margin-top: 10px; transition: all 0.3s;
     }
-    button:main:hover {
+    .main:hover {
       transform: translateY(-3px);
-      box-shadow: 0 10px 25px rgba(162, 155, 254, 0.4);
+      box-shadow: 0 10px 25px rgba(162,155,254,0.4);
     }
+
     .social-btn {
-      background: rgba(255, 255, 255, 0.15);
-      color: white;
-      border: 1px solid rgba(255, 255, 255, 0.3);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 12px;
+      background: rgba(255,255,255,0.15); color: white;
+      border: 1px solid rgba(255,255,255,0.3); display: flex;
+      align-items: center; justify-content: center; gap: 12px;
+      width: 100%; padding: 15px; border-radius: 12px;
+      margin-top: 10px; cursor: pointer; transition: all 0.3s;
     }
     .social-btn:hover {
-      background: rgba(255, 255, 255, 0.25);
-      border-color: #a29bfe;
+      background: rgba(255,255,255,0.25); border-color: #a29bfe;
     }
     .google-btn i { color: #ea4335; }
     .apple-btn { background: #000 !important; border: none !important; }
     .apple-btn:hover { background: #1c1c1c !important; }
-    .apple-btn i { font-size: 20px; }
 
     .switch-text {
-      text-align: center;
-      margin-top: 30px;
-      font-size: 14px;
-      color: rgba(255, 255, 255, 0.8);
+      text-align: center; margin-top: 30px; font-size: 14px;
+      color: rgba(255,255,255,0.8);
     }
     .switch-text a {
-      color: #a29bfe;
-      font-weight: 600;
-      cursor: pointer;
-      text-decoration: none;
+      color: #a29bfe; font-weight: 600; cursor: pointer; text-decoration: none;
     }
-    .switch-text a:hover {
-      text-decoration: underline;
-    }
+    .switch-text a:hover { text-decoration: underline; }
+
     .error { color: #ff6b6b; margin-top: 10px; text-align: center; }
     .success { color: #51cf66; margin-top: 10px; text-align: center; }
   </style>
@@ -181,7 +122,7 @@
 <body>
   <div class="container">
     <div class="flip-card" id="flipCard">
-     
+
       <!-- Login Card -->
       <div class="card login-card">
         <h2>Welcome Back 👋</h2>
@@ -193,12 +134,12 @@
           <i class="fas fa-lock"></i>
           <input type="password" id="loginPassword" placeholder="Password" required />
         </div>
-        <button onclick="loginWithEmail()">Login</button>
+
+        <button class="main" onclick="loginWithEmail()">Login</button>
 
         <button class="social-btn google-btn" onclick="loginWithGoogle()">
           <i class="fab fa-google"></i> Continue with Google
         </button>
-
         <button class="social-btn apple-btn" onclick="loginWithApple()">
           <i class="fab fa-apple"></i> Continue with Apple
         </button>
@@ -224,12 +165,12 @@
           <i class="fas fa-lock"></i>
           <input type="password" id="regPassword" placeholder="Create Password" required />
         </div>
-        <button onclick="registerWithEmail()">Create Account</button>
+
+        <button class="main" onclick="registerWithEmail()">Create Account</button>
 
         <button class="social-btn google-btn" onclick="loginWithGoogle()">
           <i class="fab fa-google"></i> Sign up with Google
         </button>
-
         <button class="social-btn apple-btn" onclick="loginWithApple()">
           <i class="fab fa-apple"></i> Sign up with Apple
         </button>
@@ -243,101 +184,128 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
- <script>
-  // --- YOUR SUPABASE INIT (unchanged) ---
-  const client = supabase.createClient(
-    "https://nhyucbgjocmwrkqbjjme.supabase.co",
-    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
-  );
+  <script>
+    const client = supabase.createClient(
+      "https://nhyucbgjocmwrkqbjjme.supabase.co",
+      "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
+    );
 
-  const flipCard = document.getElementById('flipCard');
+    const flipCard = document.getElementById('flipCard');
 
-  // --- FLIP FUNCTIONS (unchanged) ---
-  function flipToRegister() { flipCard.classList.add('flipped'); }
-  function flipToLogin() { flipCard.classList.remove('flipped'); }
+    function flipToRegister() { flipCard.classList.add('flipped'); }
+    function flipToLogin() { flipCard.classList.remove('flipped'); }
 
-  // --- EMAIL LOGIN / REGISTER (you can keep as-is, or improve messages) ---
-  async function loginWithEmail() {
-    const email = document.getElementById('loginEmail').value.trim();
-    const password = document.getElementById('loginPassword').value;
-    const msg = document.getElementById('loginMessage');
+    // LOGIN WITH EMAIL
+    async function loginWithEmail() {
+      const email = document.getElementById('loginEmail').value.trim();
+      const password = document.getElementById('loginPassword').value;
+      const msg = document.getElementById('loginMessage');
 
-    const { data, error } = await client.auth.signInWithPassword({ email, password });
-    if (error) {
-      msg.innerHTML = `<div class="error">${error.message}</div>`;
-    } else {
-      msg.innerHTML = `<div class="success">Login successful! Redirecting...</div>`;
-      // Redirect will be handled by onAuthStateChange below
-    }
-  }
-
-  async function registerWithEmail() {
-    // ... your existing code (unchanged)
-  }
-
-  // --- SOCIAL LOGINS (unchanged) ---
-  async function loginWithGoogle() {
-    await client.auth.signInWithOAuth({
-      provider: 'google',
-      options: { redirectTo: window.location.origin + window.location.pathname }
-    });
-  }
-
-  async function loginWithApple() {
-    await client.auth.signInWithOAuth({
-      provider: 'apple',
-      options: { redirectTo: window.location.origin + window.location.pathname }
-    });
-  }
-
-  // ==================== MAIN REDIRECT LOGIC ====================
-  client.auth.onAuthStateChange(async (event, session) => {
-    if (event === 'SIGNED_IN' && session?.user) {
-      const user = session.user;
-
-      // Ensure profile exists (for social logins)
-      let { data: profile, error } = await client
-        .from('profiles')
-        .select('role, full_name')
-        .eq('id', user.id)
-        .single();
-
-      // If profile doesn't exist yet (first social login), create it
-      if (!profile || error) {
-        const fullName = user.user_metadata.full_name || 
-                        user.user_metadata.name || 
-                        user.email?.split('@')[0] || 
-                        'User';
-
-        await client.from('profiles').insert({
-          id: user.id,
-          full_name: fullName,
-          email: user.email,
-          role: 'user'  // default role
-        });
-
-        profile = { role: 'user', full_name: fullName };
+      if (!email || !password) {
+        msg.innerHTML = `<div class="error">Please fill in all fields</div>`;
+        return;
       }
 
-      // === NOW REDIRECT BASED ON ROLE ===
-      const role = profile.role;
-
-      if (role === 'admin') {
-        window.location.href = '/admin/dashboard.html';   
+      const { error } = await client.auth.signInWithPassword({ email, password });
+      if (error) {
+        msg.innerHTML = `<div class="error">${error.message}</div>`;
       } else {
-        window.location.href = '/dashboard.html';        
+        msg.innerHTML = `<div class="success">Login successful! Redirecting...</div>`;
       }
     }
-  });
 
-  // Optional: Check on page load if already logged in
-  (async () => {
-    const { data: { session } } = await client.auth.getSession();
-    if (session?.user) {
-      // Trigger the same redirect logic on page load
-      client.auth.onAuthStateChange()( 'SIGNED_IN', session );
+    // REGISTER WITH EMAIL - NOW FULLY WORKING
+    async function registerWithEmail() {
+      const name = document.getElementById('regName').value.trim();
+      const email = document.getElementById('regEmail').value.trim();
+      const password = document.getElementById('regPassword').value;
+      const msg = document.getElementById('registerMessage');
+
+      if (!name || !email || !password) {
+        msg.innerHTML = `<div class="error">Please fill in all fields</div>`;
+        return;
+      }
+
+      const { data, error } = await client.auth.signUp({
+        email,
+        password,
+        options: { data: { full_name: name }}
+      });
+
+      if (error) {
+        msg.innerHTML = `<div class="error">${error.message}</div>`;
+        return;
+      }
+
+      // Create profile row
+      if (data.user) {
+        await client.from("profiles").upsert({
+          id: data.user.id,
+          full_name: name,
+          email: email,
+          role: 'user'
+        });
+      }
+
+      msg.innerHTML = `<div class="success">Account created! Check your email to confirm.</div>`;
+      setTimeout(() => flipToLogin(), 2500);
     }
-  })();
-</script>
+
+    // SOCIAL LOGINS
+    async function loginWithGoogle() {
+      await client.auth.signInWithOAuth({
+        provider: 'google',
+        options: { redirectTo: window.location.href }
+      });
+    }
+
+    async function loginWithApple() {
+      await client.auth.signInWithOAuth({
+        provider: 'apple',
+        options: { redirectTo: window.location.href }
+      });
+    }
+
+    // ROLE-BASED REDIRECT AFTER ANY LOGIN
+    client.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'SIGNED_IN' && session?.user) {
+        const user = session.user;
+
+        let { data: profile } = await client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (!profile) {
+          const name = user.user_metadata.full_name || user.email?.split('@')[0] || 'User';
+          await client.from('profiles').insert({
+            id: user.id,
+            full_name: name,
+            email: user.email,
+            role: 'user'
+          });
+          profile = { role: 'user' };
+        }
+
+        // Redirect based on role
+        if (profile.role === 'admin') {
+          window.location.href = '/admin/dashboard.html';
+        } else {
+          window.location.href = '/dashboard.html';
+        }
+      }
+    });
+
+    // Auto-redirect if already logged in
+    (async () => {
+      const { data: { session } } = await client.auth.getSession();
+      if (session?.user) {
+        const evt = new Event('authStateChange');
+        client.auth.onAuthStateChange()( 'SIGNED_IN', session );
+      }
+    })();
+  </script>
 </body>
 </html>
+
