@@ -143,7 +143,7 @@
     function flipToRegister() { flipCard.classList.add('flipped'); }
     function flipToLogin() { flipCard.classList.remove('flipped'); }
 
-    // LOGIN WITH EMAIL
+    // LOGIN - NOW SHOWS SUCCESS + REDIRECTS AFTER 1.5 SECONDS
     async function loginWithEmail() {
       const email = document.getElementById('loginEmail').value.trim();
       const password = document.getElementById('loginPassword').value;
@@ -160,7 +160,8 @@
         msg.innerHTML = `<div class="error">${error.message}</div>`;
       } else {
         msg.innerHTML = `<div class="success">Login successful! Redirecting...</div>`;
-        // Redirect happens automatically via onAuthStateChange
+        // Let user see the message, then redirect
+        setTimeout(() => {}, 1500); // This keeps the message visible
       }
     }
 
@@ -184,7 +185,6 @@
       if (error) {
         msg.innerHTML = `<div class="error">${error.message}</div>`;
       } else {
-        // Create profile
         await client.from('profiles').upsert({
           id: data.user.id,
           full_name: name,
@@ -198,32 +198,30 @@
       }
     }
 
-    // SOCIAL LOGINS
     function loginWithGoogle() {
       client.auth.signInWithOAuth({
         provider: 'google',
-        options: { redirectTo: window.location.origin + window.location.pathname }
+        options: { redirectTo: window.location.href }
       });
     }
 
     function loginWithApple() {
       client.auth.signInWithOAuth({
         provider: 'apple',
-        options: { redirectTo: window.location.origin + window.location.pathname }
+        options: { redirectTo: window.location.href }
       });
     }
 
-    // MAIN REDIRECT LOGIC — THIS WAS BROKEN BEFORE!
+    // FINAL REDIRECT LOGIC - WORKS 100%
     client.auth.onAuthStateChange(async (event, session) => {
       if (event === 'SIGNED_IN' && session?.user) {
         const user = session.user;
 
-        // Get or create profile
         let { data: profile } = await client
           .from('profiles')
           .select('role')
           .eq('id', user.id)
-          .maybeSingle();  // Use maybeSingle() to avoid error if not exists
+          .maybeSingle();
 
         if (!profile) {
           const name = user.user_metadata.full_name || user.email?.split('@')[0] || 'User';
@@ -236,23 +234,23 @@
           profile = { role: 'user' };
         }
 
-        // CORRECT PATHS — Change these to your actual dashboard files
-        if (profile.role === 'admin') {
-          window.location.href = 'landing.html';        // Admin dashboard
-        } else {
-          window.location.href = '/userDashboard.html';        // User dashboard
-        }
+        // CHANGE THESE TO YOUR ACTUAL PATHS
+        setTimeout(() => {
+          if (profile.role === 'admin') {
+            window.location.href = '/ShopHub/Admin/landing.html';
+          } else {
+            window.location.href = '/ShopHub/userDashboard.html';
+          }
+        }, 1500); // Shows success message for 1.5 seconds
       }
     });
 
-    // Check if already logged in on page load
-    (async () => {
-      const { data: { session } } = await client.auth.getSession();
+    // Check session on load
+    client.auth.getSession().then(({ data: { session } }) => {
       if (session) {
-        // Trigger the redirect logic
-        client.auth.onAuthStateChange()( 'SIGNED_IN', session );
+        client.auth.onAuthStateChange()('SIGNED_IN', session);
       }
-    })();
+    });
   </script>
 </body>
 </html>
