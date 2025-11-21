@@ -13,7 +13,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Detect current page
   const PAGE = location.pathname.split("/").pop();
-  if (PAGE === "index.html" || PAGE === "") loadDashboard();
+  if (PAGE === "landing.html" || PAGE === "") loadDashboard();
   if (PAGE === "customers.html") loadCustomers();
   if (PAGE === "products.html") loadProducts();
   if (PAGE === "orders.html") loadOrders();
