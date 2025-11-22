@@ -23,7 +23,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("keydown", e => e.key === "Escape" && closeMenu());
 
   // Auto-highlight current page
-  const path = location.pathname.split("/").pop() || "index.html";
+  const path = location.pathname.split("/").pop() || "userDashboard.html";
   document.querySelectorAll(".menu-list a").forEach(a => {
     if (a.getAttribute("href") === path) a.classList.add("active");
   });
