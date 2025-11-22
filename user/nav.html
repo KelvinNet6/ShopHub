@@ -1,0 +1,37 @@
+<!-- components/navigation.html -->
+<nav class="navbar">
+  <div class="nav-container">
+    <div class="logo">ShopHub</div>
+    <button class="menu-btn" id="menuBtn" aria-label="Open menu">
+      <i class="fas fa-bars"></i>
+    </button>
+  </div>
+</nav>
+
+<!-- Overlay -->
+<div class="overlay" id="overlay"></div>
+
+<!-- Sliding Menu -->
+<div class="slide-menu" id="slideMenu">
+  <div class="slide-menu-header">
+    <h2>My Account</h2>
+    <button class="close-btn" id="closeBtn" aria-label="Close menu">×</button>
+  </div>
+  <div class="slide-menu-body">
+    <div class="user-info">
+      <div class="user-avatar-large">J</div>
+      <div>
+        <h3>John Doe</h3>
+        <p>john@example.com</p>
+      </div>
+    </div>
+    <ul class="menu-list">
+      <li><a href="orders.html"><i class="fas fa-shopping-bag"></i> My Orders</a></li>
+      <li><a href="profile.html"><i class="fas fa-user"></i> Profile</a></li>
+      <li><a href="addresses.html"><i class="fas fa-map-marker-alt"></i> Addresses</a></li>
+      <li><a href="payment.html"><i class="fas fa-credit-card"></i> Payment</a></li>
+      <li><a href="wishlist.html"><i class="fas fa-heart"></i> Wishlist <span class="badge">3</span></a></li>
+      <li><a href="index.html"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+    </ul>
+  </div>
+</div>
