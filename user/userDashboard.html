@@ -15,6 +15,7 @@
       --danger: #ef4444;
       --gray-100: #f9fafb;
       --gray-200: #e5e7eb;
+      --gray-300: #d1d5db;
       --gray-600: #4b5563;
       --gray-800: #1f2937;
       --gray-900: #111827;
@@ -57,204 +58,103 @@
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
-    .menu-btn {
-      background: none;
-      border: none;
-      font-size: 1.8rem;
-      color: var(--gray-800);
-      cursor: pointer;
-    }
+    .menu-btn { background:none; border:none; font-size:1.8rem; color:var(--gray-800); cursor:pointer; }
 
-    /* Dark blur overlay */
+    /* Overlay & Transparent Sliding Menu */
     .overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.6);
-      backdrop-filter: blur(12px);
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.4s ease;
-      z-index: 1999;
+      position: fixed; inset: 0; background: rgba(0,0,0,0.6);
+      backdrop-filter: blur(12px); opacity:0; visibility:hidden;
+      transition: all 0.4s ease; z-index:1999;
     }
-    .overlay.active { opacity: 1; visibility: visible; }
+    .overlay.active { opacity:1; visibility:visible; }
 
-    /* Sliding Menu */
     .slide-menu {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 2000;
-      transform: translateY(-100%);
-      transition: transform 0.55s cubic-bezier(0.22, 0.61, 0.36, 1);
-      display: flex;
-      flex-direction: column;
+      position: fixed; top:0; left:0; width:100%; height:100%;
+      z-index:2000; transform:translateY(-100%);
+      transition: transform 0.55s cubic-bezier(0.22,0.61,0.36,1);
+      display:flex; flex-direction:column;
     }
-    .slide-menu.active { transform: translateY(0); }
+    .slide-menu.active { transform:translateY(0); }
 
-    /* Solid header */
     .slide-menu-header {
-      padding: 1.8rem 2rem;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      flex-shrink: 0;
+      padding:1.8rem 2rem; background:var(--primary); color:white;
+      display:flex; justify-content:space-between; align-items:center;
     }
-    .slide-menu-header h2 { font-size: 1.6rem; font-weight: 700; }
     .close-btn { background:none; border:none; color:white; font-size:2.4rem; cursor:pointer; }
 
-    /* TRANSPARENT MENU BODY with strong blur */
     .slide-menu-body {
-      flex: 1;
-      padding: 2rem;
-      background: rgba(255, 255, 255, 0.15);     /* Semi-transparent white */
-      backdrop-filter: blur(20px);               /* Heavy glass effect */
+      flex:1; padding:2rem;
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(20px);
       -webkit-backdrop-filter: blur(20px);
       border-top: 1px solid rgba(255,255,255,0.2);
-      overflow-y: auto;
+      overflow-y:auto;
     }
+    .user-info { display:flex; align-items:center; gap:1rem; padding:1.5rem 0;
+      border-bottom:1px solid rgba(255,255,255,0.25); margin-bottom:1.5rem; }
+    .user-avatar-large { width:70px; height:70px; background:white; color:var(--primary);
+      border-radius:50%; display:flex; align-items:center; justify-content:center;
+      font-size:2rem; font-weight:700; box-shadow:0 8px 25px rgba(0,0,0,0.2); }
 
-    /* User info in transparent menu */
-    .user-info {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.5rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.25);
-      margin-bottom: 1.5rem;
-    }
-    .user-avatar-large {
-      width: 70px; height: 70px;
-      background: white;
-      color: var(--primary);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 2rem;
-      font-weight: 700;
-      box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-    }
-
-    /* Menu items - white text with subtle background on hover */
-    .menu-list {
-      list-style: none;
-    }
     .menu-list a {
-      display: flex;
-      align-items: center;
-      gap: 1rem;
-      padding: 1.2rem 1rem;
-      border-radius: 12px;
-      color: white;
-      font-weight: 500;
-      text-decoration: none;
-      font-size: 1.1rem;
-      transition: all 0.3s ease;
+      display:flex; align-items:center; gap:1rem; padding:1.2rem 1rem;
+      border-radius:12px; color:white; text-decoration:none; font-weight:500;
+      transition:all 0.3s ease;
     }
-    .menu-list a:hover, .menu-list a.active {
-      background: rgba(255, 255, 255, 0.25);
-      backdrop-filter: blur(10px);
-      font-weight: 600;
-    }
-    .menu-list a i {
-      width: 26px;
-      text-align: center;
-      font-size: 1.3rem;
-    }
+    .menu-list a:hover, .menu-list a.active { background:rgba(255,255,255,0.25); font-weight:600; }
 
     /* Main Content */
-    .main-content {
-      margin-top: 90px;
-      padding: 2rem;
-      max-width: 1400px;
-      margin-left: auto;
-      margin-right: auto;
-    }
+    .main-content { margin-top:90px; padding:2rem; max-width:1400px; margin-left:auto; margin-right:auto; }
     .page-title {
-      font-size: 3.5rem;
-      font-weight: 900;
-      text-align: center;
-      background: linear-gradient(90deg, var(--gray-900), var(--primary));
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 0.5rem;
+      font-size:3.5rem; font-weight:900; text-align:center;
+      background:linear-gradient(90deg,var(--gray-900),var(--primary));
+      -webkit-background-clip:text; -webkit-text-fill-color:transparent;
     }
-    .page-subtitle {
-      text-align: center;
-      color: var(--gray-600);
-      font-size: 1.3rem;
-      margin-bottom: 3rem;
-    }
+    .page-subtitle { text-align:center; color:var(--gray-600); font-size:1.3rem; margin-bottom:3rem; }
 
-    /* Orders Grid & Cards (unchanged from last version) */
     .orders-grid {
-      display: grid;
-      gap: 2rem;
+      display:grid; gap:2rem;
       grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
     }
     .order-card {
-      background: white;
-      border-radius: var(--radius);
-      overflow: hidden;
-      box-shadow: var(--shadow);
-      border: 1px solid var(--gray-200);
-      transition: all 0.35s ease;
+      background:white; border-radius:var(--radius); overflow:hidden;
+      box-shadow:var(--shadow); border:1px solid var(--gray-200);
+      transition:all 0.35s ease;
     }
-    .order-card:hover { transform: translateY(-12px); box-shadow: 0 25px 50px rgba(0,0,0,0.15); }
-    .order-header {
-      background: linear-gradient(135deg, var(--primary), #818cf8);
-      color: white;
-      padding: 1.8rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .order-header::after {
-      content: ''; position: absolute; top: -50%; right: -50%;
-      width: 200%; height: 200%; background: rgba(255,255,255,0.1);
-      transform: rotate(30deg);
-    }
-    .order-id { font-size: 1.6rem; font-weight: 800; position: relative; z-index: 1; }
-    .order-date { opacity: 0.95; margin-top: 0.4rem; position: relative; z-index: 1; }
+    .order-card:hover { transform:translateY(-12px); box-shadow:0 25px 50px rgba(0,0,0,0.15); }
 
-    .order-body { padding: 2rem; }
+    .order-header {
+      background:linear-gradient(135deg,var(--primary),#818cf8); color:white;
+      padding:1.8rem; position:relative; overflow:hidden;
+    }
+    .order-header::after { content:''; position:absolute; top:-50%; right:-50%;
+      width:200%; height:200%; background:rgba(255,255,255,0.1); transform:rotate(30deg); }
+    .order-id { font-size:1.6rem; font-weight:800; position:relative; z-index:1; }
+    .order-date { opacity:0.95; margin-top:0.4rem; position:relative; z-index:1; }
+
+    .order-body { padding:2rem; }
     .items-container {
-      background: var(--gray-100);
-      border: 1px solid var(--gray-200);
-      border-radius: var(--radius-sm);
-      padding: 1.2rem;
-      margin: 1.5rem 0;
+      background:var(--gray-100); border:1px solid var(--gray-200);
+      border-radius:var(--radius-sm); padding:1.2rem; margin:1.5rem 0;
     }
     .order-item {
-      display: flex;
-      justify-content: space-between;
-      padding: 0.85rem 0;
-      border-bottom: 1px dashed var(--gray-300);
+      display:flex; justify-content:space-between; padding:0.85rem 0;
+      border-bottom:1px dashed var(--gray-300);
     }
-    .order-item:last-child { border-bottom: none; }
-    .item-name { font-weight: 600; }
-    .order-total {
-      font-size: 1.9rem;
-      font-weight: 800;
-      text-align: right;
-      margin: 1.5rem 0;
-    }
-    .status-badge {
-      padding: 0.6rem 1.4rem;
-      border-radius: 50px;
-      font-size: 0.9rem;
-      font-weight: 700;
-      text-transform: uppercase;
-    }
-    .status-paid { background: #ecfdf5; color: #065f46; }
-    .status-shipped { background: #dbeafe; color: #1e40af; }
-    .status-pending { background: #fff7ed; color: #c2410c; }
+    .order-item:last-child { border-bottom:none; }
+    .item-name { font-weight:600; }
+    .order-total { font-size:1.9rem; font-weight:800; text-align:right; margin:1.5rem 0; }
+    .status-badge { padding:0.6rem 1.4rem; border-radius:50px; font-size:0.9rem; font-weight:700; text-transform:uppercase; }
 
-    @media (max-width: 768px) {
-      .page-title { font-size: 2.8rem; }
-      .orders-grid { grid-template-columns: 1fr; }
+    .status-paid { background:#ecfdf5; color:#065f46; }
+    .status-shipped { background:#dbeafe; color:#1e40af; }
+    .status-pending { background:#fff7ed; color:#c2410c; }
+    .status-delivered { background:#f0fdf4; color:#166534; }
+    .status-cancelled { background:#fee2e2; color:#dc2626; }
+
+    @media (max-width:768px) {
+      .page-title { font-size:2.8rem; }
+      .orders-grid { grid-template-columns:1fr; }
     }
   </style>
 </head>
@@ -264,16 +164,12 @@
   <nav class="navbar">
     <div class="nav-container">
       <div class="logo">ShopHub</div>
-      <button class="menu-btn" id="menuBtn">
-        <i class="fas fa-bars"></i>
-      </button>
+      <button class="menu-btn" id="menuBtn"><i class="fas fa-bars"></i></button>
     </div>
   </nav>
 
-  <!-- Overlay -->
+  <!-- Transparent Sliding Menu -->
   <div class="overlay" id="overlay"></div>
-
-  <!-- Sliding Transparent Menu -->
   <div class="slide-menu" id="slideMenu">
     <div class="slide-menu-header">
       <h2>My Account</h2>
@@ -283,20 +179,17 @@
       <div class="user-info">
         <div class="user-avatar-large">J</div>
         <div>
-          <h3 style="margin:0; font-weight:700; color:white;">John Doe</h3>
-          <p style="margin:0; color:rgba(255,255,255,0.8);">john@example.com</p>
+          <h3 style="margin:0;color:white;font-weight:700;">John Doe</h3>
+          <p style="margin:0;color:rgba(255,255,255,0.8);">john@example.com</p>
         </div>
       </div>
-
-      <ul class="menu-list">
+      <ul class="menu-list" style="list-style:none;">
         <li><a href="#" class="active"><i class="fas fa-shopping-bag"></i> My Orders</a></li>
         <li><a href="#"><i class="fas fa-user"></i> Profile Settings</a></li>
         <li><a href="#"><i class="fas fa-map-marker-alt"></i> Delivery Addresses</a></li>
         <li><a href="#"><i class="fas fa-credit-card"></i> Payment Methods</a></li>
         <li><a href="#"><i class="fas fa-heart"></i> Wishlist <span style="margin-left:auto;background:var(--danger);color:white;width:26px;height:26px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-size:0.85rem;">3</span></a></li>
-        <li><a href="#"><i class="fas fa-gift"></i> Gift Cards & Vouchers</a></li>
-        <li><a href="#"><i class="fas fa-headset"></i> Help & Support</a></li>
-        <li><a href="#" style="color:#ff6b6b;"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+        <li><a href="#"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
       </ul>
     </div>
   </div>
@@ -307,12 +200,10 @@
     <p class="page-subtitle">Here are all your recent purchases</p>
 
     <div class="orders-grid">
-      <!-- Order 1 -->
+
+      <!-- Order #1001 -->
       <div class="order-card">
-        <div class="order-header">
-          <div class="order-id">Order #1001</div>
-          <div class="order-date">November 15, 2025 • 2:34 PM</div>
-        </div>
+        <div class="order-header"><div class="order-id">Order #1001</div><div class="order-date">November 15, 2025 • 2:34 PM</div></div>
         <div class="order-body">
           <div class="items-container">
             <div class="order-item"><span class="item-name">2 × Wireless Earbuds Pro</span><span>$198.00</span></div>
@@ -323,8 +214,70 @@
         </div>
       </div>
 
-      <!-- Order 2 & 3 (same structure) -->
-      <!-- Copy the card above for the other two orders -->
+      <!-- Order #1002 -->
+      <div class="order-card">
+        <div class="order-header"><div class="order-id">Order #1002</div><div class="order-date">November 10, 2025 • 11:12 AM</div></div>
+        <div class="order-body">
+          <div class="items-container">
+            <div class="order-item"><span class="item-name">1 × Mechanical Keyboard RGB</span><span>$149.00</span></div>
+            <div class="order-item"><span class="item-name">1 × Gaming Mouse Ultra</span><span>$79.99</span></div>
+            <div class="order-item"><span class="item-name">3 × USB-C Cable 100W</span><span>$44.97</span></div>
+          </div>
+          <div class="order-total">$273.96</div>
+          <div style="text-align:right;"><span class="status-badge status-shipped">SHIPPED</span></div>
+        </div>
+      </div>
+
+      <!-- Order #1003 -->
+      <div class="order-card">
+        <div class="order-header"><div class="order-id">Order #1003</div><div class="order-date">November 5, 2025 • 9:47 PM</div></div>
+        <div class="order-body">
+          <div class="items-container">
+            <div class="order-item"><span class="item-name">1 × Smart Watch Series 8</span><span>$399.00</span></div>
+          </div>
+          <div class="order-total">$399.00</div>
+          <div style="text-align:right;"><span class="status-badge status-pending">PENDING PAYMENT</span></div>
+        </div>
+      </div>
+
+      <!-- Order #1004 -->
+      <div class="order-card">
+        <div class="order-header"><div class="order-id">Order #1004</div><div class="order-date">October 28, 2025 • 3:18 PM</div></div>
+        <div class="order-body">
+          <div class="items-container">
+            <div class="order-item"><span class="item-name">1 × 4K Webcam Pro</span><span>$129.00</span></div>
+            <div class="order-item"><span class="item-name">1 × Desk Lamp LED</span><span>$45.00</span></div>
+          </div>
+          <div class="order-total">$174.00</div>
+          <div style="text-align:right;"><span class="status-badge status-delivered">DELIVERED</span></div>
+        </div>
+      </div>
+
+      <!-- Order #1005 -->
+      <div class="order-card">
+        <div class="order-header"><div class="order-id">Order #1005</div><div class="order-date">October 20, 2025 • 7:22 AM</div></div>
+        <div class="order-body">
+          <div class="items-container">
+            <div class="order-item"><span class="item-name">3 × Noise-Cancelling Headphones</span><span>$747.00</span></div>
+          </div>
+          <div class="order-total">$747.00</div>
+          <div style="text-align:right;"><span class="status-badge status-shipped">SHIPPED</span></div>
+        </div>
+      </div>
+
+      <!-- Order #1006 -->
+      <div class="order-card">
+        <div class="order-header"><div class="order-id">Order #1006</div><div class="order-date">October 12, 2025 • 4:55 PM</div></div>
+        <div class="order-body">
+          <div class="items-container">
+            <div class="order-item"><span class="item-name">1 × Standing Desk Converter</span><span>$279.99</span></div>
+            <div class="order-item"><span class="item-name">1 × Ergonomic Chair</span><span>$449.00</span></div>
+          </div>
+          <div class="order-total">$728.99</div>
+          <div style="text-align:right;"><span class="status-badge status-delivered">DELIVERED</span></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -339,13 +292,11 @@
       overlay.classList.add('active');
       document.body.style.overflow = 'hidden';
     };
-
     const close = () => {
       slideMenu.classList.remove('active');
       overlay.classList.remove('active');
       document.body.style.overflow = '';
     };
-
     closeBtn.onclick = close;
     overlay.onclick = close;
     document.addEventListener('keydown', e => e.key === 'Escape' && close());
