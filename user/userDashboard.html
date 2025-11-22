@@ -103,17 +103,45 @@
     </div>
   </div>
 
-  <script>
-    fetch('user/nav.html')
-      .then(response => response.text())
-      .then(html => {
-        document.getElementById('global-navigation').innerHTML = html;
-        // Re-run navigation script after injecting HTML
-        const script = document.createElement('script');
-        script.src = 'script.js';
-        document.body.appendChild(script);
-      });
-  </script>
+<script>
+  // Helper: load a text file (HTML, CSS, JS, etc.)
+  async function loadFile(url) {
+    const res = await fetch(url);
+    if (!res.ok) {
+      console.error(`Failed to load ${url} → ${res.status} ${res.statusText}`);
+      return '';
+    }
+    return await res.text();
+  }
+
+  (async () => {
+    // 1. Load the navigation HTML
+    const navHtml = await loadFile('user/nav.html');   // adjust path if needed
+    if (navHtml) {
+      document.getElementById('global-navigation').innerHTML = navHtml;
+    }
+
+    // 2. If nav.html contains its own <script> tags with src="", load them too
+    const scriptElements = document.querySelectorAll('#global-navigation script[src]');
+    scriptElements.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      newScript.src = oldScript.src;
+      newScript.async = false;           // preserve execution order
+      document.body.appendChild(newScript);
+      oldScript.remove();                // avoid duplicate loading
+    });
+
+    // 3. Optionally load your main script.js (only once!)
+    if (!window.shopHubScriptsLoaded) {
+      const script = document.createElement('script');
+      script.src = 'script.js';          // or 'user/script.js' if it's inside /user
+      script.onload = () => console.log('script.js loaded');
+      script.onerror = () => console.error('Failed to load script.js');
+      document.body.appendChild(script);
+      window.shopHubScriptsLoaded = true;
+    }
+  })();
+</script>
   <script src="script.js"></script>
 </body>
 </html>
