@@ -20,7 +20,6 @@
       color: white;
       min-height: 100vh;
     }
-
     /* Navbar */
     .navbar {
       background: rgba(0,0,0,0.7);
@@ -71,12 +70,38 @@
       opacity: 0.9;
       margin-bottom: 2.5rem;
     }
+
+    /* Search + Filter + Sort Controls */
+    .search-controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+      max-width: 1000px;
+      margin: 0 auto;
+    }
+    .filter-sort {
+      padding: 1rem 1.5rem;
+      background: rgba(255,255,255,0.1);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 50px;
+      color: white;
+      font-family: 'Inter', sans-serif;
+      font-weight: 600;
+      outline: none;
+      backdrop-filter: blur(10px);
+      min-width: 160px;
+    }
+    .search-wrapper {
+      position: relative;
+      flex: 1;
+      max-width: 600px;
+    }
     .search-box {
       width: 100%;
-      max-width: 600px;
-      margin: 0 auto;
       padding: 1.4rem 2rem;
-      padding-left: 4rem;
+      padding-left: 4.5rem;
       font-size: 1.2rem;
       border: none;
       border-radius: 50px;
@@ -86,6 +111,15 @@
       outline: none;
     }
     .search-box::placeholder { color: rgba(255,255,255,0.7); }
+    .search-icon {
+      position: absolute;
+      left: 1.8rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: rgba(255,255,255,0.7);
+      font-size: 1.3rem;
+      pointer-events: none;
+    }
 
     /* Instagram Reels Grid */
     .container {
@@ -107,6 +141,10 @@
       cursor: pointer;
       box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       transition: var(--transition);
+      display: block;
+    }
+    .reel-card.hidden {
+      display: none !important;
     }
     .reel-card:hover {
       transform: scale(1.03);
@@ -231,6 +269,8 @@
     @media (max-width: 800px) {
       .products-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
       .reel-title { font-size: 1.7rem; }
+      .search-controls { flex-direction: column; }
+      .filter-sort { width: 100%; max-width: 600px; }
     }
     @media (max-width: 500px) {
       .products-grid { grid-template-columns: 1fr; }
@@ -260,13 +300,36 @@
   <div class="hero">
     <h1>THE VAULT</h1>
     <p>Curated drops. Limited stock. For the culture.</p>
-    <input type="text" id="searchInput" class="search-box" placeholder="Search the vault..." />
+
+    <!-- Filter + Search + Sort -->
+    <div class="search-controls">
+      <select id="filterSelect" class="filter-sort">
+        <option value="all">All Items</option>
+        <option value="jacket">Jackets</option>
+        <option value="hoodie">Hoodies</option>
+        <option value="pants">Pants</option>
+        <option value="tee">Tees</option>
+        <option value="sweater">Sweaters</option>
+      </select>
+
+      <div class="search-wrapper">
+        <input type="text" id="searchInput" class="search-box" placeholder="Search the vault..." />
+        <i class="fas fa-search search-icon"></i>
+      </div>
+
+      <select id="sortSelect" class="filter-sort">
+        <option value="default">Featured</option>
+        <option value="price-low">Price: Low to High</option>
+        <option value="price-high">Price: High to Low</option>
+        <option value="name">Name A to Z</option>
+      </select>
+    </div>
   </div>
 
-  <!-- Instagram Reels Grid -->
+  <!-- Products Grid -->
   <div class="container">
     <div class="products-grid" id="productsGrid">
-      <div class="reel-card" data-name="midnight bomber jacket">
+      <div class="reel-card" data-name="midnight bomber jacket" data-category="jacket" data-price="279">
         <div class="reel-image" style="background-image: url('https://za.shein.com/Manfinity-Homme-Men-Casual-Fashion-Versatile-Solid-Color-Long-Sleeve-Zip-Up-Hooded-Windbreaker-Jacket-Lightweight-Casual-Jacket-Fall-p-126924031.html?src_identifier=st%3D4%60sc%3DWindbreaker+Jacket+For+Men%60sr%3D0%60ps%3D1&src_module=search&src_tab_page_id=page_risk_crawler_block1763926558974&mallCode=1&pageListType=4&imgRatio=3-4&detailBusinessFrom=0-1_18212692%7C0-2&pageListType=4&main_attr=27_739')">
           <div class="reel-content">
             <div class="price-tag">$279</div>
@@ -275,7 +338,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="eclipse hoodie oversized">
+
+      <div class="reel-card" data-name="eclipse hoodie oversized" data-category="hoodie" data-price="89.99">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1509942774463-acf5106f50d8?w=800')">
           <div class="reel-content">
             <div class="price-tag">$89.99</div>
@@ -284,7 +348,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="1998 denim jacket">
+
+      <div class="reel-card" data-name="1998 denim jacket" data-category="jacket" data-price="149">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=800')">
           <div class="reel-content">
             <div class="price-tag">$149</div>
@@ -293,7 +358,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="shadow cargo pants">
+
+      <div class="reel-card" data-name="shadow cargo pants" data-category="pants" data-price="119.99">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=800')">
           <div class="reel-content">
             <div class="price-tag">$119.99</div>
@@ -302,7 +368,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="vanilla knit sweater">
+
+      <div class="reel-card" data-name="vanilla knit sweater" data-category="sweater" data-price="94">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1611318368081-39714e349c05?w=800')">
           <div class="reel-content">
             <div class="price-tag">$94</div>
@@ -311,7 +378,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="chrome reflective hoodie">
+
+      <div class="reel-card" data-name="chrome reflective hoodie" data-category="hoodie" data-price="199.99">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1622440268107-547a13f9be02?w=800')">
           <div class="reel-content">
             <div class="price-tag">$199.99</div>
@@ -320,7 +388,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="aurora puffer jacket">
+
+      <div class="reel-card" data-name="aurora puffer jacket" data-category="jacket" data-price="329">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1548126031-0ab61a58c3b8?w=800')">
           <div class="reel-content">
             <div class="price-tag">$329</div>
@@ -329,7 +398,8 @@
           </div>
         </div>
       </div>
-      <div class="reel-card" data-name="neon nights tee">
+
+      <div class="reel-card" data-name="neon nights tee" data-category="tee" data-price="44.99">
         <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1582659761484-659e2e13ab90?w=800')">
           <div class="reel-content">
             <div class="price-tag">$44.99</div>
@@ -341,7 +411,7 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
+  <!-- Footer -->
   <footer>
     <div class="footer-container">
       <div class="footer-col">
@@ -382,20 +452,52 @@
   </footer>
 
   <script>
-    // Live Search - dims non-matching items
-    document.getElementById('searchInput').addEventListener('input', (e) => {
-      const query = e.target.value.toLowerCase();
-      document.querySelectorAll('.reel-card').forEach(card => {
-        const name = card.getAttribute('data-name').toLowerCase();
-        if (name.includes(query)) {
-          card.style.opacity = '1';
-          card.style.transform = 'scale(1)';
+    const searchInput = document.getElementById('searchInput');
+    const filterSelect = document.getElementById('filterSelect');
+    const sortSelect = document.getElementById('sortSelect');
+    const grid = document.getElementById('productsGrid');
+
+    function updateProducts() {
+      const query = searchInput.value.toLowerCase().trim();
+      const filter = filterSelect.value;
+      const sort = sortSelect.value;
+
+      const cards = Array.from(grid.children);
+
+      // Filter + Search
+      cards.forEach(card => {
+        const name = card.dataset.name.toLowerCase();
+        const category = card.dataset.category;
+        const matchesSearch = name.includes(query);
+        const matchesFilter = filter === 'all' || category === filter;
+
+        if (matchesSearch && matchesFilter) {
+          card.classList.remove('hidden');
         } else {
-          card.style.opacity = '0.3';
-          card.style.transform = 'scale(0.95)';
+          card.classList.add('hidden');
         }
       });
-    });
+
+      // Sort visible cards
+      const visible = cards.filter(card => !card.classList.contains('hidden'));
+
+      visible.sort((a, b) => {
+        if (sort === 'price-low') return parseFloat(a.dataset.price) - parseFloat(b.dataset.price);
+        if (sort === 'price-high') return parseFloat(b.dataset.price) - parseFloat(a.dataset.price);
+        if (sort === 'name') return a.dataset.name.localeCompare(b.dataset.name);
+        return 0;
+      });
+
+      // Re-append in sorted order
+      visible.forEach(card => grid.appendChild(card));
+    }
+
+    searchInput.addEventListener('input', updateProducts);
+    filterSelect.addEventListener('change', updateProducts);
+    sortSelect.addEventListener('change', updateProducts);
+
+    // Initial load
+    updateProducts();
   </script>
 </body>
 </html>
