@@ -3,36 +3,32 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>ShopHub • Premium Streetwear & Designer Clothing</title>
+  <title>ShopHub • Premium Streetwear</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet"/>
   <style>
     :root {
       --primary: #6366f1;
       --primary-dark: #4f46e5;
-      --gray-800: #1f2937;
-      --gray-900: #111827;
-      --radius: 20px;
-      --shadow: 0 15px 35px rgba(0,0,0,0.15);
+      --radius: 24px;
       --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     }
     * { margin:0; padding:0; box-sizing:border-box; }
     body {
       font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #1e1b4b 0%, #4c1d95 100%);
-      min-height: 100vh;
+      background: #000;
       color: white;
+      min-height: 100vh;
     }
 
     /* Navbar */
     .navbar {
-      background: rgba(255,255,255,0.95);
+      background: rgba(0,0,0,0.7);
       backdrop-filter: blur(12px);
-      padding: 1.2rem 2rem;
-      position: sticky;
-      top: 0;
+      padding: 1rem 2rem;
+      position: fixed;
+      top: 0; left: 0; right: 0;
       z-index: 1000;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.1);
     }
     .nav-container {
       max-width: 1400px;
@@ -42,283 +38,218 @@
       align-items: center;
     }
     .logo {
-      font-size: 2.3rem;
+      font-size: 2rem;
       font-weight: 900;
       background: linear-gradient(90deg, #6366f1, #a78bfa);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     .nav-links a {
-      color: var(--gray-800);
+      color: white;
       text-decoration: none;
       font-weight: 600;
       margin-left: 2rem;
-      transition: var(--transition);
+      opacity: 0.9;
     }
-    .nav-links a:hover { color: var(--primary); }
-
-    /* Filter Button & Sidebar */
-    .filter-btn {
-      position: fixed;
-      left: 20px;
-      top: 50%;
-      transform: translateY(-50%);
-      background: rgba(255,255,255,0.95);
-      width: 60px;
-      height: 60px;
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 1.8rem;
-      color: var(--primary);
-      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-      cursor: pointer;
-      z-index: 999;
-      transition: var(--transition);
-    }
-    .filter-btn:hover { transform: translateY(-50%) scale(1.1); }
-
-    .sidebar {
-      position: fixed;
-      left: -350px;
-      top: 0;
-      width: 350px;
-      height: 100%;
-      background: rgba(15, 23, 42, 0.98);
-      backdrop-filter: blur(20px);
-      padding: 2rem;
-      transition: var(--transition);
-      z-index: 1000;
-      overflow-y: auto;
-      box-shadow: 10px 0 40px rgba(0,0,0,0.4);
-    }
-    .sidebar.open { left: 0; }
-    .sidebar-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 2rem;
-      padding-bottom: 1rem;
-      border-bottom: 1px solid rgba(255,255,255,0.1);
-    }
-    .sidebar-title { font-size: 1.8rem; font-weight: 800; }
-    .close-btn { font-size: 1.8rem; cursor: pointer; color: #94a3b8; }
-    .category-list { list-style: none; }
-    .category-item {
-      padding: 1rem 0;
-      border-bottom: 1px solid rgba(255,255,255,0.05);
-      font-size: 1.1rem;
-      cursor: pointer;
-      transition: var(--transition);
-    }
-    .category-item:hover { color: var(--primary); padding-left: 10px; }
-    .category-item i { margin-right: 12px; color: #94a3b8; }
-
-    .overlay {
-      position: fixed;
-      top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(0,0,0,0.6);
-      opacity: 0;
-      visibility: hidden;
-      transition: var(--transition);
-      z-index: 998;
-    }
-    .overlay.active { opacity: 1; visibility: visible; }
+    .nav-links a:hover { opacity: 1; color: var(--primary); }
 
     /* Hero */
     .hero {
       text-align: center;
-      padding: 6rem 2rem 4rem;
+      padding: 8rem 2rem 4rem;
     }
     .hero h1 {
-      font-size: 4.8rem;
+      font-size: 4.5rem;
       font-weight: 900;
       margin-bottom: 1rem;
-      text-shadow: 0 10px 30px rgba(0,0,0,0.4);
+      background: linear-gradient(90deg, #fff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
     }
     .hero p {
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       opacity: 0.9;
       margin-bottom: 2.5rem;
     }
-    .search-container {
-      max-width: 750px;
-      margin: 0 auto;
-      position: relative;
-    }
     .search-box {
       width: 100%;
-      padding: 1.4rem 2.5rem;
-      padding-left: 4.5rem;
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 1.4rem 2rem;
+      padding-left: 4rem;
       font-size: 1.2rem;
       border: none;
       border-radius: 50px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      background: rgba(255,255,255,0.15);
+      backdrop-filter: blur(10px);
+      color: white;
       outline: none;
     }
-    .search-icon {
-      position: absolute;
-      left: 1.8rem;
-      top: 50%;
-      transform: translateY(-50%);
-      font-size: 1.6rem;
-      color: var(--primary);
-    }
+    .search-box::placeholder { color: rgba(255,255,255,0.7); }
 
-    /* Products */
+    /* Instagram Reels Grid */
     .container {
-      max-width: 1400px;
-      margin: 0 auto 6rem;
-      padding: 0 2rem;
+      max-width: 1600px;
+      margin: 0 auto;
+      padding: 2rem;
     }
     .products-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-      gap: 2.5rem;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 1.5rem;
+      padding-bottom: 4rem;
     }
-    .product-card {
-      background: white;
+    .reel-card {
+      position: relative;
       border-radius: var(--radius);
       overflow: hidden;
-      box-shadow: var(--shadow);
+      aspect-ratio: 9 / 16;
+      cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       transition: var(--transition);
     }
-    .product-card:hover {
-      transform: translateY(-15px);
-      box-shadow: 0 30px 70px rgba(0,0,0,0.25);
+    .reel-card:hover {
+      transform: scale(1.03);
+      box-shadow: 0 20px 50px rgba(99,102,241,0.4);
     }
-    .product-image {
-      height: 380px;
+    .reel-image {
+      width: 100%;
+      height: 100%;
       background-size: cover;
       background-position: center;
-      position: relative;
     }
-    .product-image::after {
-      content: '';
+    .reel-content {
       position: absolute;
-      bottom: 0; left: 0; right: 0;
-      height: 100%;
-      background: linear-gradient(transparent, rgba(0,0,0,0.7));
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 1.2rem;
+      background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%);
     }
-    .product-info {
-      padding: 1.8rem;
-      color: var(--gray-900);
-    }
-    .product-name {
-      font-size: 1.5rem;
-      font-weight: 700;
-      margin-bottom: 0.5rem;
-    }
-    .product-category {
-      font-size: 0.9rem;
-      color: #6366f1;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      margin-bottom: 0.8rem;
-    }
-    .product-price {
-      font-size: 1.9rem;
+    .price-tag {
+      align-self: flex-end;
+      background: rgba(0,0,0,0.7);
+      padding: 0.5rem 1rem;
+      border-radius: 50px;
       font-weight: 800;
-      color: var(--primary);
+      font-size: 1.1rem;
+      backdrop-filter: blur(10px);
     }
-    .add-to-cart {
-      width: 100%;
-      margin-top: 1rem;
-      padding: 1rem;
-      background: var(--primary);
-      color: white;
+    .reel-title {
+      font-size: 2rem;
+      font-weight: 900;
+      text-align: center;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.9);
+      letter-spacing: 1.5px;
+      line-height: 1.1;
+    }
+    .add-to-cart-btn {
+      align-self: center;
+      background: white;
+      color: black;
       border: none;
-      border-radius: 12px;
-      font-weight: 700;
+      padding: 0.9rem 2rem;
+      border-radius: 50px;
+      font-weight: 800;
+      font-size: 1.1rem;
       cursor: pointer;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       transition: var(--transition);
     }
-    .add-to-cart:hover { background: var(--primary-dark); }
+    .add-to-cart-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: scale(1.05);
+    }
 
     /* Footer */
     footer {
-      background: #0f172a;
-      padding: 4rem 2rem 2rem;
+      background: #0a0a0a;
+      padding: 5rem 2rem 2rem;
+      border-top: 1px solid #1a1a1a;
     }
-    .footer-grid {
+    .footer-container {
       max-width: 1400px;
       margin: 0 auto;
       display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
       gap: 3rem;
       margin-bottom: 3rem;
     }
-    .footer-col h3 { font-size: 1.4rem; margin-bottom: 1.5rem; color: #e2e8f0; }
+    .footer-col h3 {
+      font-size: 1.4rem;
+      font-weight: 800;
+      margin-bottom: 1.5rem;
+      background: linear-gradient(90deg, #fff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
     .footer-col a {
       display: block;
-      color: #94a3b8;
+      color: #888;
       text-decoration: none;
-      margin-bottom: 0.8rem;
+      margin-bottom: 1rem;
+      font-weight: 500;
       transition: var(--transition);
     }
-    .footer-col a:hover { color: var(--primary); padding-left: 8px; }
-    .social-links { display: flex; gap: 1rem; margin-top: 1rem; }
+    .footer-col a:hover {
+      color: var(--primary);
+      padding-left: 8px;
+    }
+    .social-links {
+      display: flex;
+      gap: 1.2rem;
+      margin-top: 1.5rem;
+    }
     .social-links a {
-      width: 44px; height: 44px;
+      width: 48px;
+      height: 48px;
       background: rgba(99,102,241,0.2);
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.3rem;
+      font-size: 1.4rem;
       transition: var(--transition);
     }
-    .social-links a:hover { background: var(--primary); transform: translateY(-5px); }
+    .social-links a:hover {
+      background: var(--primary);
+      transform: translateY(-6px);
+    }
     .copyright {
       text-align: center;
       padding-top: 2rem;
-      border-top: 1px solid rgba(255,255,255,0.1);
-      color: #64748b;
+      color: #555;
       font-size: 0.95rem;
+      border-top: 1px solid #1a1a1a;
     }
 
-    @media (max-width: 768px) {
-      .hero h1 { font-size: 3.2rem; }
+    /* Responsive */
+    @media (max-width: 1400px) { .products-grid { grid-template-columns: repeat(4, 1fr); } }
+    @media (max-width: 1100px) { .products-grid { grid-template-columns: repeat(3, 1fr); } }
+    @media (max-width: 800px) {
+      .products-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+      .reel-title { font-size: 1.7rem; }
+    }
+    @media (max-width: 500px) {
       .products-grid { grid-template-columns: 1fr; }
-      .sidebar { width: 100%; left: -100%; }
+      .hero h1 { font-size: 3rem; }
+      .navbar { padding: 1rem; }
     }
   </style>
 </head>
 <body>
-
-  <!-- Filter Button -->
-  <div class="filter-btn" onclick="toggleSidebar()">
-    <i class="fas fa-filter"></i>
-  </div>
-
-  <!-- Sidebar -->
-  <div class="sidebar" id="sidebar">
-    <div class="sidebar-header">
-      <h2 class="sidebar-title">Categories</h2>
-      <i class="fas fa-times close-btn" onclick="toggleSidebar()"></i>
-    </div>
-    <ul class="category-list">
-      <li class="category-item"><i class="fas fa-tshirt"></i> Streetwear</li>
-      <li class="category-item"><i class="fas fa-jacket"></i> Jackets & Coats</li>
-      <li class="category-item"><i class="fas fa-female"></i> Women's</li>
-      <li class="category-item"><i class="fas fa-male"></i> Men's</li>
-      <li class="category-item"><i class="fas fa-snowflake"></i> Winter Collection</li>
-      <li class="category-item"><i class="fas fa-sun"></i> Summer Drop</li>
-      <li class="category-item"><i class="fas fa-star"></i> Limited Edition</li>
-      <li class="category-item"><i class="fas fa-tags"></i> Sale</li>
-    </ul>
-  </div>
-  <div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
 
   <!-- Navbar -->
   <nav class="navbar">
     <div class="nav-container">
       <div class="logo">ShopHub</div>
       <div class="nav-links">
-        <a href="#">New Drops</a>
-        <a href="vault.html">Shoe Vault</a>
-        <a href="Admin/adLogin.html">My Orders</a>
+        <a href="#">New</a>
+        <a href="#">Men</a>
+        <a href="#">Women</a>
+        <a href="#">Sale</a>
         <a href="#">Cart (0)</a>
       </div>
     </div>
@@ -326,115 +257,95 @@
 
   <!-- Hero -->
   <div class="hero">
-    <h1>The Vault</h1>
-    <p>Premium streetwear, designer pieces & limited drops — curated for the culture.</p>
-    <div class="search-container">
-      <i class="fas fa-search search-icon"></i>
-      <input type="text" id="searchInput" class="search-box" placeholder="Search hoodies, jackets, tees, pants..." />
-    </div>
+    <h1>CLOTHING VAULT</h1>
+    <p>Curated drops. Limited stock. For the culture.</p>
+    <input type="text" id="searchInput" class="search-box" placeholder="Search the vault..." />
   </div>
 
-  <!-- Products Grid -->
+  <!-- Instagram Reels Grid -->
   <div class="container">
     <div class="products-grid" id="productsGrid">
-
-      <!-- Product 1 -->
-      <div class="product-card" data-name="midnight bomber jacket leather">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1551028719-00167b629994?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Jackets</div>
-          <div class="product-name">Midnight Leather Bomber</div>
-          <div class="product-price">$279.00</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="midnight bomber jacket">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1551028719-00167b629994?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$279</div>
+            <div class="reel-title">MIDNIGHT<br>BOMBER</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 2 -->
-      <div class="product-card" data-name="oversized graphic hoodie black">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1509942774463-acf5106f50d8?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Streetwear</div>
-          <div class="product-name">Eclipse Oversized Hoodie</div>
-          <div class="product-price">$89.99</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="eclipse hoodie oversized">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1509942774463-acf5106f50d8?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$89.99</div>
+            <div class="reel-title">ECLIPSE<br>HOODIE</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 3 -->
-      <div class="product-card" data-name="vintage denim jacket washed">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Men's</div>
-          <div class="product-name">1998 Washed Denim Jacket</div>
-          <div class="product-price">$149.00</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="1998 denim jacket">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1543076447-215ad9ba6923?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$149</div>
+            <div class="reel-title">1998<br>DENIM</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 4 -->
-      <div class="product-card" data-name="cargo pants techwear black">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Techwear</div>
-          <div class="product-name">Shadow Cargo Pants</div>
-          <div class="product-price">$119.99</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="shadow cargo pants">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1594736797933-d0501ba2fe65?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$119.99</div>
+            <div class="reel-title">SHADOW<br>CARGO</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 5 -->
-      <div class="product-card" data-name="cream knit sweater women">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1611318368081-39714e349c05?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Women's</div>
-          <div class="product-name">Vanilla Cloud Knit Sweater</div>
-          <div class="product-price">$94.00</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="vanilla knit sweater">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1611318368081-39714e349c05?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$94</div>
+            <div class="reel-title">VANILLA<br>KNIT</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 6 -->
-      <div class="product-card" data-name="limited chrome hoodie reflective">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1622440268107-547a13f9be02?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Limited Edition</div>
-          <div class="product-name">Chrome Reflective Hoodie</div>
-          <div class="product-price">$199.99</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="chrome reflective hoodie">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1622440268107-547a13f9be02?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$199.99</div>
+            <div class="reel-title">CHROME<br>REFLECTIVE</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 7 -->
-      <div class="product-card" data-name="puffer jacket winter purple">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1548126031-0ab61a58c3b8?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Winter</div>
-          <div class="product-name">Aurora Puffer Jacket</div>
-          <div class="product-price">$329.00</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="aurora puffer jacket">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1548126031-0ab61a58c3b8?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$329</div>
+            <div class="reel-title">AURORA<br>PUFFER</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
-      <!-- Product 8 -->
-      <div class="product-card" data-name="vintage band tee black">
-        <div class="product-image" style="background-image: url('https://images.unsplash.com/photo-1582659761484-659e2e13ab90?w=800')"></div>
-        <div class="product-info">
-          <div class="product-category">Streetwear</div>
-          <div class="product-name">Neon Nights Band Tee</div>
-          <div class="product-price">$44.99</div>
-          <button class="add-to-cart">Add to Cart</button>
+      <div class="reel-card" data-name="neon nights tee">
+        <div class="reel-image" style="background-image: url('https://images.unsplash.com/photo-1582659761484-659e2e13ab90?w=800')">
+          <div class="reel-content">
+            <div class="price-tag">$44.99</div>
+            <div class="reel-title">NEON<br>NIGHTS</div>
+            <button class="add-to-cart-btn">ADD TO CART</button>
+          </div>
         </div>
       </div>
-
     </div>
   </div>
 
-  <!-- Footer -->
+  <!-- FOOTER -->
   <footer>
-    <div class="footer-grid">
+    <div class="footer-container">
       <div class="footer-col">
         <h3>ShopHub</h3>
-        <p>Premium streetwear & designer clothing for those who set trends, not follow them.</p>
+        <p>Premium streetwear & limited drops.<br>For those who set trends.</p>
         <div class="social-links">
           <a href="#"><i class="fab fa-instagram"></i></a>
           <a href="#"><i class="fab fa-tiktok"></i></a>
@@ -444,7 +355,7 @@
       </div>
       <div class="footer-col">
         <h3>Shop</h3>
-        <a href="#">New Drops</a>
+        <a href="#">New Arrivals</a>
         <a href="#">Best Sellers</a>
         <a href="#">Sale</a>
         <a href="#">Gift Cards</a>
@@ -452,9 +363,9 @@
       <div class="footer-col">
         <h3>Support</h3>
         <a href="#">Size Guide</a>
-        <a href="#">Shipping</a>
+        <a href="#">Shipping Info</a>
         <a href="#">Returns</a>
-        <a href="#">Contact</a>
+        <a href="#">Contact Us</a>
       </div>
       <div class="footer-col">
         <h3>Company</h3>
@@ -465,22 +376,23 @@
       </div>
     </div>
     <div class="copyright">
-      © 2025 ShopHub Clothing • All rights reserved. Made for the culture.
+      © 2025 ShopHub • Made for the culture. All rights reserved.
     </div>
   </footer>
 
   <script>
-    function toggleSidebar() {
-      document.getElementById('sidebar').classList.toggle('open');
-      document.getElementById('overlay').classList.toggle('active');
-    }
-
-    // Live Search
+    // Live Search - dims non-matching items
     document.getElementById('searchInput').addEventListener('input', (e) => {
       const query = e.target.value.toLowerCase();
-      document.querySelectorAll('.product-card').forEach(card => {
+      document.querySelectorAll('.reel-card').forEach(card => {
         const name = card.getAttribute('data-name').toLowerCase();
-        card.style.display = name.includes(query) ? 'block' : 'none';
+        if (name.includes(query)) {
+          card.style.opacity = '1';
+          card.style.transform = 'scale(1)';
+        } else {
+          card.style.opacity = '0.3';
+          card.style.transform = 'scale(0.95)';
+        }
       });
     });
   </script>
