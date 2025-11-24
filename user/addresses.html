@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shipping Addresses • ShopHub</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="global-navigation"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+  <h1 class="page-title">SHIPPING ADDRESSES</h1>
+  <p class="page-subtitle">Manage where your orders are delivered</p>
+
+  <div class="addresses-container">
+
+    <!-- Add New Address -->
+    <div class="address-card add-new-card">
+      <div class="add-icon">
+        <i class="fas fa-plus"></i>
+      </div>
+      <h3>Add New Address</h3>
+      <p>Deliver to a new location</p>
+    </div>
+
+    <!-- Default Address -->
+    <div class="address-card default-address">
+      <div class="address-header">
+        <div class="default-badge">DEFAULT</div>
+        <div class="address-actions">
+          <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+      <div class="address-body">
+        <h3>Home</h3>
+        <p class="recipient">John Doe</p>
+        <p>123 Luxury Avenue, Apt 42B<br>Beverly Hills, Los Angeles<br>CA 90210, United States</p>
+        <p class="phone">+1 (555) 123-4567</p>
+      </div>
+      <div class="address-footer">
+        <label><input type="radio" name="default" checked> Set as default</label>
+      </div>
+    </div>
+
+    <!-- Other Addresses -->
+    <div class="address-card">
+      <div class="address-header">
+        <div class="address-actions">
+          <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+      <div class="address-body">
+        <h3>Office</h3>
+        <p class="recipient">John Doe (Work)</p>
+        <p>456 Tech Park Tower, Floor 18<br>Silicon Valley, San Francisco<br>CA 94027, United States</p>
+        <p class="phone">+1 (555) 987-6543</p>
+      </div>
+      <div class="address-footer">
+        <label><input type="radio" name="default"> Set as default</label>
+      </div>
+    </div>
+
+    <div class="address-card">
+      <div class="address-header">
+        <div class="address-actions">
+          <button class="action-btn edit"><i class="fas fa-edit"></i></button>
+          <button class="action-btn delete"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+      <div class="address-body">
+        <h3>Parents' House</h3>
+        <p class="recipient">John Doe</p>
+        <p>789 Green Valley Road<br>Portland, Oregon<br>97201, United States</p>
+        <p class="phone">+1 (555) 321-9876</p>
+      </div>
+      <div class="address-footer">
+        <label><input type="radio" name="default"> Set as default</label>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary: #6366f1;
+    --primary-dark: #4f46e5;
+    --danger: #ef4444;
+    --radius: 18px;
+    --radius-sm: 14px;
+  }
+
+  /* Perfect dark background matching Profile page */
+  body {
+    background: #000;
+    color: white;
+  }
+
+  .main-content {
+    margin-top: 90px;
+    padding: 2rem;
+    max-width: 1400px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .addresses-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+
+  /* Cards - now perfectly dark like Profile */
+  .address-card {
+    background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
+    border: 1px solid #1a1a1a;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+    transition: all 0.4s ease;
+    position: relative;
+  }
+
+  .address-card:hover {
+    transform: translateY(-14px);
+    box-shadow: 0 30px 70px rgba(0,0,0,0.95);
+  }
+
+  /* Add New Card - dark version */
+  .add-new-card {
+    background: rgba(99,102,241,0.08);
+    border: 2px dashed rgba(99,102,241,0.3);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 3.5rem 2rem;
+    cursor: pointer;
+    color: #c4b5fd;
+  }
+  .add-new-card:hover {
+    background: rgba(99,102,241,0.15);
+    border-color: var(--primary);
+  }
+  .add-icon {
+    width: 90px;
+    height: 90px;
+    background: linear-gradient(135deg, var(--primary), #a78bfa);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.8rem;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 15px 35px rgba(99,102,241,0.5);
+  }
+
+  /* Header gradient (same as Profile cards) */
+  .address-header {
+    background: linear-gradient(135deg, var(--primary), #a78bfa);
+    padding: 1.4rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: white;
+  }
+
+  .default-badge {
+    background: #166534;
+    color: #bbf7d0;
+    padding: 0.5rem 1.2rem;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    font-weight: 700;
+  }
+
+  .action-btn {
+    background: rgba(255,255,255,0.15);
+    border: none;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    color: white;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .action-btn:hover { background: rgba(255,255,255,0.3); transform: scale(1.1); }
+  .action-btn.delete:hover { background: rgba(239,68,68,0.4); }
+
+  .address-body {
+    padding: 2rem;
+    color: #ddd;
+  }
+  .address-body h3 {
+    font-size: 1.8rem;
+    font-weight: 800;
+    color: white;
+    margin-bottom: 0.8rem;
+  }
+  .recipient {
+    color: #a78bfa;
+    font-weight: 600;
+    margin-bottom: 1rem;
+  }
+  .address-body p {
+    line-height: 1.75;
+    margin-bottom: 0.5rem;
+  }
+  .phone { color: #888; }
+
+  .address-footer {
+    padding: 1.6rem 2rem;
+    background: #0a0a0a;
+    border-top: 1px solid #1f1f1f;
+  }
+  .address-footer label {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    color: #bbb;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .address-footer input[type="radio"] {
+    accent-color: var(--primary);
+    width: 20px;
+    height: 20px;
+  }
+
+  /* Green top bar for default address */
+  .default-address::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 6px;
+    background: linear-gradient(90deg, #10b981, #34d399);
+  }
+
+  @media (max-width: 768px) {
+    .addresses-container { grid-template-columns: 1fr; }
+    .page-title { font-size: 2.8rem; }
+  }
+</style>
+
+<script>
+  // Same navigation loader
+  async function loadFile(url) {
+    const res = await fetch(url);
+    if (!res.ok) return console.error(`Failed to load ${url}`);
+    return await res.text();
+  }
+
+  (async () => {
+    const navHtml = await loadFile('nav.html');
+    if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
+
+    document.querySelectorAll('#global-navigation script[src]').forEach(old => {
+      const script = document.createElement('script');
+      script.src = old.src;
+      script.async = false;
+      document.body.appendChild(script);
+      old.remove();
+    });
+
+    if (!window.shopHubScriptsLoaded) {
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      document.body.appendChild(script);
+      window.shopHubScriptsLoaded = true;
+    }
+  })();
+</script>
+</body>
+</html>
