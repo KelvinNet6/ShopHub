@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Wishlist • ShopHub</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<div id="global-navigation"></div>
+
+<div class="main-content">
+  <h1 class="page-title">WISHLIST</h1>
+  <p class="page-subtitle">Products you're craving — saved for later</p>
+
+  <!-- Empty State (uncomment if wishlist is empty) -->
+  <!--
+  <div class="empty-wishlist">
+    <i class="fas fa-heart-broken fa-5x"></i>
+    <h2>Your wishlist is empty</h2>
+    <p>Browse the store and tap the heart to save items here.</p>
+    <a href="index.html" class="btn-primary">Continue Shopping</a>
+  </div>
+  -->
+
+  <div class="wishlist-grid">
+
+    <!-- Wishlist Item 1 -->
+    <div class="wishlist-card">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="OLED Gaming Monitor">
+        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
+        <div class="badge in-stock">IN STOCK</div>
+      </div>
+      <div class="product-info">
+        <h3>34" Ultrawide OLED Gaming Monitor 240Hz</h3>
+        <div class="price-current">$1,299.00</div>
+        <div class="price-original"><s>$1,599.00</s> <span class="discount">-19%</span></div>
+        <div class="actions">
+          <button class="btn-add-to-cart">Add to Cart</button>
+          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist Item 2 -->
+    <div class="wishlist-card">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1544244010-dd3903e36e2e?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Mechanical Keyboard">
+        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
+        <div class="badge low-stock">LOW STOCK</div>
+      </div>
+      <div class="product-info">
+        <h3>Custom Mechanical Keyboard — Tactile Purple</h3>
+        <div class="price-current">$279.99</div>
+        <div class="actions">
+          <button class="btn-add-to-cart">Add to Cart</button>
+          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist Item 3 -->
+    <div class="wishlist-card">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1611186871348-b1ce08ce2275?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Ergonomic Chair">
+        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
+        <div class="badge out-of-stock">OUT OF STOCK</div>
+      </div>
+      <div class="product-info">
+        <h3>Herman Miller x Logitech Embody Gaming Chair</h3>
+        <div class="price-current">$1,795.00</div>
+        <div class="price-note">Notify me when back in stock</div>
+        <div class="actions">
+          <button class="btn-add-to-cart" disabled>Out of Stock</button>
+          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wishlist Item 4 -->
+    <div class="wishlist-card">
+      <div class="product-image">
+        <img src="https://images.unsplash.com/photo-1527864550417-7fd4aa2a1a9f?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="Noise-Cancelling Headphones">
+        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
+        <div class="badge sale">SALE</div>
+      </div>
+      <div class="product-info">
+        <h3>Studio Pro X Noise-Cancelling Headphones</h3>
+        <div class="price-current">$349.00</div>
+        <div class="price-original"><s>$449.00</s> <span class="discount">-22%</span></div>
+        <div class="actions">
+          <button class="btn-add-to-cart">Add to Cart</button>
+          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<style>
+  :root {
+    --primary: #6366f1;
+    --radius: 18px;
+  }
+
+  body { background: #000; color: white; }
+
+  .wishlist-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+    gap: 2rem;
+    max-width: 1400px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+  }
+
+  .wishlist-card {
+    background: linear-gradient(135deg, #0a0a0a 0%, #111 100%);
+    border: 1px solid #1a1a1a;
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: 0 15px 50px rgba(0,0,0,0.9);
+    transition: all 0.4s ease;
+  }
+  .wishlist-card:hover {
+    transform: translateY(-16px);
+    box-shadow: 0 35px 80px rgba(0,0,0,0.95);
+  }
+
+  .product-image {
+    position: relative;
+    overflow: hidden;
+  }
+  .product-image img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+  }
+  .wishlist-card:hover img { transform: scale(1.08); }
+
+  .wishlist-heart {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: rgba(0,0,0,0.6);
+    border: none;
+    width: 48px; height: 48px;
+    border-radius: 50%;
+    color: #ef4444;
+    font-size: 1.4rem;
+    cursor: pointer;
+    transition: all 0.3s;
+    backdrop-filter: blur(8px);
+  }
+  .wishlist-heart.active { color: #fca5a5; background: rgba(239,68,68,0.3); }
+  .wishlist-heart:hover { transform: scale(1.15); }
+
+  .badge {
+    position: absolute;
+    top: 16px; left: 16px;
+    padding: 0.5rem 1rem;
+    border-radius: 50px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+  .badge.in-stock   { background: #166534; color: #bbf7d0; }
+  .badge.low-stock  { background: #c2410c; color: #ffedd5; }
+  .badge.out-of-stock { background: #4b5563; color: #e5e7eb; }
+  .badge.sale       { background: #7c2d12; color: #fed7aa; }
+
+  .product-info {
+    padding: 1.8rem;
+  }
+  .product-info h3 {
+    font-size: 1.35rem;
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 1rem;
+    color: white;
+  }
+
+  .price-current {
+    font-size: 1.9rem;
+    font-weight: 800;
+    color: #a78bfa;
+  }
+  .price-original {
+    color: #666;
+    margin: 0.5rem 0;
+  }
+  .discount {
+    background: #7c2d12;
+    color: #fed7aa;
+    padding: 0.2rem 0.6rem;
+    border-radius: 6px;
+    font-size: 0.8rem;
+    margin-left: 0.5rem;
+  }
+  .price-note {
+    color: #888;
+    font-style: italic;
+    margin: 0.8rem 0;
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 1.5rem;
+  }
+  .btn-add-to-cart {
+    flex: 1;
+    padding: 1rem;
+    background: linear-gradient(135deg, var(--primary), #a78bfa);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-add-to-cart:hover { transform: translateY(-3px); box-shadow: 0 10px 25px rgba(99,102,241,0.4); }
+  .btn-add-to-cart:disabled {
+    background: #333;
+    cursor: not-allowed;
+    opacity: 0.6;
+  }
+
+  .btn-remove {
+    background: rgba(239,68,68,0.2);
+    border: none;
+    width: 50px; height: 50px;
+    border-radius: 50%;
+    color: #fca5a5;
+    font-size: 1.2rem;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  .btn-remove:hover {
+    background: #ef4444;
+    color: white;
+    transform: scale(1.1);
+  }
+
+  /* Empty State */
+  .empty-wishlist {
+    text-align: center;
+    padding: 6rem 2rem;
+    color: #666;
+  }
+  .empty-wishlist i { color: #444; margin-bottom: 2rem; }
+  .empty-wishlist h2 { font-size: 2.2rem; margin-bottom: 1rem; color: #aaa; }
+  .btn-primary {
+    margin-top: 2rem;
+    padding: 1rem 2.5rem;
+    background: linear-gradient(135deg, var(--primary), #a78bfa);
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+  }
+
+  @media (max-width: 768px) {
+    .wishlist-grid { grid-template-columns: 1fr; }
+    .page-title { font-size: 2.8rem; }
+  }
+</style>
+
+<script>
+  // Same navigation loader
+  async function loadFile(url) {
+    const res = await fetch(url);
+    if (!res.ok) return console.error(`Failed to load ${url}`);
+    return await res.text();
+  }
+
+  (async () => {
+    const navHtml = await loadFile('nav.html');
+    if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
+
+    document.querySelectorAll('#global-navigation script[src]').forEach(old => {
+      const script = document.createElement('script');
+      script.src = old.src;
+      script.async = false;
+      document.body.appendChild(script);
+      old.remove();
+    });
+
+    if (!window.shopHubScriptsLoaded) {
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      document.body.appendChild(script);
+      window.shopHubScriptsLoaded = true;
+    }
+  })();
+</script>
+</body>
+</html>
