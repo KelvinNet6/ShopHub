@@ -89,6 +89,23 @@
     });
   }
   loadSidebar();
+    // Image preview when selecting a file
+document.getElementById("productImage")?.addEventListener("change", (e) => {
+  const file = e.target.files[0];
+  const preview = document.getElementById("imagePreview");
+  
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      preview.src = ev.target.result;
+      preview.style.display = "block";
+    };
+    reader.readAsDataURL(file);
+  } else {
+    preview.src = "";
+    preview.style.display = "none";
+  }
+});
 </script>
 
 </body>
