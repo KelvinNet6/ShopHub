@@ -235,7 +235,7 @@ const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
 function getPublicImageUrl(path) {
   if (!path) return 'https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg';
-  return `${supabaseUrl}/storage/v1/object/public/products/${path}`;
+  return `https://nhyucbgjocmwrkqbjjme.supabase.co/storage/v1/object/public/products/${path}`;
 }
 
 // Cart logic
