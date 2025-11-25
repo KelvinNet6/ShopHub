@@ -81,7 +81,7 @@
     // 2. Try to fetch the product
     const { data: product, error } = await supabase
       .from("products")
-      .select("id, name, price, image_url, brand")
+      .select("id, name, price, image_url, brand_id")
       .eq("id", productId)
       .maybeSingle();   // ← THIS IS THE KEY FIX (doesn't crash if nothing found)
 
@@ -110,7 +110,7 @@
     const { data: related } = await supabase
       .from("products")
       .select("id, name, price, image_url")
-      .ilike("brand", `%${keyword}%`)
+      .ilike("brand_id", `%${keyword}%`)
       .neq("id", currentProduct.id)
       .limit(8);
 
