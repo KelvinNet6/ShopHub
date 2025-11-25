@@ -107,23 +107,26 @@
 
 .reel-content > * { pointer-events: auto; }
 
-.price-tag { 
-  align-self: flex-end; 
-  background: rgba(0,0,0,0.7); 
-  padding: 0.5rem 1rem; 
-  border-radius: 50px; 
-  font-weight: 800; 
-  font-size: 1.1rem; 
-  backdrop-filter: blur(10px); 
+.price-tag {
+  align-self: flex-end;
+  background: rgba(0,0,0,0.75);
+  color: white;                    /* ← Forces pure white */
+  padding: 0.5rem 1rem;
+  border-radius: 50px;
+  font-weight: 800;
+  font-size: 1.1rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.12); /* ← optional: tiny glow edge (looks premium) */
 }
 
-.reel-title { 
-  font-size: 2rem; 
-  font-weight: 900; 
-  text-align: center; 
-  text-shadow: 0 4px 20px rgba(0,0,0,0.9); 
-  letter-spacing: 1.5px; 
-  line-height: 1.1; 
+.reel-title {
+  font-size: 2rem;
+  font-weight: 900;
+  text-align: center;
+  color: white;                    /* ← Forces pure white */
+  text-shadow: 0 4px 20px rgba(0,0,0,0.9);
+  letter-spacing: 1.5px;
+  line-height: 1.1;
 }
 
 /* Responsive – perfect on all screens */
