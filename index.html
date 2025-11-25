@@ -26,7 +26,7 @@
     .hero h1 { font-size: 4.5rem; font-weight: 900; margin-bottom: 1rem; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
     .hero p { font-size: 1.4rem; opacity: 0.9; margin-bottom: 2.5rem; }
 
-    /* Search Controls + Dark Dropdowns */
+    /* Search Controls */
     .search-controls { display: flex; align-items: center; justify-content: space-between; gap: 2rem; max-width: 1400px; margin: 0 auto; padding: 0 2rem; flex-wrap: wrap; }
     .filter-sort { 
       padding: 1rem 1.8rem; background: #111; border: 1px solid #333; border-radius: 50px; color: white; font-weight: 600; font-size: 1rem; outline: none; backdrop-filter: blur(10px); min-width: 180px; appearance: none;
@@ -51,41 +51,57 @@
     .price-tag { align-self: flex-end; background: rgba(0,0,0,0.7); padding: 0.5rem 1rem; border-radius: 50px; font-weight: 800; font-size: 1.1rem; backdrop-filter: blur(10px); }
     .reel-title { font-size: 2rem; font-weight: 900; text-align: center; text-shadow: 0 4px 20px rgba(0,0,0,0.9); letter-spacing: 1.5px; line-height: 1.1; }
 
-    /* Two Buttons — Stacked in Column, Perfectly Centered */
+    /* === SMALLER BUTTONS === */
     .card-buttons {
       display: flex;
       flex-direction: column;
-      gap: 0.8rem;
+      gap: 0.6rem;           /* Reduced gap */
       align-items: center;
       width: 100%;
+      margin-top: 1rem;
     }
     .view-btn {
       background: transparent;
       color: white;
       border: 2px solid white;
-      padding: 0.8rem 2rem;
+      padding: 0.55rem 1.2rem;   /* Smaller padding */
       border-radius: 50px;
       font-weight: 800;
-      font-size: 1rem;
+      font-size: 0.85rem;        /* Smaller text */
       cursor: pointer;
-      width: 80%;
+      width: 65%;                 /* Narrower */
       transition: var(--transition);
     }
     .view-btn:hover { background: white; color: black; }
+
     .add-to-cart-btn {
       background: white;
       color: black;
       border: none;
-      padding: 0.9rem 2rem;
+      padding: 0.6rem 1.2rem;    /* Smaller padding */
       border-radius: 50px;
       font-weight: 800;
-      font-size: 1.1rem;
+      font-size: 0.9rem;         /* Slightly smaller */
       cursor: pointer;
-      width: 80%;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      width: 65%;                 /* Narrower */
+      box-shadow: 0 8px 20px rgba(0,0,0,0.4);
       transition: var(--transition);
     }
-    .add-to-cart-btn:hover { background: var(--primary); color: white; transform: scale(1.05); }
+    .add-to-cart-btn:hover {
+      background: var(--primary);
+      color: white;
+      transform: translateY(-2px);
+    }
+
+    /* Responsive adjustments for smaller buttons */
+    @media (max-width: 800px) {
+      .view-btn, .add-to-cart-btn {
+        width: 75%;
+        font-size: 0.8rem;
+        padding: 0.5rem 1rem;
+      }
+      .add-to-cart-btn { font-size: 0.85rem; }
+    }
 
     /* Cart Sidebar */
     .cart-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); opacity:0; visibility:hidden; transition:all 0.4s; z-index:1500; }
@@ -111,7 +127,7 @@
     .checkout-btn:hover { background:var(--primary); color:white; }
     .empty-cart { text-align:center; padding:4rem 2rem; opacity:0.6; font-size:1.2rem; }
 
-    /* Footer - unchanged */
+    /* Footer */
     footer { background:#0a0a0a; padding:5rem 2rem 0; border-top:1px solid #1a1a1a; margin-top:8rem; }
     .footer-container { max-width:1400px; margin:0 auto; display:grid; grid-template-columns:2fr 1fr 1fr 1fr; gap:4rem; padding-bottom:3rem; }
     .footer-col h4, .footer-logo { font-size:1.4rem; font-weight:800; margin-bottom:1.8rem; background:linear-gradient(90deg,#fff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
@@ -187,7 +203,7 @@
     <div class="products-grid" id="productsGrid"></div>
   </div>
 
-  <!-- Footer (unchanged) -->
+  <!-- Footer -->
   <footer>
     <div class="footer-container">
       <div class="footer-col">
@@ -217,7 +233,7 @@
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-    // Cart
+    // Cart Logic (unchanged)
     const cartSidebar = document.getElementById("cartSidebar");
     const cartOverlay = document.getElementById("cartOverlay");
     const openCartBtn = document.getElementById("openCart");
@@ -278,7 +294,7 @@
       cartTotalEl.textContent = cart.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2);
     }
 
-    // Products
+    // Products Rendering
     const grid = document.getElementById("productsGrid");
     const filterSelect = document.getElementById("filterSelect");
     const searchInput = document.getElementById("searchInput");
