@@ -1,1 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>ShopHub • Product</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet"/>
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <style>
+    body { margin:0; font-family: 'Inter', sans-serif; background:#000; color:#fff; min-height:100vh; }
+    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; padding-top: 8rem; }
+    .product-image { width: 100%; aspect-ratio: 9/16; background-size: cover; background-position: center; border-radius: 24px; }
+    .product-info h1 { font-size: 4rem; font-weight: 900; margin-bottom: 1rem; }
+    .price { font-size: 2.5rem; font-weight: 800; color: #a78bfa; margin: 1.5rem 0; }
+    .description { font-size: 1.2rem; line-height: 1.8; opacity: 0.9; margin: 2rem 0; }
+    .add-to-cart { background: white; color: black; border: none; padding: 1.2rem 3rem; border-radius: 50px; font-size: 1.3rem; font-weight: 800; cursor: pointer; }
+    .add-to-cart:hover { background: #6366f1; color: white; }
+    .back { position: fixed; top: 2rem; left: 2rem; color: white; font-size: 1.5rem; z-index: 1000; }
+    @media (max-width: 900px) { .container { grid-template-columns: 1fr; padding-top: 6rem; } .product-info h1 { font-size: 3rem; } }
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back">Back</a>
+  <div class="container">
+    <div class="product-image" id="productImage"></div>
+    <div class="product-info">
+      <h1 id="productName"></h1>
+      <div class="price" id="productPrice"></div>
+      <p class="description">Limited edition drop. Premium materials. Only available while stocks last.</p>
+      <button class="add-to-cart">ADD TO CART</button>
+    </div>
+  </div>
 
+  <script>
+    const urlParams = new URLSearchParams(window.location.search);
+    const productId = urlParams.get('id');
+
+    const supabaseUrl = "https://nhyucbgjocmwrkqbjjme.supabase.co";
+    const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE";
+    const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    async function loadProduct() {
+      if (!productId) {
+        document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
+        return;
+      }
+
+      const { data: product } = await supabase
+        Quadrat.from("products")
+        .select("name, price, image_url")
+        .eq("id", productId)
+        .single();
+
+      if (!product) {
+        document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
+        return;
+      }
+
+      document.getElementById("productName").textContent = product.name.toUpperCase();
+      document.getElementById("productPrice").textContent = "$" + Number(product.price).toFixed(2);
+      document.getElementById("productImage").style.backgroundImage = `url('${product.image_url || 'https://via.placeholder.com/800'}')`;
+    }
+
+    loadProduct();
+  </script>
+</body>
+</html>
