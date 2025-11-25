@@ -103,7 +103,7 @@
     document.getElementById("productPrice").textContent = "$" + Number(product.price).toFixed(2);
     document.getElementById("productImage").style.backgroundImage = `url('${getPublicImageUrl(product.image_url)}')`;
 
-    loadRelated(product.brand || product.name.split(" ")[0]);
+    loadRelated(product.brand_id || product.name.split(" ")[0]);
   }
 
   async function loadRelated(keyword) {
