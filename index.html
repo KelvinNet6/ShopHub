@@ -69,28 +69,31 @@
   transform: translateY(-10px) scale(1.02); 
   box-shadow: 0 25px 60px rgba(99,102,241,0.4); 
 }
-/*  Reel Image*/
+
 .reel-image {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
-  background: #000;               /* ensures no white gaps on transparent PNGs */
+  overflow: visible;                    /* ← allow image to be fully seen */
+  pointer-events: none;                 /* let clicks pass through to the card */
 }
 
 .reel-image img {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;            /* Full product visible – no cropping */
+  width: 92%;                           /* ← slightly smaller than card so nothing gets cut */
+  height: auto;
+  max-height: 96%;                      /* ← guarantees head and feet are never shaded/cropped */
+  object-fit: contain;
   object-position: center;
-  transition: none;               /* ← removes any zoom animation */
-  transform: none !important;     /* ← forces 100% original size – no zoom at all */
+  display: block;
+  transform: none !important;
+  transition: none !important;
 }
 
-.reel-card:hover .reel-image img {
-  transform: none !important;     /* ← disables zoom on hover completely */
+/* completely disable any hover zoom */
+.reel-image img {
+  transform: none !important;
 }
 /* Keep your exact same overlay & text */
 .reel-content { 
