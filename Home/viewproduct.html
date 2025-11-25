@@ -8,29 +8,157 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet"/>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <style>
-    body { margin:0; font-family: 'Inter', sans-serif; background:#000; color:#fff; min-height:100vh; }
-    .container { max-width: 1400px; margin: 0 auto; padding: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; padding-top: 8rem; }
-    .product-image { width: 100%; aspect-ratio: 9/16; background-size: cover; background-position: center; border-radius: 24px; }
-    .product-info h1 { font-size: 4rem; font-weight: 900; margin-bottom: 1rem; }
-    .price { font-size: 2.5rem; font-weight: 800; color: #a78bfa; margin: 1.5rem 0; }
-    .description { font-size: 1.2rem; line-height: 1.8; opacity: 0.9; margin: 2rem 0; }
-    .add-to-cart { background: white; color: black; border: none; padding: 1.2rem 3rem; border-radius: 50px; font-size: 1.3rem; font-weight: 800; cursor: pointer; }
-    .add-to-cart:hover { background: #6366f1; color: white; }
-    .back { position: fixed; top: 2rem; left: 2rem; color: white; font-size: 1.5rem; z-index: 1000; }
-    @media (max-width: 900px) { .container { grid-template-columns: 1fr; padding-top: 6rem; } .product-info h1 { font-size: 3rem; } }
+    body { margin:0; font-family: 'Inter', sans-serif; background:#000; color:#fff; }
+    .back { position:fixed; top:2rem; left:2rem; color:white; font-size:1.5rem; z-index:1000; text-decoration:none; }
+
+    /* Compact container */
+    .container { 
+      max-width: 1200px; 
+      margin: 0 auto; 
+      padding: 8rem 2rem 4rem;   /* Reduced top padding = shorter page */
+    }
+
+    /* Main product area - side by side */
+    .main { 
+      display: grid; 
+      grid-template-columns: 1fr 1fr; 
+      gap: 4rem; 
+      align-items: start;
+      margin-bottom: 5rem;
+    }
+
+    .product-image { 
+      width: 100%; 
+      aspect-ratio: 9/16; 
+      background-size: cover; 
+      background-position: center; 
+      border-radius: 28px; 
+      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
+    }
+
+    .product-info h1 { 
+      font-size: 4.2rem; 
+      font-weight: 900; 
+      margin: 0 0 0.5rem; 
+      line-height: 1;
+    }
+
+    .price { 
+      font-size: 2.8rem; 
+      font-weight: 800; 
+      color: #a78bfa; 
+      margin: 1rem 0 2rem;
+    }
+
+    .description { 
+      font-size: 1.2rem; 
+      line-height: 1.8; 
+      opacity: 0.9; 
+      margin-bottom: 2.5rem;
+    }
+
+    .add-to-cart { 
+      background: white; 
+      color: black; 
+      border: none; 
+      padding: 1.3rem 4rem; 
+      border-radius: 50px; 
+      font-size: 1.3rem; 
+      font-weight: 800; 
+      cursor: pointer; 
+      transition: 0.4s;
+    }
+    .add-to-cart:hover { background:#6366f1; color:white; }
+
+    /* Horizontal divider */
+    .divider { 
+      height: 1px; 
+      background: linear-gradient(to right, transparent, #444, transparent); 
+      margin: 4rem 0;
+    }
+
+    /* More products section */
+    .more h2 {
+      font-size: 2.4rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 3rem;
+      background: linear-gradient(90deg, #fff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .more-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 2rem;
+    }
+
+    .more-card {
+      cursor: pointer;
+      border-radius: 24px;
+      overflow: hidden;
+      aspect-ratio: 9/16;
+      position: relative;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      transition: 0.4s;
+    }
+
+    .more-card:hover { transform: translateY(-10px); }
+
+    .more-card img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    .more-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 40%);
+      padding: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+    }
+
+    .more-name { font-size: 1.3rem; font-weight: 800; }
+    .more-price { font-size: 1.2rem; color: #a78bfa; font-weight: 800; }
+
+    @media (max-width: 900px) {
+      .main { grid-template-columns: 1fr; }
+      .container { padding-top: 6rem; }
+      .product-info h1 { font-size: 3.2rem; }
+      .price { font-size: 2.4rem; }
+    }
   </style>
 </head>
 <body>
+
   <a href="../index.html" class="back">Back</a>
+
   <div class="container">
-    <div class="product-image" id="productImage"></div>
-    <div class="product-info">
-      <h1 id="productName"></h1>
-      <div class="price" id="productPrice"></div>
-      <p class="description">Limited edition drop. Premium materials. Only available while stocks last.</p>
-      <button class="add-to-cart">ADD TO CART</button>
+    <!-- Main Product -->
+    <div class="main">
+      <div class="product-image" id="productImage"></div>
+      <div class="product-info">
+        <h1 id="productName"></h1>
+        <div class="price" id="productPrice"></div>
+        <p class="description">Limited edition drop. Premium materials. Only available while stocks last.</p>
+        <button class="add-to-cart" id="addToCartBtn">ADD TO CART</button>
+      </div>
+    </div>
+
+    <!-- Divider -->
+    <div class="divider"></div>
+
+    <!-- More from this drop -->
+    <div class="more">
+      <h2>MORE FROM THIS DROP</h2>
+      <div class="more-grid" id="relatedProducts"></div>
     </div>
   </div>
+
 <script>
   const urlParams = new URLSearchParams(window.location.search);
   const productId = urlParams.get('id');
@@ -39,43 +167,73 @@
   const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE";
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-  // THIS IS THE SAME FUNCTION THAT WORKS ON YOUR INDEX PAGE
   function getPublicImageUrl(path) {
     if (!path) return 'https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg';
     if (path.startsWith('http')) return path;
     return `https://nhyucbgjocmwrkqbjjme.supabase.co/storage/v1/object/public/products/${path.trim()}`;
   }
 
-  async function loadProduct() {
-    if (!productId) {
-      document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
-      return;
-    }
+  let currentProduct = null;
 
-    const { data: product, error } = await supabase
+  async function loadProduct() {
+    if (!productId) return alert("No product ID");
+
+    const { data: product } = await supabase
       .from("products")
-      .select("name, price, image_url")
+      .select("id, name, price, image_url, brand")
       .eq("id", productId)
       .single();
 
-    if (error || !product) {
-      console.error(error);
-      document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
-      return;
-    }
+    if (!product) return alert("Product not found");
+
+    currentProduct = product;
 
     document.getElementById("productName").textContent = product.name.toUpperCase();
     document.getElementById("productPrice").textContent = "$" + Number(product.price).toFixed(2);
+    document.getElementById("productImage").style.backgroundImage = `url('${getPublicImageUrl(product.image_url)}')`;
 
-    // THIS LINE IS NOW 100% IDENTICAL TO YOUR WORKING INDEX PAGE
-    const imageUrl = getPublicImageUrl(product.image_url);
-
-    console.log("Product page image URL →", imageUrl); // ← check this in F12
-
-    document.getElementById("productImage").style.backgroundImage = `url('${imageUrl}')`;
+    // Load related products
+    loadRelated(product.brand || product.name.split(" ")[0]);
   }
+
+  async function loadRelated(keyword) {
+    const { data: related } = await supabase
+      .from("products")
+      .select("id, name, price, image_url")
+      .ilike("brand", `%${keyword}%`)
+      .neq("id", currentProduct.id)
+      .limit(8);
+
+    const grid = document.getElementById("relatedProducts");
+    
+    if (!related || related.length === 0) {
+      grid.innerHTML = "<p style='text-align:center; opacity:0.6; font-size:1.2rem;'>No more items from this drop yet.</p>";
+      return;
+    }
+
+    grid.innerHTML = related.map(p => `
+      <a href="viewproduct.html?id=${p.id}" class="more-card">
+        <img src="${getPublicImageUrl(p.image_url)}" alt="${p.name}">
+        <div class="more-overlay">
+          <div class="more-name">${p.name.toUpperCase()}</div>
+          <div class="more-price">$${p.price.toFixed(2)}</div>
+        </div>
+      </a>
+    `).join("");
+  }
+
+  // Add to Cart
+  document.getElementById("addToCartBtn").addEventListener("click", () => {
+    let cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
+    const existing = cart.find(i => i.id === currentProduct.id);
+    if (existing) existing.quantity += 1;
+    else cart.push({ ...currentProduct, quantity: 1 });
+    localStorage.setItem("shophub_cart", JSON.stringify(cart));
+    alert(`${currentProduct.name} added to bag!`);
+  });
 
   loadProduct();
 </script>
+
 </body>
 </html>
