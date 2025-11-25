@@ -318,18 +318,20 @@ async function loadProducts() {
 
 function renderProducts(productsToShow) {
   grid.innerHTML = productsToShow.map(p => {
-    const img = getPublicImageUrl(p.image_url);
+    const imgUrl = getPublicImageUrl(p.image_url);
     const title = p.name.toUpperCase().replace(/ /g, '<br>');
+
     return `
       <a href="Home/viewproduct.html?id=${p.id}" class="reel-card">
-        <div class="reel-image" style="background-image:url('${img}')">
-          <div class="reel-content">
-            <div class="price-tag">$${Number(p.price).toFixed(2)}</div>
-            <div class="reel-title">${title}</div>
-            <div class="card-buttons">
-              <button class="view-btn" onclick="event.stopPropagation();">VIEW PRODUCT</button>
-              <button class="add-to-cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">ADD TO CART</button>
-            </div>
+        <div class="reel-image">
+          <img src="${imgUrl}" onerror="this.onerror=null;this.src='https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg'" alt="${p.name}" style="width:100%;height:100%;object-fit:cover;border-radius:inherit;">
+        </div>
+        <div class="reel-content">
+          <div class="price-tag">$${Number(p.price).toFixed(2)}</div>
+          <div class="reel-title">${title}</div>
+          <div class="card-buttons">
+            <button class="view-btn" onclick="event.stopPropagation();">VIEW PRODUCT</button>
+            <button class="add-to-cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">ADD TO CART</button>
           </div>
         </div>
       </a>
