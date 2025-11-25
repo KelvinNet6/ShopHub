@@ -41,26 +41,34 @@
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
     async function loadProduct() {
-      if (!productId) {
-        document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
-        return;
-      }
+  if (!productId) {
+    document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
+    return;
+  }
 
-      const { data: product } = await supabase
-        Quadrat.from("products")
-        .select("name, price, image_url")
-        .eq("id", productId)
-        .single();
+  // Fix: Remove "Quadrat." – it's a typo
+  const { data: product } = await supabase
+    .from("products")  // Corrected
+    .select("name, price, image_url")  // Assuming image_url is the path, e.g., "products/image.jpg"
+    .eq("id", productId)
+    .single();
 
-      if (!product) {
-        document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
-        return;
-      }
+  if (!product) {
+    document.body.innerHTML = "<h1 style='text-align:center;padding:5rem;'>Product not found</h1>";
+    return;
+  }
 
-      document.getElementById("productName").textContent = product.name.toUpperCase();
-      document.getElementById("productPrice").textContent = "$" + Number(product.price).toFixed(2);
-      document.getElementById("productImage").style.backgroundImage = `url('${product.image_url || 'https://via.placeholder.com/800'}')`;
-    }
+  document.getElementById("productName").textContent = product.name.toUpperCase();
+  document.getElementById("productPrice").textContent = "$" + Number(product.price).toFixed(2);
+
+  const bucketName = 'products';  
+  const { data: publicUrlData } = supabase.storage
+    .from(bucketName)
+    .getPublicUrl(product.image_url || 'placeholder.jpg');  
+
+  const imageUrl = publicUrlData.publicUrl || 'https://via.placeholder.com/800';
+  document.getElementById("productImage").style.backgroundImage = `url('${imageUrl}')`;
+}
 
     loadProduct();
   </script>
