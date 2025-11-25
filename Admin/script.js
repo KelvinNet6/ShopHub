@@ -112,8 +112,10 @@ async function openCustomer(id) {
 }
 
 // =====================================
-// PRODUCTS
+// PRODUCTS (with image upload)
 // =====================================
+let editingProductId = null; // track if we're editing
+
 async function loadProducts() {
   const [{ data: categories }, { data: brands }, { data: products }] = await Promise.all([
     supabase.from("categories").select("*"),
@@ -121,16 +123,24 @@ async function loadProducts() {
     supabase.from("products").select("*, categories(name), brands(name)").order("id")
   ]);
 
-  document.getElementById("category").innerHTML = categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
-  document.getElementById("brand").innerHTML = brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
+  document.getElementById("category").innerHTML = 
+    '<option value="">Select Category</option>' + 
+    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+
+  document.getElementById("brand").innerHTML = 
+    '<option value="">Select Brand</option>' + 
+    brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
 
   document.getElementById("productTableBody").innerHTML = products.map(p => `
     <tr>
       <td>${p.id}</td>
-      <td>${p.name}</td>
+      <td>
+        ${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:middle;">` : ''}
+        ${p.name}
+      </td>
       <td>${p.categories?.name || "-"}</td>
       <td>${p.brands?.name || "-"}</td>
-      <td>$${p.price}</td>
+      <td>$${Number(p.price).toFixed(2)}</td>
       <td>${p.stock}</td>
       <td>
         <button class="btn edit" onclick="editProduct(${p.id})">
@@ -147,52 +157,112 @@ async function loadProducts() {
 }
 
 function openAddProduct() {
+  editingProductId = null;
   document.getElementById("modalTitle").textContent = "Add Product";
+  document.getElementById("name").value = "";
+  document.getElementById("price").value = "";
+  document.getElementById("stock").value = "";
+  document.getElementById("category").value = "";
+  document.getElementById("brand").value = "";
+  document.getElementById("productImage").value = "";
+  document.getElementById("imagePreview").style.display = "none";
+  document.getElementById("imagePreview").src = "";
+
   document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
 }
 
 async function saveProduct() {
+  const fileInput = document.getElementById("productImage");
+  const file = fileInput.files[0];
+
   const body = {
-    name: document.getElementById("name").value,
+    name: document.getElementById("name").value.trim(),
     category_id: document.getElementById("category").value,
     brand_id: document.getElementById("brand").value,
     price: Number(document.getElementById("price").value),
     stock: Number(document.getElementById("stock").value),
   };
 
-  await supabase.from("products").insert(body);
-  location.reload();
+  if (!body.name || !body.category_id || !body.price) {
+    alert("Please fill all required fields");
+    return;
+  }
+
+  let imageUrl = null;
+
+  // Upload image if selected
+  if (file) {
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
+    
+    const { error: uploadError } = await supabase.storage
+      .from("products")
+      .upload(fileName, file);
+
+    if (uploadError) {
+      console.error(uploadError);
+      alert("Image upload failed: " + uploadError.message);
+      return;
+    }
+
+    // Get public URL
+    const { data } = supabase.storage.from("products").getPublicUrl(fileName);
+    imageUrl = data.publicUrl;
+  }
+
+  // Add image_url to body
+  if (imageUrl) body.image_url = imageUrl;
+
+  try {
+    if (editingProductId) {
+      await supabase.from("products").update(body).eq("id", editingProductId);
+    } else {
+      await supabase.from("products").insert(body);
+    }
+    closeAllModals();
+    loadProducts();
+  } catch (err) {
+    alert("Failed to save product: " + err.message);
+  }
 }
 
 async function editProduct(id) {
   const { data: p } = await supabase.from("products").select("*").eq("id", id).single();
+
+  editingProductId = id;
   document.getElementById("modalTitle").textContent = "Edit Product";
   document.getElementById("name").value = p.name;
   document.getElementById("price").value = p.price;
   document.getElementById("stock").value = p.stock;
-  document.getElementById("brand").value = p.brand_id;
-  document.getElementById("category").value = p.category_id;
-  document.getElementById("saveProductBtn").onclick = () => updateProduct(id);
+  document.getElementById("brand").value = p.brand_id || "";
+  document.getElementById("category").value = p.category_id || "";
+
+  // Show current image if exists
+  const preview = document.getElementById("imagePreview");
+  if (p.image_url) {
+    preview.src = p.image_url;
+    preview.style.display = "block";
+  } else {
+    preview.style.display = "none";
+  }
+
+  document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
 }
 
-async function updateProduct(id) {
-  const data = {
-    name: document.getElementById("name").value,
-    price: Number(document.getElementById("price").value),
-    stock: Number(document.getElementById("stock").value),
-    brand_id: document.getElementById("brand").value,
-    category_id: document.getElementById("category").value,
-  };
-  await supabase.from("products").update(data).eq("id", id);
-  location.reload();
-}
-
 async function deleteProduct(id) {
-  if (!confirm("Delete this product?")) return;
+  if (!confirm("Delete this product permanently?")) return;
+
+  // Optional: delete image from storage too
+  const { data: product } = await supabase.from("products").select("image_url").eq("id", id).single();
+  if (product?.image_url) {
+    const fileName = product.image_url.split("/").pop();
+    await supabase.storage.from("products").remove([fileName]);
+  }
+
   await supabase.from("products").delete().eq("id", id);
-  location.reload();
+  loadProducts();
 }
 async function loadOrders() {
   const { data: orders } = await supabase
