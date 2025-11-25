@@ -260,7 +260,7 @@ footer {
         const catSlug = (p.categories?.name || '').toLowerCase();
         const title = p.name.toUpperCase().replace(/ /g, '<br>');
         return `
-          <a href="product.html?id=${p.id}" class="reel-card" style="text-decoration:none;color:inherit;">
+          <a href="Home/viewproduct.html?id=${p.id}" class="reel-card" style="text-decoration:none;color:inherit;">
             <div class="reel-image" style="background-image: url('${img}')">
               <div class="reel-content">
                 <div class="price-tag">$${Number(p.price).toFixed(2)}</div>
