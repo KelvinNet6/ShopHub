@@ -311,28 +311,34 @@
       renderProducts(allProducts);
     }
 
-    function renderProducts(productsToShow) {
-      grid.innerHTML = productsToShow.map(p => {
-        const img = p.image_url || 'https://via.placeholder.com/800x1200/111/fff?text=No+Image';
-        const title = p.name.toUpperCase().replace(/ /g, '<br>');
-        return `
-          <a href="Home/viewproduct.html?id=${p.id}" class="reel-card">
-            <div class="reel-image" style="background-image:url('${img}')">
-              <div class="reel-content">
-                <div class="price-tag">$${Number(p.price).toFixed(2)}</div>
-                <div class="reel-title">${title}</div>
-                <div class="card-buttons">
-                  <button class="view-btn" onclick="event.stopPropagation();">VIEW PRODUCT</button>
-                  <button class="add-to-cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\\'")}',price:${p.price},image_url:'${img}'});">
-                    ADD TO CART
-                  </button>
-                </div>
-              </div>
+   function renderProducts(productsToShow) {
+  grid.innerHTML = productsToShow.map(p => {
+    const img = p.image_url
+      ? `https://nhyucbgjocmwrkqbjjme.supabase.co/storage/v1/object/public/products/${p.image_url}`
+      : 'https://via.placeholder.com/800x1200/111/fff?text=No+Image';
+
+    const title = p.name.toUpperCase().replace(/ /g, '<br>');
+
+    return `
+      <a href="Home/viewproduct.html?id=${p.id}" class="reel-card">
+        <div class="reel-image" style="background-image:url('${img}')">
+          <div class="reel-content">
+            <div class="price-tag">$${Number(p.price).toFixed(2)}</div>
+            <div class="reel-title">${title}</div>
+            <div class="card-buttons">
+              <button class="view-btn" onclick="event.stopPropagation();">VIEW PRODUCT</button>
+              <button class="add-to-cart-btn" 
+                      onclick="event.preventDefault();event.stopPropagation();
+                               addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${img}'});">
+                ADD TO CART
+              </button>
             </div>
-          </a>
-        `;
-      }).join("");
-    }
+          </div>
+        </div>
+      </a>
+    `;
+  }).join("");
+}
 
     function filterAndSort() {
       let filtered = allProducts;
