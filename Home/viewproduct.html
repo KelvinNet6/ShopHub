@@ -10,127 +10,25 @@
   <style>
     body { margin:0; font-family: 'Inter', sans-serif; background:#000; color:#fff; }
     .back { position:fixed; top:2rem; left:2rem; color:white; font-size:1.5rem; z-index:1000; text-decoration:none; }
-
-    /* Compact container */
-    .container { 
-      max-width: 1200px; 
-      margin: 0 auto; 
-      padding: 8rem 2rem 4rem;   /* Reduced top padding = shorter page */
-    }
-
-    /* Main product area - side by side */
-    .main { 
-      display: grid; 
-      grid-template-columns: 1fr 1fr; 
-      gap: 4rem; 
-      align-items: start;
-      margin-bottom: 5rem;
-    }
-
-    .product-image { 
-      width: 100%; 
-      aspect-ratio: 9/16; 
-      background-size: cover; 
-      background-position: center; 
-      border-radius: 28px; 
-      box-shadow: 0 20px 50px rgba(0,0,0,0.6);
-    }
-
-    .product-info h1 { 
-      font-size: 4.2rem; 
-      font-weight: 900; 
-      margin: 0 0 0.5rem; 
-      line-height: 1;
-    }
-
-    .price { 
-      font-size: 2.8rem; 
-      font-weight: 800; 
-      color: #a78bfa; 
-      margin: 1rem 0 2rem;
-    }
-
-    .description { 
-      font-size: 1.2rem; 
-      line-height: 1.8; 
-      opacity: 0.9; 
-      margin-bottom: 2.5rem;
-    }
-
-    .add-to-cart { 
-      background: white; 
-      color: black; 
-      border: none; 
-      padding: 1.3rem 4rem; 
-      border-radius: 50px; 
-      font-size: 1.3rem; 
-      font-weight: 800; 
-      cursor: pointer; 
-      transition: 0.4s;
-    }
+    .container { max-width: 1000px; margin: 0 auto; padding: 8rem 2rem 4rem; }
+    .main { display: grid; grid-template-columns: 1fr 1fr; gap: 4rem; margin-bottom: 5rem; }
+    .product-image { width: 100%; aspect-ratio: 9/16; background-size: cover; background-position: center; border-radius: 28px; box-shadow: 0 20px 50px rgba(0,0,0,0.6); }
+    .product-info h1 { font-size: 4.2rem; font-weight: 900; margin: 0 0 0.5rem; line-height: 1; }
+    .price { font-size: 2.8rem; font-weight: 800; color: #a78bfa; margin: 1rem 0 2rem; }
+    .description { font-size: 1.2rem; line-height: 1.8; opacity: 0.9; margin-bottom: 2.5rem; }
+    .add-to-cart { background: white; color: black; border: none; padding: 1.3rem 4rem; border-radius: 50px; font-size: 1.3rem; font-weight: 800; cursor: pointer; transition: 0.4s; }
     .add-to-cart:hover { background:#6366f1; color:white; }
-
-    /* Horizontal divider */
-    .divider { 
-      height: 1px; 
-      background: linear-gradient(to right, transparent, #444, transparent); 
-      margin: 4rem 0;
-    }
-
-    /* More products section */
-    .more h2 {
-      font-size: 2.4rem;
-      font-weight: 900;
-      text-align: center;
-      margin-bottom: 3rem;
-      background: linear-gradient(90deg, #fff, #a78bfa);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-    }
-
-    .more-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-      gap: 2rem;
-    }
-
-    .more-card {
-      cursor: pointer;
-      border-radius: 24px;
-      overflow: hidden;
-      aspect-ratio: 9/16;
-      position: relative;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
-      transition: 0.4s;
-    }
-
-    .more-card:hover { transform: translateY(-10px); }
-
-    .more-card img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .more-overlay {
-      position: absolute;
-      inset: 0;
-      background: linear-gradient(to top, rgba(0,0,0,0.9), transparent 40%);
-      padding: 1.5rem;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-    }
-
-    .more-name { font-size: 1.3rem; font-weight: 800; }
-    .more-price { font-size: 1.2rem; color: #a78bfa; font-weight: 800; }
-
-    @media (max-width: 900px) {
-      .main { grid-template-columns: 1fr; }
-      .container { padding-top: 6rem; }
-      .product-info h1 { font-size: 3.2rem; }
-      .price { font-size: 2.4rem; }
-    }
+    .divider { height:1px; background:linear-gradient(to right,transparent,#444,transparent); margin:4rem 0; }
+    .more h2 { font-size:2.4rem; font-weight:900; text-align:center; margin-bottom:3rem; background:linear-gradient(90deg,#fff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+    .more-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:2rem; }
+    .more-card { position:relative; border-radius:24px; overflow:hidden; aspect-ratio:9/16; cursor:pointer; box-shadow:0 10px 30px rgba(0,0,0,0.5); transition:0.4s; }
+    .more-card:hover { transform:translateY(-10px); }
+    .more-card img { width:100%; height:100%; object-fit:cover; }
+    .more-overlay { position:absolute; inset:0; background:linear-gradient(to top,rgba(0,0,0,0.9),transparent 40%); padding:1.5rem; display:flex; flex-direction:column; justify-content:flex-end; }
+    .more-name { font-size:1.3rem; font-weight:800; }
+    .more-price { font-size:1.2rem; color:#a78bfa; font-weight:800; }
+    .error { text-align:center; padding:6rem 2rem; font-size:1.4rem; opacity:0.7; }
+    @media (max-width:900px) { .main { grid-template-columns:1fr; } .container { padding-top:6rem; } .product-info h1 { font-size:3.2rem; } }
   </style>
 </head>
 <body>
@@ -138,24 +36,20 @@
   <a href="../index.html" class="back">Back</a>
 
   <div class="container">
-    <!-- Main Product -->
     <div class="main">
       <div class="product-image" id="productImage"></div>
       <div class="product-info">
-        <h1 id="productName"></h1>
+        <h1 id="productName">Loading...</h1>
         <div class="price" id="productPrice"></div>
         <p class="description">Limited edition drop. Premium materials. Only available while stocks last.</p>
         <button class="add-to-cart" id="addToCartBtn">ADD TO CART</button>
       </div>
     </div>
 
-    <!-- Divider -->
     <div class="divider"></div>
-
-    <!-- More from this drop -->
     <div class="more">
       <h2>MORE FROM THIS DROP</h2>
-      <div class="more-grid" id="relatedProducts"></div>
+      <div class="more-grid" id="relatedProducts"><p style="grid-column:1/-1;text-align:center;opacity:0.6;">Loading...</p></div>
     </div>
   </div>
 
@@ -176,23 +70,39 @@
   let currentProduct = null;
 
   async function loadProduct() {
-    if (!productId) return alert("No product ID");
+    // 1. Check if ID exists
+    if (!productId) {
+      document.querySelector('.container').innerHTML = '<div class="error">No product ID in URL<br>Example: viewproduct.html?id=1</div>';
+      return;
+    }
 
-    const { data: product } = await supabase
+    console.log("Looking for product ID:", productId);
+
+    // 2. Try to fetch the product
+    const { data: product, error } = await supabase
       .from("products")
       .select("id, name, price, image_url, brand")
       .eq("id", productId)
-      .single();
+      .maybeSingle();   // ← THIS IS THE KEY FIX (doesn't crash if nothing found)
 
-    if (!product) return alert("Product not found");
+    if (error) {
+      console.error("Supabase error:", error);
+      document.querySelector('.container').innerHTML = `<div class="error">Database error:<br>${error.message}</div>`;
+      return;
+    }
 
+    if (!product) {
+      document.querySelector('.container').innerHTML = `<div class="error">Product with ID <strong>${productId}</strong> not found<br><br>Check if the ID exists in your "products" table.</div>`;
+      return;
+    }
+
+    // SUCCESS — product found
     currentProduct = product;
 
     document.getElementById("productName").textContent = product.name.toUpperCase();
     document.getElementById("productPrice").textContent = "$" + Number(product.price).toFixed(2);
     document.getElementById("productImage").style.backgroundImage = `url('${getPublicImageUrl(product.image_url)}')`;
 
-    // Load related products
     loadRelated(product.brand || product.name.split(" ")[0]);
   }
 
@@ -205,9 +115,8 @@
       .limit(8);
 
     const grid = document.getElementById("relatedProducts");
-    
     if (!related || related.length === 0) {
-      grid.innerHTML = "<p style='text-align:center; opacity:0.6; font-size:1.2rem;'>No more items from this drop yet.</p>";
+      grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;opacity:0.6;'>No more items from this drop yet.</p>";
       return;
     }
 
@@ -222,8 +131,8 @@
     `).join("");
   }
 
-  // Add to Cart
   document.getElementById("addToCartBtn").addEventListener("click", () => {
+    if (!currentProduct) return;
     let cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
     const existing = cart.find(i => i.id === currentProduct.id);
     if (existing) existing.quantity += 1;
@@ -232,6 +141,7 @@
     alert(`${currentProduct.name} added to bag!`);
   });
 
+  // Start loading
   loadProduct();
 </script>
 
