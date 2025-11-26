@@ -1,0 +1,52 @@
+<!-- thank-you.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Order Confirmed • ShopHub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --primary: #6366f1; --purple: #a78bfa; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Inter', sans-serif; background:#000; color:white; min-height:100vh; display:flex; align-items:center; justify-content:center; text-align:center; padding:2rem; }
+    .container { max-width:640px; }
+    i { font-size:7rem; color:#4ade80; margin-bottom:2rem; animation:check 2s infinite; }
+    @keyframes check { 0%,100% { transform:scale(1); } 50% { transform:scale(1.15); } }
+    h1 { font-size:5.5rem; font-weight:900; background:linear-gradient(90deg,#fff,#a78bfa); -webkit-background-clip:text; -webkit-text-fill-color:transparent; margin:1.5rem 0; }
+    p { font-size:1.3rem; opacity:0.85; line-height:1.7; margin:1.5rem 0; }
+    .order  { margin-top:3rem; }
+    .btn { padding:1.2rem 3rem; background:var(--primary); border:none; border-radius:50px; color:white; font-weight:800; font-size:1.3rem; cursor:pointer; transition:all 0.4s; box-shadow:0 15px 40px rgba(99,102,241,0.4); }
+    .btn:hover { transform:translateY(-6px); box-shadow:0 25px 60px rgba(99,102,241,0.6); }
+    .order-number { font-size:1.1rem; opacity:0.7; margin-top:3rem; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <i class="fas fa-check-circle"></i>
+    <h1>ORDER CONFIRMED</h1>
+    <p>Thank you for shopping The Vault.<br>Your limited drop is secured and on the way.</p>
+    <p>A confirmation email has been sent to<br><strong id="emailDisplay">you@example.com</strong></p>
+    
+    <div class="order-number">
+      Order #<span id="orderNumber">SH-2025-7841</span>
+    </div>
+
+    <div class="buttons">
+      <button class="btn" onclick="location.href='index.html'">CONTINUE SHOPPING</button>
+    </div>
+  </div>
+
+  <script>
+    // Pull email from checkout form (if you passed it) or show generic
+    const urlParams = new URLSearchParams(window.location.search);
+    const email = urlParams.get('email') || localStorage.getItem('lastEmail') || 'you@example.com';
+    document.getElementById('emailDisplay').textContent = email;
+
+    // Random order number
+    const orderNum = 'SH-' + new Date().getFullYear() + '-' + Math.floor(1000 + Math.random() * 9000);
+    document.getElementById('orderNumber').textContent = orderNum;
+  </script>
+</body>
+</html>
