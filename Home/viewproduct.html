@@ -107,29 +107,52 @@
   }
 
   async function loadRelated(keyword) {
-    const { data: related } = await supabase
+  let related = [];
+
+  // CASE 1: We have a valid brand_id (it's a number)
+  if (keyword && !isNaN(keyword)) {
+    const { data, error } = await supabase
       .from("products")
       .select("id, name, price, image_url")
-      .ilike("brand_id", `%${keyword}%`)
+      .eq("brand_id", Number(keyword))    // exact match on brand_id
       .neq("id", currentProduct.id)
       .limit(8);
 
-    const grid = document.getElementById("relatedProducts");
-    if (!related || related.length === 0) {
-      grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;opacity:0.6;'>No more items from this drop yet.</p>";
-      return;
-    }
-
-    grid.innerHTML = related.map(p => `
-      <a href="viewproduct.html?id=${p.id}" class="more-card">
-        <img src="${getPublicImageUrl(p.image_url)}" alt="${p.name}">
-        <div class="more-overlay">
-          <div class="more-name">${p.name.toUpperCase()}</div>
-          <div class="more-price">$${p.price.toFixed(2)}</div>
-        </div>
-      </a>
-    `).join("");
+    if (!error && data) related = data;
   }
+
+  // CASE 2: Fallback — search by first word of product name (e.g. "Nike", "Adidas")
+  if (related.length === 0 && typeof keyword === "string") {
+    const searchTerm = keyword.trim();
+    if (searchTerm) {
+      const { data, error } = await supabase
+        .from("products")
+        .select("id, name, price, image_url")
+        .ilike("name", `${searchTerm}%`)   // starts with brand name
+        .neq("id", currentProduct.id)
+        .limit(8);
+
+      if (!error && data) related = data;
+    }
+  }
+
+  const grid = document.getElementById("relatedProducts");
+
+  if (related.length === 0) {
+    grid.innerHTML = "<p style='grid-column:1/-1;text-align:center;opacity:0.6;'>No more items from this drop yet.</p>";
+    return;
+  }
+
+  grid.innerHTML = related.map(p => `
+    <a href="viewproduct.html?id=${p.id}" class="more-card">
+      <img src="${getPublicImageUrl(p.image_url)}" alt="${p.name}" loading="lazy">
+      <div class="more-overlay">
+        <div class="more-name">${p.name.toUpperCase()}</div>
+        <div class="more-price">$${Number(p.price).toFixed(2)}</div>
+      </div>
+    </a>
+  `).join("");
+}
 
   document.getElementById("addToCartBtn").addEventListener("click", () => {
     if (!currentProduct) return;
