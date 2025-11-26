@@ -1,1 +1,356 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Checkout • ShopHub</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet"/>
+  <style>
+    :root { --primary: #6366f1; --purple: #a78bfa; --radius: 24px; --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family: 'Inter', sans-serif; background: #000; color: white; min-height: 100vh; }
+    
+    /* Navbar - same as main site */
+    .navbar { background: rgba(0,0,0,0.7); backdrop-filter: blur(12px); padding: 1rem 2rem; position: fixed; top: 0; left: 0; right: 0; z-index: 1000; }
+    .nav-container { max-width: 1400px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; }
+    .logo { font-size: 2rem; font-weight: 900; background: linear-gradient(90deg, #6366f1, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .nav-links a { color: white; text-decoration: none; font-weight: 600; margin-left: 2rem; opacity: 0.9; }
+    .nav-links a:hover { opacity: 1; color: var(--primary); }
 
+    /* Main Checkout Area */
+    .checkout-wrapper {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 120px 2rem 6rem;
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 4rem;
+      align-items: start;
+    }
+    @media (max-width: 1024px) {
+      .checkout-wrapper { grid-template-columns: 1fr; gap: 3rem; }
+    }
+
+    h1 {
+      font-size: 4rem;
+      font-weight: 900;
+      background: linear-gradient(90deg, #fff, #a78bfa);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 1.5rem;
+    }
+    .section-title {
+      font-size: 1.4rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+      margin: 2.5rem 0 1.5rem;
+      opacity: 0.9;
+    }
+
+    /* Form Inputs */
+    .input-group {
+      margin-bottom: 1.5rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.6rem;
+      font-weight: 600;
+      opacity: 0.9;
+    }
+    input, select {
+      width: 100%;
+      padding: 1.2rem 1.6rem;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 16px;
+      color: white;
+      font-size: 1rem;
+      backdrop-filter: blur(10px);
+      transition: var(--transition);
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(99,102,241,0.3);
+    }
+    .row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    /* Order Summary Sidebar */
+    .order-summary {
+      background: #0f0f0f;
+      border-radius: var(--radius);
+      padding: 2rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+      border: 1px solid rgba(255,255,255,0.08);
+      position: sticky;
+      top: 100px;
+    }
+    .summary-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 1.5rem;
+      border-bottom: 1px solid #222;
+      margin-bottom: 1.5rem;
+    }
+    .summary-header h2 {
+      font-size: 1.8rem;
+      font-weight: 900;
+    }
+    .cart-item {
+      display: flex;
+      gap: 1rem;
+      padding: 1.2rem 0;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .cart-item img {
+      width: 80px;
+      height: 110px;
+      object-fit: cover;
+      border-radius: 12px;
+    }
+    .item-info h4 {
+      font-weight: 700;
+      margin-bottom: 0.4rem;
+    }
+    .item-price {
+      color: var(--purple);
+      font-weight: 800;
+      margin: 0.4rem 0;
+    }
+    .quantity {
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+
+    .summary-totals {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid #222;
+    }
+    .total-row {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      font-size: 1.1rem;
+    }
+    .grand-total {
+      font-size: 1.6rem;
+      font-weight: 900;
+      color: var(--purple);
+      border-top: 2px solid #333;
+      padding-top: 1rem;
+      margin-top: 1rem;
+    }
+
+    /* Pay Button */
+    .pay-btn {
+      width: 100%;
+      padding: 1.4rem;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 2rem;
+      transition: var(--transition);
+      box-shadow: 0 10px 30px rgba(99,102,241,0.4);
+    }
+    .pay-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 20px 40px rgba(99,102,241,0.5);
+    }
+
+    /* Security Badges */
+    .security {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      margin-top: 2rem;
+      opacity: 0.7;
+      font-size: 1.8rem;
+    }
+
+    /* Back to Cart */
+    .back-link {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      color: #aaa;
+      text-decoration: none;
+      font-weight: 600;
+      margin-bottom: 2rem;
+      transition: color 0.3s;
+    }
+    .back-link:hover {
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="index.html" class="logo">ShopHub</a>
+      <div class="nav-links">
+        <a href="index.html">Continue Shopping</a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="checkout-wrapper">
+    
+    <!-- Left: Checkout Form -->
+    <div>
+      <a href="index.html" class="back-link">
+        <i class="fas fa-arrow-left"></i> Back to Vault
+      </a>
+      <h1>CHECKOUT</h1>
+
+      <div class="section-title">Contact Information</div>
+      <div class="input-group">
+        <label>Email</label>
+        <input type="email" placeholder="you@example.com" required />
+      </div>
+
+      <div class="section-title">Shipping Address</div>
+      <div class="row">
+        <div class="input-group">
+          <label>First Name</label>
+          <input type="text" required />
+        </div>
+        <div class="input-group">
+          <label>Last Name</label>
+          <input type="text" required />
+        </div>
+      </div>
+      <div class="input-group">
+        <label>Address</label>
+        <input type="text" placeholder="Street address" required />
+      </div>
+      <div class="input-group">
+        <label>Apartment, suite, etc. (optional)</label>
+        <input type="text" />
+      </div>
+      <div class="row">
+        <div class="input-group">
+          <label>City</label>
+          <input type="text" required />
+        </div>
+        <div class="input-group">
+          <label>Postal Code</label>
+          <input type="text" required />
+        </div>
+      </div>
+      <div class="row">
+        <div class="input-group">
+          <label>Country</label>
+          <select required>
+            <option>United States</option>
+            <option>United Kingdom</option>
+            <option>Canada</option>
+            <option>Europe</option>
+          </select>
+        </div>
+        <div class="input-group">
+          <label>Phone (for delivery)</label>
+          <input type="tel" placeholder="+1 (555) 000-0000" />
+        </div>
+      </div  </div>
+
+    <!-- Right: Order Summary -->
+    <div class="order-summary">
+      <div class="summary-header">
+        <h2>ORDER SUMMARY</h2>
+        <span id="itemCount">3 items</span>
+      </div>
+
+      <div id="checkoutItems">
+        <!-- Items will be injected by JS -->
+      </div>
+
+      <div class="summary-totals">
+        <div class="total-row">
+          <span>Subtotal</span>
+          <span id="subtotal">$487.00</span>
+        </div>
+        <div class="total-row">
+          <span>Shipping</span>
+          <span>FREE</span>
+        </div>
+        <div class="total-row">
+          <span>Tax</span>
+          <span id="tax">$38.97</span>
+        </div>
+        <div class="total-row grand-total">
+          <span>Total</span>
+          <span id="grandTotal">$525.97</span>
+        </div>
+      </div>
+
+      <button class="pay-btn">
+        <i class="fas fa-lock"></i> COMPLETE ORDER
+      </button>
+
+      <div class="security">
+        <i class="fas fa-shield-alt"></i>
+        <i class="fab fa-cc-visa"></i>
+        <i class="fab fa-cc-mastercard"></i>
+        <i class="fab fa-cc-amex"></i>
+        <i class="fab fa-paypal"></i>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Reuse same cart logic as main page
+    let cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
+
+    function getPublicImageUrl(path) {
+      if (!path) return 'https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg';
+      if (path.startsWith('http')) return path;
+      return `https://nhyucbgjocmwrkqbjjme.supabase.co/storage/v1/object/public/products/${path}`;
+    }
+
+    function renderCheckoutItems() {
+      const container = document.getElementById("checkoutItems");
+      if (cart.length === 0) {
+        container.innerHTML = "<p style='text-align:center;opacity:0.6;'>Your bag is empty</p>";
+        return;
+      }
+
+      container.innerHTML = cart.map(item => `
+        <div class="cart-item">
+          <img src="${getPublicImageUrl(item.image_url)}" alt="${item.name}">
+          <div class="item-info">
+            <h4>${item.name}</h4>
+            <div class="quantity">Qty: ${item.quantity}</div>
+            <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+          </div>
+        </div>
+      `).join("");
+
+      // Update totals
+      const subtotal = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
+      const tax = subtotal * 0.08; // example 8% tax
+      const total = subtotal + tax;
+
+      document.getElementById("itemCount").textContent = `${cart.reduce((s,i)=>s+i.quantity,0)} item${cart.reduce((s,i)=>s+i.quantity,0)>1?'s':''}`;
+      document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+      document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
+      document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
+    }
+
+    renderCheckoutItems();
+  </script>
+</body>
+</html>
