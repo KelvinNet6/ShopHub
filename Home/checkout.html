@@ -318,13 +318,12 @@
     return;
   }
 
-  // 4. Confirm the payment (handles 3D Secure automatically)
+    // 4. Confirm the payment — FIXED VERSION (uses Elements, not paymentMethod.id)
   const { error: confirmError } = await stripe.confirmPayment({
-    clientSecret: data.clientSecret,
+    elements,                                          /
     confirmParams: {
-      return_url: `${window.location.origin}/thank-you.html`, // auto-redirect on success
+      return_url: `${window.location.origin}/thank-you.html`,
     },
-    payment_method: paymentMethod.id,
   });
 
   if (confirmError) {
