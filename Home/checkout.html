@@ -320,7 +320,7 @@
 
     // 4. Confirm the payment — FIXED VERSION (uses Elements, not paymentMethod.id)
   const { error: confirmError } = await stripe.confirmPayment({
-    elements,                                          /
+    elements,                                          
     confirmParams: {
       return_url: `${window.location.origin}/thank-you.html`,
     },
