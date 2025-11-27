@@ -318,13 +318,16 @@
     return;
   }
 
-    // 4. Confirm the payment — FIXED VERSION (uses Elements, not paymentMethod.id)
-  const { error: confirmError } = await stripe.confirmPayment({
-    elements,                                          
-    confirmParams: {
-      return_url: `${window.location.origin}/thank-you.html`,
-    },
-  });
+   // 4. FIXED: Use confirmCardPayment for PaymentMethod flows
+  const { error: confirmError } = await stripe.confirmCardPayment(
+    data.clientSecret,
+    {
+      payment_method: paymentMethod.id,
+      billing_details: {
+        email: document.getElementById("email").value || "customer@example.com",
+      },
+    }
+  );
 
   if (confirmError) {
     document.getElementById("card-errors").textContent = confirmError.message;
