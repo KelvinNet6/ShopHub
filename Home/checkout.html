@@ -318,23 +318,39 @@
     return;
   }
 
-   // 4. FIXED: Use confirmCardPayment for PaymentMethod flows
-  const { error: confirmError } = await stripe.confirmCardPayment(
-    data.clientSecret,
-    {
-      payment_method: paymentMethod.id,
+// 4. FIXED: Use confirmCardPayment for PaymentMethod flows
+const { error: confirmError } = await stripe.confirmCardPayment(
+  data.clientSecret,
+  {
+    payment_method: {
+      ...paymentMethod,  // Spread to include the ID and other details
       billing_details: {
         email: document.getElementById("email").value || "customer@example.com",
+        name: `${document.getElementById("first-name").value || ''} ${document.getElementById("last-name").value || ''}`.trim() || undefined,
+        address: {
+          line1: document.getElementById("address").value || undefined,
+          line2: document.getElementById("apt").value || undefined,
+          city: document.getElementById("city").value || undefined,
+          postal_code: document.getElementById("postal").value || undefined,
+          country: document.getElementById("country").value || undefined,
+        },
+        phone: document.getElementById("phone").value || undefined,
       },
-    }
-  );
-
-  if (confirmError) {
-    document.getElementById("card-errors").textContent = confirmError.message;
-    button.disabled = false;
-    text.style.display = "inline";
-    spinner.style.display = "none";
+    },
   }
+);
+
+if (confirmError) {
+  document.getElementById("card-errors").textContent = confirmError.message;
+  button.disabled = false;
+  text.style.display = "inline";
+  spinner.style.display = "none";
+} else {
+  // Success: Clear cart, redirect, etc. (add your fulfillment logic here)
+  localStorage.removeItem("shophub_cart");
+  alert("Payment successful! Redirecting to confirmation...");
+  window.location.href = "/order-confirmation.html";  // Or your success page
+}
 });
 
     renderCart();
