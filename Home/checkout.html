@@ -167,6 +167,36 @@ document.addEventListener('DOMContentLoaded', async () => {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
   );
 
+  // REQUIRE LOGIN 🔐
+const { data: { user } } = await supabaseClient.auth.getUser();
+
+if (!user) {
+  // Save where we want to return after login
+  localStorage.setItem("redirect_after_login", "checkout.html");
+
+  // Redirect to your login page
+  window.location.href = "../Admin/adLogin.html";
+  return;
+}
+
+// FETCH USER PROFILE 🎯
+const { data: profile } = await supabaseClient
+  .from("profiles")
+  .select("*")
+  .eq("id", user.id)
+  .single();
+
+// AUTOFILL CHECKOUT FIELDS ✨
+if (profile) {
+  document.getElementById("email").value = profile.email || "";
+  document.getElementById("first-name").value = profile.first_name || "";
+  document.getElementById("last-name").value = profile.last_name || "";
+  document.getElementById("phone").value = profile.phone || "";
+}
+
+// Keep user ID for inserting orders
+window.loggedInUserId = user.id;
+
   // 2. STRIPE
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
   const elements = stripe.elements({ appearance: { theme: 'night' } });
