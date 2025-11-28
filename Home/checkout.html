@@ -166,18 +166,19 @@ document.addEventListener('DOMContentLoaded', async () => {
     'https://nhyucbgjocmwrkqbjjme.supabase.co',
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
   );
+// REQUIRE LOGIN 🔐
+const { data: { session } } = await supabaseClient.auth.getSession();
 
-  // REQUIRE LOGIN 🔐
-const { data: { user } } = await supabaseClient.auth.getUser();
-
-if (!user) {
+if (!session || !session.user) {
   // Save where we want to return after login
   localStorage.setItem("redirect_after_login", "checkout.html");
 
-  // Redirect to your login page
+  // Redirect to login page
   window.location.href = "../Admin/adLogin.html";
   return;
 }
+
+const user = session.user;
 
 // FETCH USER PROFILE 🎯
 const { data: profile } = await supabaseClient
@@ -218,33 +219,39 @@ window.loggedInUserId = user.id;
   }
 
   function renderCart() {
-    const container = document.getElementById("checkoutItems");
+  const container = document.getElementById("checkoutItems");
 
-    if (cart.length === 0) {
-      container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
-      return;
-    }
-
-    container.innerHTML = cart.map(item => `
-      <div class="cart-item">
-        <img src="${getPublicImageUrl(item.image_url)}">
-        <div class="item-info">
-          <h4>${item.name}</h4>
-          <div>Qty: ${item.quantity}</div>
-          <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
-        </div>
-      </div>
-    `).join("");
-
-    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const tax = subtotal * 0.08;
-    const total = subtotal - discount + tax;
-
-    document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
-    document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
-    document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
+  if (cart.length === 0) {
+    container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
+    document.getElementById("itemCount").textContent = "0 items"; 
+    return;
   }
+
+  container.innerHTML = cart.map(item => `
+    <div class="cart-item">
+      <img src="${getPublicImageUrl(item.image_url)}">
+      <div class="item-info">
+        <h4>${item.name}</h4>
+        <div>Qty: ${item.quantity}</div>
+        <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+      </div>
+    </div>
+  `).join("");
+
+  // update the counter
+  const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+  document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal - discount + tax;
+
+  document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
+  document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
+  document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
+}
+
 
   window.applyDiscount = function () {
     const code = document.getElementById("discountCode").value.trim().toUpperCase();
@@ -343,16 +350,20 @@ window.loggedInUserId = user.id;
       if (paymentResult.paymentIntent.status !== "succeeded")
         throw new Error("Payment not completed.");
 
-      // 4️⃣ UPDATE ORDER TO PAID
-      await supabaseClient
-        .from("orders")
-        .update({
-          status: "paid",
-          payment_id: paymentResult.paymentIntent.id,
-          payment_status: paymentResult.paymentIntent.status,
-          amount_paid: paymentResult.paymentIntent.amount_received
-        })
-        .eq("id", order.id);
+/// 4️⃣ UPDATE ORDER TO PAID
+await supabaseClient
+  .from("orders")
+  .update({
+    status: "paid",
+    payment_id: paymentResult.paymentIntent.id,
+    payment_status: paymentResult.paymentIntent.status,
+    amount_paid: paymentResult.paymentIntent.amount_received
+  })
+  .eq("id", order.id);
+
+// Optional: update frontend immediately
+document.getElementById("grandTotal").textContent = "PAID ✅";
+
 
       // 5️⃣ CLEAR CART + REDIRECT
       localStorage.removeItem("shophub_cart");
