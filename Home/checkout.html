@@ -170,7 +170,12 @@
     </div>
   </div>
 <script>
-  // Stripe setup (unchanged)
+  // 🔥 1. SUPABASE FIRST (before everything else)
+  const supabaseUrl = 'https://nhyucbgjocmwrkqbjjme.supabase.co';
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA0OTM2MDAsImV4cCI6MjA0NjA2OTYwMH0.YOUR_SECRET_PART'; // ← PASTE YOUR FULL ANON KEY HERE
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  // 2. Stripe setup
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
   const elements = stripe.elements({
     appearance: { theme: 'night' },
@@ -183,6 +188,8 @@
       invalid: { color: '#ff6b6b' }
     }
   });
+  
+  // Mount AFTER supabase is ready
   card.mount('#card-element');
  
   card.on('change', (event) => {
@@ -190,14 +197,11 @@
     displayError.textContent = event.error ? event.error.message : '';
   });
 
-  // 🔥 SUPABASE - ADD YOUR ANON KEY HERE
-  const supabaseUrl = 'https://nhyucbgjocmwrkqbjjme.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA0OTM2MDAsImV4cCI6MjA0NjA2OTYwMH0.YOUR_SECRET_PART'; // ← PASTE YOUR FULL KEY
-  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-
+  // 3. Cart setup
   const cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
   let discount = 0;
 
+  // 4. Your existing functions
   function getPublicImageUrl(path) {
     if (!path) return 'https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg';
     if (path.startsWith('http')) return path;
@@ -250,7 +254,7 @@
     renderCart();
   };
 
-  // 🔥 FIXED: Complete Order → YOUR EXACT TABLE COLUMNS
+  // 🔥 5. COMPLETE ORDER (NOW SAFE - supabase is ready)
   document.getElementById("submit").addEventListener("click", async () => {
     if (cart.length === 0) return alert("Your bag is empty!");
 
@@ -263,10 +267,19 @@
     spinner.style.display = "inline";
 
     try {
+      // Validate form
+      const email = document.getElementById("email").value;
+      const firstName = document.getElementById("first-name").value;
+      const lastName = document.getElementById("last-name").value;
+      
+      if (!email || !firstName || !lastName) {
+        throw new Error('Please fill in all required fields');
+      }
+
       // 1. Collect customer data
       const customerData = {
-        name: `${document.getElementById("first-name").value} ${document.getElementById("last-name").value}`.trim(),
-        email: document.getElementById("email").value,
+        name: `${firstName} ${lastName}`.trim(),
+        email: email,
         address: document.getElementById("address").value,
         apt: document.getElementById("apt").value,
         city: document.getElementById("city").value,
@@ -278,19 +291,22 @@
       // 2. Calculate total
       const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
       const tax = subtotal * 0.08;
-      const totalAmount = Math.round((subtotal - discount + tax) * 100); // cents
+      const totalPrice = subtotal - discount + tax;
+      const totalAmount = Math.round(totalPrice * 100); // cents
 
-      // 3. 🔥 CREATE ORDER - YOUR COLUMNS ONLY
+      console.log('Creating order with total:', totalPrice);
+
+      // 3. CREATE ORDER IN YOUR TABLE
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          customer_id: null,  // YOUR COLUMN
-          total: (subtotal - discount + tax),  // YOUR COLUMN
+          customer_id: null,
+          total: totalPrice,  // YOUR COLUMN
           status: 'pending',  // YOUR COLUMN
           payment_method: 'card',  // YOUR COLUMN
-          shipping_address: {     // YOUR COLUMN (JSON)
+          shipping_address: {  // YOUR COLUMN
             ...customerData,
-            items: cart,  // Save cart items here too!
+            items: cart,
             subtotal,
             discount,
             tax
@@ -300,6 +316,8 @@
         .single();
 
       if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
+      
+      console.log('Order created:', order.id);
 
       // 4. Create Payment Intent
       const paymentResponse = await fetch(
@@ -318,19 +336,15 @@
       const paymentData = await paymentResponse.json();
       if (!paymentResponse.ok) throw new Error(paymentData.error || 'Payment setup failed');
 
-      // 5. Create Payment Method
+      // 5. Create & Confirm Payment
       const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
         type: "card",
         card: card,
-        billing_details: { 
-          email: customerData.email, 
-          name: customerData.name 
-        }
+        billing_details: { email: customerData.email, name: customerData.name }
       });
 
       if (pmError) throw pmError;
 
-      // 6. Confirm Payment
       const { error: confirmError } = await stripe.confirmCardPayment(
         paymentData.clientSecret,
         { payment_method: paymentMethod.id }
@@ -338,21 +352,21 @@
 
       if (confirmError) throw confirmError;
 
-      // 7. 🔥 UPDATE ORDER STATUS - YOUR COLUMNS
+      // 6. UPDATE ORDER STATUS
       const { error: updateError } = await supabase
         .from('orders')
         .update({
-          status: 'paid',           // YOUR COLUMN
-          payment_method: 'stripe'  // YOUR COLUMN
+          status: 'paid',
+          payment_method: 'stripe'
         })
         .eq('id', order.id);
 
       if (updateError) throw new Error(`Order update failed: ${updateError.message}`);
 
-      // 8. 🔥 EMPTY CART
+      // 7. EMPTY CART
       localStorage.removeItem("shophub_cart");
 
-      // 9. SUCCESS!
+      // 8. SUCCESS
       alert(`✅ Order #${order.id.slice(-6).toUpperCase()} completed! Thank you! 🎉`);
       window.location.href = `thank-you.html?order_id=${order.id}`;
 
@@ -366,7 +380,7 @@
     }
   });
 
-  // Initial render
+  // 9. Initial render (AFTER everything loads)
   renderCart();
 </script>
 </body>
