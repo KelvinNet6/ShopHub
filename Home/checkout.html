@@ -319,17 +319,17 @@ window.loggedInUserId = user.id;
         .single();
 
       if (orderError) throw new Error(orderError.message);
-
-      // 2️⃣ CREATE PAYMENTINTENT VIA SUPABASE EDGE FUNCTION
-      const paymentRes = await fetch(
-        "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ amount: Math.round(totalPrice * 100) })
-        }
-      );
-
+const paymentRes = await fetch(
+  "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "apikey": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"  
+    },
+    body: JSON.stringify({ amount: Math.round(totalPrice * 100) })
+  }
+);
       const { clientSecret } = await paymentRes.json();
       if (!clientSecret) throw new Error("Failed to create Stripe PaymentIntent.");
 
