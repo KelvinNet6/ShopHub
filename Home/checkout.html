@@ -313,8 +313,8 @@
           // EMPTY CART
           localStorage.removeItem("shophub_cart");
 
-          // SUCCESS
-          alert(`✅ Order #${order.id.slice(-6).toUpperCase()} completed!\nThank you! 🎉`);
+          const orderIdDisplay = String(order.id).slice(-6).toUpperCase();
+           alert(`Order #${orderIdDisplay}`);
           window.location.href = `thank-you.html?order_id=${order.id}`;
 
         } catch (error) {
