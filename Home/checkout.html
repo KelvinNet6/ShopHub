@@ -175,23 +175,35 @@ document.addEventListener('DOMContentLoaded', async () => {
     return;
   }
   
-  // GET customer_id from user
-  const { data: profile } = await supabaseClient
-    .from("profiles").select("id").eq("id", session.user.id).single();
-  
-  window.customerId = profile?.id || session.user.id;
-  window.loggedInUserId = session.user.id;
+  // 🔥 SINGLE API CALL - GET EVERYTHING
+const { data: profile, error: profileError } = await supabaseClient
+  .from("profiles")
+  .select("*")  // ✅ Get ALL fields in 1 call
+  .eq("id", session.user.id)
+  .single();
 
-  // AUTOFILL
-  const { data: userProfile } = await supabaseClient
-    .from("profiles").select("*").eq("id", session.user.id).single();
-  if (userProfile) {
-    document.getElementById("email").value = userProfile.email || "";
-    document.getElementById("first-name").value = userProfile.first_name || "";
-    document.getElementById("last-name").value = userProfile.last_name || "";
-    document.getElementById("phone").value = userProfile.phone || "";
-  }
+if (profileError) {
+  console.error('Profile error:', profileError);
+  // Fallback customer_id = 1
+  window.customerId = 1;
+} else {
+  window.customerId = profile.id;  // ✅ INTEGER from profiles
+}
 
+window.loggedInUserId = session.user.id;
+
+// ✅ AUTOFILL with SAME profile data
+if (profile) {
+  document.getElementById("email").value = profile.email || "";
+  document.getElementById("first-name").value = profile.first_name || "";
+  document.getElementById("last-name").value = profile.last_name || "";
+  document.getElementById("phone").value = profile.phone || "";
+}
+
+console.log('✅ Profile loaded:', { 
+  customerId: window.customerId, 
+  userId: window.loggedInUserId 
+});
   // STRIPE
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
   const elements = stripe.elements({ appearance: { theme: 'night' } });
