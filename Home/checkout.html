@@ -158,52 +158,47 @@
   </div>
 
   <!-- 🔥 FIXED: EVERYTHING INSIDE DOMContentLoaded -->
- <script>
+<script>
 document.addEventListener('DOMContentLoaded', async () => {
-
+  console.log('🚀 ShopHub Checkout - EDGE FUNCTION READY');
+  
   // 1. SUPABASE
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE';
   const supabaseClient = supabase.createClient(
     'https://nhyucbgjocmwrkqbjjme.supabase.co',
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
+    supabaseKey
   );
-// REQUIRE LOGIN 🔐
-const { data: { session } } = await supabaseClient.auth.getSession();
 
-if (!session || !session.user) {
-  // Save where we want to return after login
-  localStorage.setItem("redirect_after_login", "checkout.html");
+  // 🔐 REQUIRE LOGIN
+  const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session || !session.user) {
+    localStorage.setItem("redirect_after_login", "checkout.html");
+    window.location.href = "../Admin/adLogin.html";
+    return;
+  }
+  
+  const user = session.user;
+  window.loggedInUserId = user.id;
 
-  // Redirect to login page
-  window.location.href = "../Admin/adLogin.html";
-  return;
-}
+  // AUTOFILL PROFILE
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", user.id)
+    .single();
 
-const user = session.user;
-
-// FETCH USER PROFILE 🎯
-const { data: profile } = await supabaseClient
-  .from("profiles")
-  .select("*")
-  .eq("id", user.id)
-  .single();
-
-// AUTOFILL CHECKOUT FIELDS ✨
-if (profile) {
-  document.getElementById("email").value = profile.email || "";
-  document.getElementById("first-name").value = profile.first_name || "";
-  document.getElementById("last-name").value = profile.last_name || "";
-  document.getElementById("phone").value = profile.phone || "";
-}
-
-// Keep user ID for inserting orders
-window.loggedInUserId = user.id;
+  if (profile) {
+    document.getElementById("email").value = profile.email || "";
+    document.getElementById("first-name").value = profile.first_name || "";
+    document.getElementById("last-name").value = profile.last_name || "";
+    document.getElementById("phone").value = profile.phone || "";
+  }
 
   // 2. STRIPE
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
   const elements = stripe.elements({ appearance: { theme: 'night' } });
   const card = elements.create('card');
   card.mount('#card-element');
-
   card.on('change', (event) => {
     document.getElementById('card-errors').textContent = event.error?.message || '';
   });
@@ -219,58 +214,56 @@ window.loggedInUserId = user.id;
   }
 
   function renderCart() {
-  const container = document.getElementById("checkoutItems");
-
-  if (cart.length === 0) {
-    container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
-    document.getElementById("itemCount").textContent = "0 items"; 
-    return;
-  }
-
-  container.innerHTML = cart.map(item => `
-    <div class="cart-item">
-      <img src="${getPublicImageUrl(item.image_url)}">
-      <div class="item-info">
-        <h4>${item.name}</h4>
-        <div>Qty: ${item.quantity}</div>
-        <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+    const container = document.getElementById("checkoutItems");
+    if (cart.length === 0) {
+      container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
+      document.getElementById("itemCount").textContent = "0 items";
+      document.getElementById("grandTotal").textContent = "$0.00";
+      return;
+    }
+    
+    container.innerHTML = cart.map(item => `
+      <div class="cart-item">
+        <img src="${getPublicImageUrl(item.image_url)}" onerror="this.src='https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg'">
+        <div class="item-info">
+          <h4>${item.name}</h4>
+          <div>Qty: ${item.quantity}</div>
+          <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
+        </div>
       </div>
-    </div>
-  `).join("");
+    `).join("");
 
-  // update the counter
-  const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
-  document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
-
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal - discount + tax;
-
-  document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
-  document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
-  document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
-  document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
-}
-
+    const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+    document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
+    
+    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const tax = subtotal * 0.08;
+    const total = subtotal - discount + tax;
+    
+    document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+    document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
+    document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
+    document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
+  }
 
   window.applyDiscount = function () {
     const code = document.getElementById("discountCode").value.trim().toUpperCase();
     const msg = document.getElementById("discountMessage");
-
     if (code === "VAULT20") {
       discount = cart.reduce((s, i) => s + i.price * i.quantity, 0) * 0.20;
       msg.innerHTML = `<div style="color:#4ade80;">20% OFF Applied</div>`;
-    } else {
+    } else if (code !== "") {
       discount = 0;
       msg.innerHTML = `<div style="color:#ff6b6b;">Invalid Code</div>`;
+    } else {
+      discount = 0;
+      msg.innerHTML = "";
     }
-
     renderCart();
   };
 
-  // 4. COMPLETE ORDER
+  // 🔥 4. COMPLETE ORDER - FIXED!
   document.getElementById("submit").addEventListener("click", async () => {
-
     if (cart.length === 0) return alert("Your bag is empty!");
 
     const button = document.getElementById("submit");
@@ -282,13 +275,13 @@ window.loggedInUserId = user.id;
     spinner.style.display = "inline";
 
     try {
-      // GET CUSTOMER DATA
+      // VALIDATE FORM
       const email = document.getElementById("email").value;
       const firstName = document.getElementById("first-name").value;
       const lastName = document.getElementById("last-name").value;
-
-      if (!email || !firstName || !lastName)
+      if (!email || !firstName || !lastName) {
         throw new Error("Please fill in all required fields.");
+      }
 
       const customerData = {
         name: `${firstName} ${lastName}`,
@@ -301,45 +294,61 @@ window.loggedInUserId = user.id;
         phone: document.getElementById("phone").value
       };
 
-      // TOTAL
+      // CALCULATE TOTALS
       const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
       const tax = subtotal * 0.08;
       const totalPrice = subtotal - discount + tax;
 
-      // 1️⃣ CREATE ORDER IN SUPABASE
+      console.log('🛒 Creating order:', { total: totalPrice, items: cart.length });
+
+      // 1️⃣ CREATE ORDER
       const { data: order, error: orderError } = await supabaseClient
         .from('orders')
         .insert([{
+          user_id: window.loggedInUserId,
+          customer_name: customerData.name,
+          customer_email: customerData.email,
+          customer_phone: customerData.phone,
           total: totalPrice,
+          subtotal,
+          tax,
+          discount,
           status: 'pending',
-          payment_method: 'card',
-          shipping_address: { ...customerData, items: cart, subtotal, discount, tax }
+          payment_method: 'stripe',
+          payment_status: 'pending',
+          items_count: cart.length,
+          order_items: cart,
+          shipping_address: customerData
         }])
         .select('id')
         .single();
 
-      if (orderError) throw new Error(orderError.message);
-// 🔥 REAL EDGE FUNCTION CALL
-const paymentRes = await fetch(
-  "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
-  {
-    method: "POST",
-    headers: { 
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${supabaseKey}`  // Add this!
-    },
-    body: JSON.stringify({ 
-      amount: Math.round(totalPrice * 100),  // cents!
-      email: email
-    })
-  }
-);
+      if (orderError) throw new Error(`Order failed: ${orderError.message}`);
 
-const { clientSecret, error } = await paymentRes.json();
-if (error) throw new Error(error);
+      console.log('✅ Order created:', order.id);
 
-// Continue with stripe.confirmCardPayment(clientSecret, ...)
-      const { clientSecret } = await paymentRes.json();
+      // 🔥 2️⃣ CREATE PAYMENT INTENT (YOUR EDGE FUNCTION)
+      const paymentRes = await fetch(
+        "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+            // NO Authorization needed for public Edge Functions
+          },
+          body: JSON.stringify({
+            amount: Math.round(totalPrice * 100), // cents!
+            email: email
+          })
+        }
+      );
+
+      const paymentData = await paymentRes.json();
+      console.log('💳 Payment response:', paymentData);
+
+      if (paymentData.error) throw new Error(paymentData.error);
+
+      const { clientSecret } = paymentData; // ✅ SINGLE DECLARATION
       if (!clientSecret) throw new Error("Failed to create Stripe PaymentIntent.");
 
       // 3️⃣ CONFIRM CARD PAYMENT
@@ -353,42 +362,45 @@ if (error) throw new Error(error);
         }
       });
 
-      if (paymentResult.error)
-        throw new Error(paymentResult.error.message);
-
-      if (paymentResult.paymentIntent.status !== "succeeded")
+      if (paymentResult.error) throw new Error(paymentResult.error.message);
+      if (paymentResult.paymentIntent.status !== "succeeded") {
         throw new Error("Payment not completed.");
+      }
 
-/// 4️⃣ UPDATE ORDER TO PAID
-await supabaseClient
-  .from("orders")
-  .update({
-    status: "paid",
-    payment_id: paymentResult.paymentIntent.id,
-    payment_status: paymentResult.paymentIntent.status,
-    amount_paid: paymentResult.paymentIntent.amount_received
-  })
-  .eq("id", order.id);
+      console.log('✅ Payment succeeded:', paymentResult.paymentIntent.id);
 
-// Optional: update frontend immediately
-document.getElementById("grandTotal").textContent = "PAID ✅";
+      // 4️⃣ UPDATE ORDER TO PAID
+      const { error: updateError } = await supabaseClient
+        .from("orders")
+        .update({
+          status: "paid",
+          payment_id: paymentResult.paymentIntent.id,
+          payment_status: paymentResult.paymentIntent.status,
+          amount_paid: paymentResult.paymentIntent.amount_received
+        })
+        .eq("id", order.id);
 
+      if (updateError) throw new Error(`Update failed: ${updateError.message}`);
 
-      // 5️⃣ CLEAR CART + REDIRECT
+      // 5️⃣ SUCCESS
       localStorage.removeItem("shophub_cart");
+      const orderIdDisplay = String(order.id).padStart(6, '0');
+      alert(`✅ Order #${orderIdDisplay} PAID!\n\n💳 $${totalPrice.toFixed(2)}\n👤 ${customerData.name}`);
+      
       window.location.href = `thank-you.html?order_id=${order.id}`;
 
     } catch (err) {
+      console.error('❌ Checkout failed:', err);
       document.getElementById("card-errors").textContent = err.message;
+    } finally {
+      button.disabled = false;
+      text.style.display = "inline";
+      spinner.style.display = "none";
     }
-
-    button.disabled = false;
-    text.style.display = "inline";
-    spinner.style.display = "none";
-
   });
 
   renderCart();
+  console.log('🚀 Checkout loaded successfully!');
 });
 </script>
 </body>
