@@ -169,15 +169,14 @@
       </div>
     </div>
   </div>
-
- <script>
+<script>
   // Stripe setup (unchanged)
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
   const elements = stripe.elements({
     appearance: { theme: 'night' },
     fonts: [{ cssSrc: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' }]
   });
-  
+ 
   const card = elements.create('card', {
     style: {
       base: { color: '#fff', fontFamily: 'Inter, sans-serif', fontSize: '16px', '::placeholder': { color: '#aaa' }, lineHeight: '1.5' },
@@ -185,21 +184,20 @@
     }
   });
   card.mount('#card-element');
-  
+ 
   card.on('change', (event) => {
     const displayError = document.getElementById('card-errors');
     displayError.textContent = event.error ? event.error.message : '';
   });
 
-  // Supabase Client
+  // 🔥 SUPABASE - ADD YOUR ANON KEY HERE
   const supabaseUrl = 'https://nhyucbgjocmwrkqbjjme.supabase.co';
-  const supabaseKey = 'YOUR_SUPABASE_ANON_KEY'; // Add your anon key here
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzA0OTM2MDAsImV4cCI6MjA0NjA2OTYwMH0.YOUR_SECRET_PART'; // ← PASTE YOUR FULL KEY
   const supabase = supabase.createClient(supabaseUrl, supabaseKey);
 
   const cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
   let discount = 0;
 
-  // Your existing functions (unchanged)
   function getPublicImageUrl(path) {
     if (!path) return 'https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg';
     if (path.startsWith('http')) return path;
@@ -224,11 +222,11 @@
         </div>
       </div>
     `).join("");
-    
+   
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
     const tax = subtotal * 0.08;
     const total = subtotal - discount + tax;
-    
+   
     document.getElementById("itemCount").textContent = `${cart.reduce((s,i) => s + i.quantity, 0)} items`;
     document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
     document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
@@ -252,14 +250,14 @@
     renderCart();
   };
 
-  // 🔥 NEW: Complete Order with Database Save
+  // 🔥 FIXED: Complete Order → YOUR EXACT TABLE COLUMNS
   document.getElementById("submit").addEventListener("click", async () => {
     if (cart.length === 0) return alert("Your bag is empty!");
 
     const button = document.getElementById("submit");
     const spinner = document.getElementById("spinner");
     const text = document.getElementById("button-text");
-    
+   
     button.disabled = true;
     text.style.display = "none";
     spinner.style.display = "inline";
@@ -267,9 +265,8 @@
     try {
       // 1. Collect customer data
       const customerData = {
+        name: `${document.getElementById("first-name").value} ${document.getElementById("last-name").value}`.trim(),
         email: document.getElementById("email").value,
-        first_name: document.getElementById("first-name").value,
-        last_name: document.getElementById("last-name").value,
         address: document.getElementById("address").value,
         apt: document.getElementById("apt").value,
         city: document.getElementById("city").value,
@@ -278,30 +275,31 @@
         phone: document.getElementById("phone").value
       };
 
-      // 2. Calculate totals
+      // 2. Calculate total
       const subtotal = cart.reduce((acc, item) => acc + item.price * item.quantity, 0);
       const tax = subtotal * 0.08;
       const totalAmount = Math.round((subtotal - discount + tax) * 100); // cents
 
-      // 3. CREATE ORDER IN DATABASE (pending)
+      // 3. 🔥 CREATE ORDER - YOUR COLUMNS ONLY
       const { data: order, error: orderError } = await supabase
         .from('orders')
         .insert([{
-          customer_email: customerData.email,
-          customer_name: `${customerData.first_name} ${customerData.last_name}`,
-          items: cart, // Full cart data
-          subtotal: subtotal,
-          discount: discount,
-          tax: tax,
-          total_amount: (subtotal - discount + tax),
-          status: 'pending',
-          shipping_address: customerData,
-          created_at: new Date().toISOString()
+          customer_id: null,  // YOUR COLUMN
+          total: (subtotal - discount + tax),  // YOUR COLUMN
+          status: 'pending',  // YOUR COLUMN
+          payment_method: 'card',  // YOUR COLUMN
+          shipping_address: {     // YOUR COLUMN (JSON)
+            ...customerData,
+            items: cart,  // Save cart items here too!
+            subtotal,
+            discount,
+            tax
+          }
         }])
         .select('id')
         .single();
 
-      if (orderError) throw new Error('Failed to create order: ' + orderError.message);
+      if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
 
       // 4. Create Payment Intent
       const paymentResponse = await fetch(
@@ -312,7 +310,7 @@
           body: JSON.stringify({
             amount: totalAmount,
             email: customerData.email,
-            order_id: order.id // Link to order
+            order_id: order.id
           }),
         }
       );
@@ -324,7 +322,10 @@
       const { paymentMethod, error: pmError } = await stripe.createPaymentMethod({
         type: "card",
         card: card,
-        billing_details: { email: customerData.email, name: customerData.customer_name }
+        billing_details: { 
+          email: customerData.email, 
+          name: customerData.name 
+        }
       });
 
       if (pmError) throw pmError;
@@ -337,30 +338,28 @@
 
       if (confirmError) throw confirmError;
 
-      // 7. ✅ PAYMENT SUCCESS - UPDATE ORDER STATUS
+      // 7. 🔥 UPDATE ORDER STATUS - YOUR COLUMNS
       const { error: updateError } = await supabase
         .from('orders')
         .update({
-          status: 'paid',
-          payment_intent_id: paymentData.paymentIntentId || paymentMethod.id,
-          updated_at: new Date().toISOString()
+          status: 'paid',           // YOUR COLUMN
+          payment_method: 'stripe'  // YOUR COLUMN
         })
         .eq('id', order.id);
 
-      if (updateError) throw new Error('Failed to update order status');
+      if (updateError) throw new Error(`Order update failed: ${updateError.message}`);
 
-      // 8. ✅ EMPTY CART
+      // 8. 🔥 EMPTY CART
       localStorage.removeItem("shophub_cart");
 
       // 9. SUCCESS!
-      alert(`Order #${order.id} completed successfully! Thank you! 🎉`);
-      window.location.href = "thank-you.html?order_id=" + order.id;
+      alert(`✅ Order #${order.id.slice(-6).toUpperCase()} completed! Thank you! 🎉`);
+      window.location.href = `thank-you.html?order_id=${order.id}`;
 
     } catch (error) {
       console.error('Order failed:', error);
       document.getElementById("card-errors").textContent = error.message;
     } finally {
-      // Reset button
       button.disabled = false;
       text.style.display = "inline";
       spinner.style.display = "none";
