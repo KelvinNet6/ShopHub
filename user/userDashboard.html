@@ -84,44 +84,25 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    (async () => {
-      // 1. LOAD NAVIGATION — MOBILE MENU NOW SLIDES 100%
-      await fetch('nav.html')
-        .then(r => r.ok ? r.text() : Promise.reject())
-        .then(html => {
-          const nav = document.getElementById('global-navigation');
-          nav.innerHTML = html;
+   (async () => {
+    const navHtml = await loadFile('nav.html');
+    if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
 
-          // RE-INJECT ALL SCRIPTS (this fixes the sliding menu!)
-          nav.querySelectorAll('script').forEach(old => {
-            const script = document.createElement('script');
-            script.textContent = old.textContent;
-            if (old.src) script.src = old.src;
-            document.body.appendChild(script);
-            old.remove();
-          });
-        })
-        .catch(() => console.log("nav.html not loaded"));
-      .then(html => {
-  const nav = document.getElementById('global-navigation');
-  nav.innerHTML = html;
+    document.querySelectorAll('#global-navigation script[src]').forEach(old => {
+      const script = document.createElement('script');
+      script.src = old.src;
+      script.async = false;
+      document.body.appendChild(script);
+      old.remove();
+    });
 
-  // FIX: rebind hamburger toggle even if scripts fail
-  setTimeout(() => {
-    const menuBtn = document.getElementById("menu-btn");
-    const mobileMenu = document.getElementById("mobile-menu");
-
-    if (menuBtn && mobileMenu) {
-      menuBtn.onclick = () => {
-        mobileMenu.classList.toggle("open");
-      };
-    } else {
-      console.warn("⚠️ nav elements not found in nav.html");
+    if (!window.shopHubScriptsLoaded) {
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      document.body.appendChild(script);
+      window.shopHubScriptsLoaded = true;
     }
-  }, 50);
-})
-
-
+  })();
       // 2. SUPABASE — USING YOUR REAL PUBLIC ANON KEY (no more 401!)
       const supabaseClient = supabase.createClient(
         'https://nhyucbgjocmwrkqbjjme.supabase.co',
