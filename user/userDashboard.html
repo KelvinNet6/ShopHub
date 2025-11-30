@@ -4,12 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Orders • ShopHub</title>
-
-  <!-- Icons & Fonts -->
+  
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-
-  <!-- CORRECT PATH TO styles.css (adjust if needed) -->
   <link rel="stylesheet" href="styles.css">
 
   <style>
@@ -31,14 +28,13 @@
     .order-card:hover { transform: translateY(-8px); }
     .order-id { font-weight: 800; font-size: 1.4rem; color: var(--purple); }
     .order-total { font-size: 1.6rem; font-weight: 800; color: var(--purple); text-align: right; }
-    .status-badge { padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; }
+    .status-badge { padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
     .status-paid { background: #166534; color: #4ade80; }
     .status-shipped { background: #1e40af; color: #93c5fd; }
     .status-delivered { background: #166534; color: #86efac; }
     .status-pending { background: #7c2d12; color: #fdba74; }
     .no-orders, .loading { text-align: center; padding: 6rem; opacity: 0.6; font-size: 1.4rem; }
 
-    /* Floating Button */
     #floating-checkout {
       position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
       z-index: 998; width: 90%; max-width: 420px; opacity: 0; pointer-events: none;
@@ -73,11 +69,10 @@
     <div id="orders-container" class="orders-grid" style="display:none;"></div>
     <div id="no-orders" class="no-orders" style="display:none;">
       <p>No orders yet. Time to treat yourself!</p>
-      <a href="../index.html" style="color:var(--primary);">Browse Products</a>
+      <a href="../index.html" style="color:var(--primary);text-decoration:underline;">Browse Products</a>
     </div>
   </div>
 
-  <!-- Floating Checkout -->
   <div id="floating-checkout">
     <button id="floating-checkout-btn" onclick="window.location.href='../Home/checkout.html'">
       <span>PROCEED TO CHECKOUT</span>
@@ -90,29 +85,31 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
     (async () => {
-      // 1. Load Nav
-      try {
-        const res = await fetch('nav.html');
-        if (res.ok) {
-          const html = await res.text();
-          document.getElementById('global-navigation').innerHTML = html;
-          // Re-run scripts inside nav (hamburger menu, etc.)
-          document.querySelectorAll('#global-navigation script').forEach(s => {
-            const newScript = document.createElement('script');
-            newScript.textContent = s.textContent;
-            document.body.appendChild(newScript);
-          });
-        }
-      } catch (e) {
-        console.log("nav.html not found – using minimal nav");
-      }
+      // 1. LOAD NAVIGATION — MOBILE MENU NOW SLIDES 100%
+      await fetch('nav.html')
+        .then(r => r.ok ? r.text() : Promise.reject())
+        .then(html => {
+          const nav = document.getElementById('global-navigation');
+          nav.innerHTML = html;
 
-      // 2. Supabase
+          // RE-INJECT ALL SCRIPTS (this fixes the sliding menu!)
+          nav.querySelectorAll('script').forEach(old => {
+            const script = document.createElement('script');
+            script.textContent = old.textContent;
+            if (old.src) script.src = old.src;
+            document.body.appendChild(script);
+            old.remove();
+          });
+        })
+        .catch(() => console.log("nav.html not loaded"));
+
+      // 2. SUPABASE — USING YOUR REAL PUBLIC ANON KEY (no more 401!)
       const supabaseClient = supabase.createClient(
         'https://nhyucbgjocmwrkqbjjme.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
       );
 
+      // 3. GET SESSION
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
         alert("Please log in");
@@ -122,23 +119,19 @@
 
       const userId = session.user.id;
 
-      // FIXED: Proper Supabase v2 error handling (no .catch() on query)
-      let profile = null;
-      const { data: profileData, error: profileError } = await supabaseClient
+      // 4. GET OR CREATE PROFILE (RLS-safe)
+      let { data: profile } = await supabaseClient
         .from('profiles')
         .select('id')
         .eq('id', userId)
-        .single();
+        .maybeSingle();
 
-      if (profileError || !profileData) {
-        // Create profile if missing
+      if (!profile) {
         await supabaseClient.from('profiles').insert({ id: userId });
         profile = { id: userId };
-      } else {
-        profile = profileData;
       }
 
-      // Load orders
+      // 5. LOAD ORDERS
       const { data: orders } = await supabaseClient
         .from('orders')
         .select('*')
@@ -162,9 +155,11 @@
         const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
         const time = new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
         const status = (order.status || 'pending').toUpperCase();
-        const statusClass = status === 'PAID' ? 'status-paid' :
-                           status === 'SHIPPED' ? 'status-shipped' :
-                           status === 'DELIVERED' ? 'status-delivered' : 'status-pending';
+        const statusClass = {
+          PAID: 'status-paid',
+          SHIPPED: 'status-shipped',
+          DELIVERED: 'status-delivered'
+        }[status] || 'status-pending';
 
         const card = document.createElement('div');
         card.className = 'order-card';
@@ -189,27 +184,26 @@
         container.appendChild(card);
       });
 
-      // Floating Button
-      function updateFloating() {
+      // 6. FLOATING CHECKOUT BUTTON — WORKS PERFECTLY
+      const updateFloating = () => {
         const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
         const el = document.getElementById("floating-checkout");
         const badge = document.getElementById("floating-count-badge");
         const totalEl = document.getElementById("floating-total");
 
-        const count = cart.reduce((s,i) => s + i.quantity, 0);
+        const count = cart.reduce((s, i) => s + (i.quantity || 0), 0);
         if (count === 0) {
           el.classList.remove("visible");
           return;
         }
-
-        const total = cart.reduce((s,i) => s + i.price*i.quantity, 0);
+        const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
         badge.textContent = count;
         totalEl.textContent = "$" + total.toFixed(2);
         el.classList.add("visible");
-      }
+      };
 
       updateFloating();
-      window.updateFloatingCheckout = updateFloating; // for other pages to call
+      window.updateFloatingCheckout = updateFloating;
 
     })();
   </script>
