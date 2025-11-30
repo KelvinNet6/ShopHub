@@ -18,6 +18,7 @@
       font-size:4rem; font-weight:900; text-align:center;
       background:linear-gradient(90deg,#fff,#a78bfa);
       -webkit-background-clip:text; -webkit-text-fill-color:transparent;
+      margin-bottom:1rem;
     }
     .orders-grid { display:grid; gap:2rem; grid-template-columns:repeat(auto-fill,minmax(380px,1fr)); }
     .order-card {
@@ -39,7 +40,7 @@
     #floating-checkout {
       position:fixed; bottom:20px; left:50%; transform:translateX(-50%);
       z-index:998; width:90%; max-width:420px; opacity:0; pointer-events:none;
-      transition:opacity .4s;
+      transition:opacity .4s ease;
     }
     #floating-checkout.visible { opacity:1; pointer-events:all; }
     #floating-checkout-btn {
@@ -83,41 +84,40 @@
     </button>
   </div>
 
+  <!-- Supabase -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+
   <script>
     (async () => {
-  try {
-    // 1. Load nav.html
-    const res = await fetch('nav.html');
-    if (!res.ok) throw new Error('nav not found');
-    const html = await res.text();
-    
-    // Inject the navigation HTML
-    document.getElementById('global-navigation').innerHTML = html;
+      // ===================================================================
+      // 1. LOAD NAVIGATION + script.js (HAMBURGER MENU WORKS 100%)
+      // ===================================================================
+      try {
+        const navRes = await fetch('nav.html');  // ← correct path from /pages/user/
+        if (!navRes.ok) throw new Error();
+        const navHtml = await navRes.text();
+        document.getElementById('global-navigation').innerHTML = navHtml;
 
-    // 2. Load script.js ONLY ONCE (this runs the menu button code!)
-    if (!window.shopHubScriptsLoaded) {
-      const script = document.createElement('script');
-      script.src = 'script.js';        // correct path from your page
-      script.onload = () => console.log('script.js loaded – menu works!');
-      script.onerror = () => console.error('Failed to load script.js');
-      document.body.appendChild(script);
+        // Load script.js ONLY ONCE — this contains your menu toggle, cart, etc.
+        if (!window.shopHubScriptsLoaded) {
+          const script = document.createElement('script');
+          script.src = 'script.js';  // ← correct path
+          script.onload = () => console.log('script.js loaded – menu works!');
+          document.body.appendChild(script);
+          window.shopHubScriptsLoaded = true;
+        }
+      } catch (e) {
+        console.warn('Failed to load nav.html or script.js');
+      }
 
-      window.shopHubScriptsLoaded = true; // prevent double-loading
-    }
-
-  } catch (err) {
-    console.warn('Failed to load navigation');
-  }
-})();
-
-      // 2. SUPABASE
+      // ===================================================================
+      // 2. SUPABASE + ORDERS LOGIC
+      // ===================================================================
       const supabaseClient = supabase.createClient(
         'https://nhyucbgjocmwrkqbjjme.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
       );
 
-      // 3. SESSION
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
         alert("Please log in");
@@ -127,7 +127,7 @@
 
       const userId = session.user.id;
 
-      // 4. PROFILE
+      // Get or create profile
       let { data: profile } = await supabaseClient
         .from('profiles')
         .select('id')
@@ -139,7 +139,7 @@
         profile = { id: userId };
       }
 
-      // 5. LOAD ORDERS
+      // Load orders
       const { data: orders } = await supabaseClient
         .from('orders')
         .select('*')
@@ -188,7 +188,9 @@
         container.appendChild(card);
       });
 
-      // 6. FLOATING BUTTON
+      // ===================================================================
+      // 3. FLOATING CHECKOUT BUTTON
+      // ===================================================================
       const updateFloating = () => {
         const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
         const el = document.getElementById("floating-checkout");
@@ -196,7 +198,10 @@
         const totalEl = document.getElementById("floating-total");
 
         const count = cart.reduce((s,i) => s + (i.quantity||0), 0);
-        if (count === 0) return el.classList.remove("visible");
+        if (count === 0) {
+          el.classList.remove("visible");
+          return;
+        }
 
         const total = cart.reduce((s,i) => s + i.price*i.quantity, 0);
         badge.textContent = count;
@@ -205,7 +210,7 @@
       };
 
       updateFloating();
-      window.updateFloatingCheckout = updateFloating;
+      window.updateFloatingCheckout = updateFloating; // so other pages can call it
 
     })();
   </script>
