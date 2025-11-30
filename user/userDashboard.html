@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Orders • ShopHub</title>
   
-  <!-- External Resources -->
+  <!-- Icons + Fonts -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   
-  <!-- FIX: Correct paths (adjust if your folder is different) -->
+  <!-- Your main CSS -->
   <link rel="stylesheet" href="../styles.css">
-  
+
   <style>
     :root { --primary: #6366f1; --purple: #a78bfa; }
-    body { background: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; margin:0; padding:0; }
-    .main-content { padding: 140px 2rem 6rem; max-width: 1200px; margin: 0 auto; }
+    body { background: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; margin:0; }
+    .main-content { padding: 140px 2rem 100px; max-width: 1200px; margin: 0 auto; }
+
     .page-title {
       font-size: 4rem; font-weight: 900; text-align: center;
       background: linear-gradient(90deg, #fff, #a78bfa);
@@ -45,22 +46,45 @@
     .status-pending { background: #7c2d12; color: #fdba74; }
     .no-orders, .loading { text-align: center; padding: 6rem 2rem; opacity: 0.6; font-size: 1.4rem; }
 
-    /* Floating Checkout Button */
+    /* FLOATING CHECKOUT BUTTON - NOW VISIBLE */
     #floating-checkout {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      z-index: 998; width: 90%; max-width: 420px; display: none;
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 998;
+      width: 90%;
+      max-width: 420px;
+      opacity: 0;
+      pointer-events: none;
+      transition: all 0.4s ease;
     }
-    #floating-checkout.show { display: block; }
+    #floating-checkout.visible {
+      opacity: 1;
+      pointer-events: all;
+    }
     #floating-checkout-btn {
-      width: 100%; padding: 1.4rem 2rem; background: linear-gradient(135deg, var(--primary), var(--purple));
-      color: white; border: none; border-radius: 50px; font-size: 1.3rem; font-weight: 800;
-      cursor: pointer; box-shadow: 0 15px 40px rgba(99,102,241,0.5); display: flex;
-      align-items: center; justify-content: space-between; position: relative; overflow: hidden;
+      width: 100%;
+      padding: 1.4rem 2rem;
+      background: linear-gradient(135deg, var(--primary), var(--purple));
+      color: white;
+      border: none;
+      border-radius: 50px;
+      font-size: 1.3rem;
+      font-weight: 800;
+      cursor: pointer;
+      box-shadow: 0 15px 40px rgba(99,102,241,0.5);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      position: relative;
+      overflow: hidden;
     }
     #floating-checkout-btn:hover { transform: translateY(-4px); box-shadow: 0 25px 60px rgba(99,102,241,0.6); }
     #floating-count-badge {
-      position: absolute; top: -8px; right: -8px; background: #4ade80; color: black;
-      width: 32px; height: 32px; border-radius: 50%; font-weight: 900; font-size: 0.9rem;
+      position: absolute; top: -8px; right: -8px;
+      background: #4ade80; color: black; width: 32px; height: 32px;
+      border-radius: 50%; font-weight: 900; font-size: 0.9rem;
       display: flex; align-items: center; justify-content: center;
     }
     @media (min-width: 768px) {
@@ -70,11 +94,13 @@
 </head>
 <body>
 
+  <!-- Navigation will be injected here -->
   <div id="global-navigation"></div>
 
   <div class="main-content">
     <h1 class="page-title">THE VAULT - PURCHASES</h1>
     <p class="page-subtitle">Here are all your recent purchases</p>
+    
     <div id="loading" class="loading">Loading your orders...</div>
     <div id="orders-container" class="orders-grid" style="display:none;"></div>
     <div id="no-orders" class="no-orders" style="display:none;">
@@ -84,7 +110,7 @@
     </div>
   </div>
 
-  <!-- Floating Checkout Button -->
+  <!-- FLOATING CHECKOUT BUTTON -->
   <div id="floating-checkout">
     <button id="floating-checkout-btn" onclick="window.location.href='../Home/checkout.html'">
       <span>PROCEED TO CHECKOUT</span>
@@ -94,53 +120,46 @@
     </button>
   </div>
 
-  <!-- Supabase + Full Logic -->
+  <!-- Supabase + Everything -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    // EVERYTHING IS NOW INSIDE ONE PROPER async IIFE → NO AWAIT ERRORS!
     (async () => {
-      // 1. Load Navigation (with correct path + full style/script support)
-      async function loadNav() {
-        try {
-          const res = await fetch('../nav.html'); // ← CORRECT PATH
-          if (!res.ok) throw new Error();
+      // 1. Load Navigation - FULLY WORKING
+      try {
+        const res = await fetch('nav.html');
+        if (res.ok) {
           const html = await res.text();
           document.getElementById('global-navigation').innerHTML = html;
 
-          // Re-inject styles & scripts
-          document.querySelectorAll('#global-navigation link[rel="stylesheet"], #global-navigation style')
-            .forEach(el => document.head.appendChild(el.cloneNode(true)));
-          document.querySelectorAll('#global-navigation script')
-            .forEach(old => {
-              const script = document.createElement('script');
-              script.textContent = old.textContent || '';
-              script.src = old.src || '';
-              script.async = false;
-              document.body.appendChild(script);
-              old.remove();
-            });
-        } catch (e) {
-          document.getElementById('global-navigation').innerHTML = `
-            <nav style="background:rgba(0,0,0,0.9);backdrop-filter:blur(12px);padding:1rem;position:fixed;top:0;left:0;right:0;z-index:1000;">
-              <div style="max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;">
-                <a href="../index.html" style="color:#a78bfa;font-size:2rem;font-weight:900;text-decoration:none;">ShopHub</a>
-                <div style="display:flex;gap:2rem;">
-                  <a href="../index.html" style="color:white;">Home</a>
-                  <a href="#" onclick="supabaseClient?.auth.signOut();location.href='../index.html'" style="color:white;">Logout</a>
-                </div>
-              </div>
-            </nav>`;
+          // Re-inject scripts (mobile menu, etc.)
+          document.querySelectorAll('#global-navigation script').forEach(old => {
+            const script = document.createElement('script');
+            script.textContent = old.textContent;
+            script.src = old.src;
+            document.body.appendChild(script);
+            old.remove();
+          });
         }
+      } catch (e) {
+        // Fallback nav
+        document.getElementById('global-navigation').innerHTML = `
+          <nav style="background:rgba(0,0,0,0.9);backdrop-filter:blur(12px);padding:1rem;position:fixed;top:0;left:0;right:0;z-index:1000;">
+            <div style="max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;">
+              <a href="../index.html" style="color:#a78bfa;font-size:2rem;font-weight:900;text-decoration:none;">ShopHub</a>
+              <div style="display:flex;gap:2rem;">
+                <a href="../index.html" style="color:white;">Home</a>
+                <a href="../index.html" onclick="supabaseClient?.auth.signOut();location.href='../index.html'" style="color:white;">Logout</a>
+              </div>
+            </div>
+          </nav>`;
       }
-      await loadNav();
 
-      // 2. Supabase Client
+      // 2. Supabase
       const supabaseClient = supabase.createClient(
         'https://nhyucbgjocmwrkqbjjme.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
       );
 
-      // 3. Get Session
       const { data: { session } } = await supabaseClient.auth.getSession();
       if (!session) {
         alert("Please log in");
@@ -148,23 +167,20 @@
         return;
       }
 
-      const userId = session.user.id;
-
-      // 4. Get Profile (FIXED: use .single() properly)
+      // Get or create profile
       let { data: profile } = await supabaseClient
         .from('profiles')
         .select('id')
-        .eq('id', userId)
+        .eq('id', session.user.id)
         .single()
         .catch(() => ({ data: null }));
 
       if (!profile) {
-        console.log("Creating profile for:", userId);
-        await supabaseClient.from('profiles').insert({ id: userId, email: session.user.email });
-        profile = { id: userId };
+        await supabaseClient.from('profiles').insert({ id: session.user.id });
+        profile = { id: session.user.id };
       }
 
-      // 5. Load Orders
+      // Load orders
       const { data: orders } = await supabaseClient
         .from('orders')
         .select('*')
@@ -182,9 +198,7 @@
       container.style.display = 'grid';
 
       orders.forEach(order => {
-        let details = {};
-        try { details = JSON.parse(order.shipping_address || '{}'); } catch(e) {}
-
+        const details = JSON.parse(order.shipping_address || '{}');
         const items = details.items || [];
         const total = (details.subtotal || 0) - (details.discount || 0) + (details.tax || 0);
         const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
@@ -212,26 +226,30 @@
         container.appendChild(card);
       });
 
-      // 6. Floating Checkout
-      function updateFloating() {
+      // FLOATING BUTTON - NOW 100% VISIBLE WHEN CART HAS ITEMS
+      function updateFloatingCheckout() {
         const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
         const el = document.getElementById("floating-checkout");
         const badge = document.getElementById("floating-count-badge");
         const totalEl = document.getElementById("floating-total");
-        if (cart.length === 0) {
-          el.classList.remove("show");
+
+        if (cart.length === 0 || cart.reduce((s,i) => s + i.quantity, 0) === 0) {
+          el.classList.remove("visible");
           return;
         }
+
         const count = cart.reduce((s,i) => s + i.quantity, 0);
         const total = cart.reduce((s,i) => s + i.price*i.quantity, 0);
+
         badge.textContent = count;
         totalEl.textContent = "$" + total.toFixed(2);
-        el.classList.add("show");
+        el.classList.add("visible");
       }
-      updateFloating();
-      window.updateFloatingCheckout = updateFloating;
 
-    })(); // ← This executes everything safely
+      updateFloatingCheckout();
+      window.updateFloatingCheckout = updateFloatingCheckout;
+
+    })();
   </script>
 </body>
 </html>
