@@ -107,7 +107,7 @@
     // === 1. Load Navigation — FULLY WORKING (with CSS + JS) ===
 async function loadNavigation() {
   try {
-    const res = await fetch('../nav.html'); // ← adjust path if needed
+    const res = await fetch('nav.html'); // ← adjust path if needed
     if (!res.ok) throw new Error('nav not found');
 
     const html = await res.text();
@@ -150,7 +150,6 @@ async function loadNavigation() {
           <a href="../index.html" style="color:#a78bfa;font-size:2rem;font-weight:900;text-decoration:none;">ShopHub</a>
           <div style="display:flex;gap:2rem;">
             <a href="../index.html" style="color:white;text-decoration:none;font-weight:600;">Home</a>
-            <a href="my-orders.html" style="color:#a78bfa;text-decoration:none;font-weight:600;">Orders</a>
             <a href="#" onclick="supabaseClient.auth.signOut();location.href='../index.html'" style="color:white;text-decoration:none;font-weight:600;">Logout</a>
           </div>
         </div>
