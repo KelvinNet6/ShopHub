@@ -6,7 +6,7 @@
   <title>My Orders • ShopHub</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="../styles.css">
   <style>
     :root { --primary: #6366f1; --purple: #a78bfa; }
     body { background: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; }
@@ -19,43 +19,26 @@
     }
     .page-subtitle { text-align: center; opacity: 0.8; font-size: 1.3rem; margin-bottom: 3rem; }
 
-    .orders-grid {
-      display: grid; gap: 2rem; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
-    }
+    .orders-grid { display: grid; gap: 2rem; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
     .order-card {
       background: #0f0f0f; border-radius: 24px; padding: 2rem;
       border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 40px rgba(0,0,0,0.6);
       transition: transform 0.3s;
     }
     .order-card:hover { transform: translateY(-8px); }
-
     .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; opacity: 0.9; }
     .order-id { font-weight: 800; font-size: 1.4rem; color: var(--purple); }
     .order-date { font-size: 0.95rem; opacity: 0.7; }
-
     .items-container { margin: 1.5rem 0; }
-    .order-item {
-      display: flex; justify-content: space-between; padding: 0.7rem 0; font-size: 1.05rem;
-      border-bottom: 1px solid #1a1a1a;
-    }
+    .order-item { display: flex; justify-content: space-between; padding: 0.7rem 0; border-bottom: 1px solid #1a1a1a; }
     .order-item:last-child { border-bottom: none; }
-    .item-name { opacity: 0.9; }
-
-    .order-total {
-      font-size: 1.6rem; font-weight: 800; color: var(--purple); text-align: right; margin: 1.5rem 0;
-    }
-
-    .status-badge {
-      padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 800;
-      text-transform: uppercase; letter-spacing: 1px;
-    }
+    .order-total { font-size: 1.6rem; font-weight: 800; color: var(--purple); text-align: right; margin: 1.5rem 0; }
+    .status-badge { padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
     .status-paid { background: #166534; color: #4ade80; }
     .status-shipped { background: #1e40af; color: #93c5fd; }
     .status-delivered { background: #166534; color: #86efac; }
     .status-pending { background: #7c2d12; color: #fdba74; }
-
-    .no-orders { text-align: center; padding: 6rem 2rem; opacity: 0.6; font-size: 1.4rem; }
-    .loading { text-align: center; padding: 4rem; opacity: 0.6; }
+    .no-orders, .loading { text-align: center; padding: 4rem; opacity: 0.6; font-size: 1.4rem; }
 
     /* Floating Checkout Button */
     #floating-checkout {
@@ -66,55 +49,34 @@
       z-index: 998;
       width: 90%;
       max-width: 420px;
-      display: none;
+      display: none !important; /* Hidden by default */
     }
+    #floating-checkout.show { display: block !important; }
     #floating-checkout-btn {
-      width: 100%;
-      padding: 1.4rem 2rem;
+      width: 100%; padding: 1.4rem 2rem;
       background: linear-gradient(135deg, var(--primary), var(--purple));
-      color: white;
-      border: none;
-      border-radius: 50px;
-      font-family: 'Inter', sans-serif;
-      font-size: 1.3rem;
-      font-weight: 800;
-      cursor: pointer;
-      box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-      position: relative;
-      overflow: hidden;
+      color: white; border: none; border-radius: 50px;
+      font-family: 'Inter', sans-serif; font-size: 1.3rem; font-weight: 800;
+      cursor: pointer; box-shadow: 0 15px 40px rgba(99,102,241,0.5);
+      display: flex; align-items: center; justify-content: space-between;
+      transition: all 0.4s; position: relative; overflow: hidden;
     }
-    #floating-checkout-btn:hover { transform: translateY(-4px); box-shadow: 0 25px 60px rgba(99, 102, 241, 0.6); }
+    #floating-checkout-btn:hover { transform: translateY(-4px); box-shadow: 0 25px 60px rgba(99,102,241,0.6); }
     #floating-count-badge {
-      position: absolute;
-      top: -8px;
-      right: -8px;
-      background: #4ade80;
-      color: black;
-      width: 32px;
-      height: 32px;
-      border-radius: 50%;
-      font-weight: 900;
-      font-size: 0.9rem;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+      position: absolute; top: -8px; right: -8px;
+      background: #4ade80; color: black; width: 32px; height: 32px;
+      border-radius: 50%; font-weight: 900; font-size: 0.9rem;
+      display: flex; align-items: center; justify-content: center;
     }
     #floating-checkout i { font-size: 1.6rem; margin-left: 1rem; }
-    #floating-total { font-size: 1.1rem; opacity: 0.9; }
-
     @media (min-width: 768px) {
       #floating-checkout { bottom: 30px; left: auto; right: 30px; transform: none; width: auto; }
-      #floating-checkout-btn { padding: 1.4rem 2.5rem; }
     }
   </style>
 </head>
 <body>
 
+  <!-- Will be filled by nav.html or fallback -->
   <div id="global-navigation"></div>
 
   <div class="main-content">
@@ -132,128 +94,154 @@
 
   <!-- Floating Checkout Button -->
   <div id="floating-checkout">
-    <button id="floating-checkout-btn" onclick="window.location.href='Home/checkout.html'">
-      <span id="floating-text">PROCEED TO CHECKOUT</span>
+    <button id="floating-checkout-btn" onclick="window.location.href='../Home/checkout.html'">
+      <span>PROCEED TO CHECKOUT</span>
       <span id="floating-total">$0.00</span>
       <div id="floating-count-badge">0</div>
       <i class="fas fa-shopping-bag"></i>
     </button>
   </div>
 
-  <!-- Supabase + Logic (using supabaseClient exactly like your checkout page) -->
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
     (async () => {
-      // Load navigation
-      const navHtml = await fetch('nav.html').then(r => r.ok ? r.text() : '');
-      if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
+      // === 1. Load Navigation (correct path + fallback) ===
+      let navHtml = '';
+      try {
+        const res = await fetch('nav.html');   // ← Works if my-orders.html is in /pages/user/
+        if (res.ok) navHtml = await res.text();
+      } catch (e) {}
+      if (navHtml) {
+        document.getElementById('global-navigation').innerHTML = navHtml;
+      } else {
+        // Simple fallback nav
+        document.getElementById('global-navigation').innerHTML = `
+          <nav style="background:rgba(0,0,0,0.8);padding:1rem;position:fixed;top:0;left:0;right:0;z-index:1000;text-align:center;">
+            <a href="../index.html" style="color:#a78bfa;font-size:2rem;font-weight:900;text-decoration:none;">ShopHub</a>
+          </nav>
+        `;
+      }
 
-      // YOUR EXACT SUPABASE CLIENT FROM CHECKOUT PAGE
+      // === 2. Supabase Client ===
       const supabaseClient = supabase.createClient(
         'https://nhyucbgjocmwrkqbjjme.supabase.co',
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
       );
 
-      // Check login
-      const { data: { session } } = await supabaseClient.auth.getSession();
+      // === 3. Get current session ===
+      const { data: { session }, error: sessionError } = await supabaseClient.auth.getSession();
       if (!session) {
-        alert("Please log in to view your orders");
+        alert("Please log in first");
         window.location.href = "../Admin/adLogin.html";
         return;
       }
 
-      const userId = session.user.id;
-
-      // Get profile (customer_id)
-      const { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .single();
-
-      if (!profile) {
-        document.getElementById('loading').innerHTML = "Profile not found";
-        return;
-      }
-
-      // Fetch orders
-      const { data: orders, error } = await supabaseClient
-        .from('orders')
-        .select('*')
-        .eq('customer_id', profile.id)
-        .order('created_at', { ascending: false });
-
-      if (error || !orders || orders.length === 0) {
-        document.getElementById('loading').style.display = 'none';
-        document.getElementById('no-orders').style.display = 'block';
-        return;
-      }
-
-      const container = document.getElementById('orders-container');
-      document.getElementById('loading').style.display = 'none';
-      container.style.display = 'grid';
-
-      orders.forEach(order => {
-        let details = {};
-        try { details = JSON.parse(order.shipping_address || '{}'); } catch(e) {}
-
-        const items = details.items || [];
-        const total = (details.subtotal || 0) - (details.discount || 0) + (details.tax || 0);
-        const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
-        const time = new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-        const status = (order.status || 'pending').toLowerCase();
-        const statusClass = {
-          paid: 'status-paid',
-          shipped: 'status-shipped',
-          delivered: 'status-delivered',
-          pending: 'status-pending'
-        }[status] || 'status-pending';
-
-        const paddedId = String(order.id).padStart(6, '0');
-
-        const card = document.createElement('div');
-        card.className = 'order-card';
-        card.innerHTML = `
-          <div class="order-header">
-            <div class="order-id">Order #${paddedId}</div>
-            <div class="order-date">${date} • ${time}</div>
-          </div>
-          <div class="order-body">
-            <div class="items-container">
-              ${items.length > 0 ? items.map(i => `
-                <div class="order-item">
-                  <span class="item-name">${i.quantity} × ${i.name}</span>
-                  <span>$${(i.price * i.quantity).toFixed(2)}</span>
-                </div>
-              `).join('') : '<div class="order-item"><span>No items</span></div>'}
-            </div>
-            <div class="order-total">$${total.toFixed(2)}</div>
-            <div style="text-align:right;">
-              <span class="status-badge ${statusClass}">${status.toUpperCase()}</span>
-            </div>
-          </div>
-        `;
-        container.appendChild(card);
+      // === 4. CRITICAL FIX: Trigger onAuthStateChange so profile exists ===
+      supabaseClient.auth.onAuthStateChange(async (event, sess) => {
+        if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+          await ensureProfileExists(sess.user.id);
+          await loadOrders(sess.user.id);
+        }
       });
 
-      // Floating Checkout Button
+      // Also run once immediately
+      await ensureProfileExists(session.user.id);
+      await loadOrders(session.user.id);
+
+      // === 5. Ensure profile exists (creates it if missing) ===
+      async function ensureProfileExists(userId) {
+        const { data: existing } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .maybeSingle();
+
+        if (!existing) {
+          console.log("Creating missing profile for user:", userId);
+          await supabaseClient
+            .from('profiles')
+            .insert({ id: userId, email: session.user.email || '' });
+        }
+      }
+
+      // === 6. Load Orders ===
+      async function loadOrders(userId) {
+        const { data: profile } = await supabaseClient
+          .from('profiles')
+          .select('id')
+          .eq('id', userId)
+          .single();
+
+        if (!profile) {
+          document.getElementById('loading').innerHTML = "Profile error";
+          return;
+        }
+
+        const { data: orders, error } = await supabaseClient
+          .from('orders')
+          .select('*')
+          .eq('customer_id', profile.id)
+          .order('created_at', { ascending: false });
+
+        document.getElementById('loading').style.display = 'none';
+
+        if (!orders || orders.length === 0) {
+          document.getElementById('no-orders').style.display = 'block';
+          return;
+        }
+
+        const container = document.getElementById('orders-container');
+        container.style.display = 'grid';
+
+        orders.forEach(order => {
+          let details = {};
+          try { details = JSON.parse(order.shipping_address || '{}'); } catch(e) {}
+
+          const items = details.items || [];
+          const total = (details.subtotal || 0) - (details.discount || 0) + (details.tax || 0);
+          const date = new Date(order.created_at).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
+          const time = new Date(order.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+          const status = (order.status || 'pending').toLowerCase();
+          const statusClass = { paid: 'status-paid', shipped: 'status-shipped', delivered: 'status-delivered', pending: 'status-pending' }[status] || 'status-pending';
+          const paddedId = String(order.id).padStart(6, '0');
+
+          const card = document.createElement('div');
+          card.className = 'order-card';
+          card.innerHTML = `
+            <div class="order-header">
+              <div class="order-id">Order #${paddedId}</div>
+              <div class="order-date">${date} • ${time}</div>
+            </div>
+            <div class="order-body">
+              <div class="items-container">
+                ${items.map(i => `<div class="order-item"><span class="item-name">${i.quantity} × ${i.name}</span><span>$${(i.price * i.quantity).toFixed(2)}</span></div>`).join('') || '<div class="order-item"><span>No items</span></div>'}
+              </div>
+              <div class="order-total">$${total.toFixed(2)}</div>
+              <div style="text-align:right;"><span class="status-badge ${statusClass}">${status.toUpperCase()}</span></div>
+            </div>
+          `;
+          container.appendChild(card);
+        });
+      }
+
+      // === 7. Floating Checkout Button (now works!) ===
       function updateFloatingCheckout() {
         const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
-        const btn = document.getElementById("floating-checkout");
+        const el = document.getElementById("floating-checkout");
         const badge = document.getElementById("floating-count-badge");
         const totalEl = document.getElementById("floating-total");
 
         if (cart.length === 0) {
-          btn.style.display = "none";
+          el.classList.remove("show");
           return;
         }
 
-        const itemsCount = cart.reduce((s, i) => s + i.quantity, 0);
-        const totalPrice = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+        const count = cart.reduce((s, i) => s + i.quantity, 0);
+        const total = cart.reduce((s, i) => s + i.price * i.quantity, 0);
 
-        badge.textContent = itemsCount;
-        totalEl.textContent = `$${totalPrice.toFixed(2)}`;
-        btn.style.display = "block";
+        badge.textContent = count;
+        totalEl.textContent = `$${total.toFixed(2)}`;
+        el.classList.add("show");
       }
 
       updateFloatingCheckout();
