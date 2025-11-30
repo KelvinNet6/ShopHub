@@ -32,7 +32,7 @@
       <li><a href="payment.html"><i class="fas fa-credit-card"></i> Payment</a></li>
       <li><a href="wishlist.html"><i class="fas fa-heart"></i> Wishlist <span class="badge"></span></a></li>
    <li>
-  <a href="#" id="logout-btn" style="cursor:pointer;">
+  <a href="#" onclick="supabase.auth.signOut().then(()=>{localStorage.clear();alert('Logged out!');location.href='../index.html'})">
     <i class="fas fa-sign-out-alt"></i> Logout
   </a>
 </li>
