@@ -84,25 +84,38 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-   (async () => {
-    const navHtml = await loadFile('nav.html');
-    if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
+  (async () => {
 
-    document.querySelectorAll('#global-navigation script[src]').forEach(old => {
-      const script = document.createElement('script');
-      script.src = old.src;
-      script.async = false;
-      document.body.appendChild(script);
-      old.remove();
-    });
+  /* -------------------------
+     1. LOAD NAVIGATION
+  --------------------------*/
+  const navHtml = await loadFile('nav.html');
+  if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
 
-    if (!window.shopHubScriptsLoaded) {
-      const script = document.createElement('script');
-      script.src = 'script.js';
-      document.body.appendChild(script);
-      window.shopHubScriptsLoaded = true;
-    }
-  })();
+  // Re-inject external scripts inside nav.html
+  document.querySelectorAll('#global-navigation script[src]').forEach(old => {
+    const script = document.createElement('script');
+    script.src = old.src;
+    script.async = false;
+    document.body.appendChild(script);
+    old.remove();
+  });
+
+  // Re-inject inline scripts
+  document.querySelectorAll('#global-navigation script:not([src])').forEach(old => {
+    const script = document.createElement('script');
+    script.textContent = old.textContent;
+    document.body.appendChild(script);
+    old.remove();
+  });
+
+  // Ensure global script.js only loads once
+  if (!window.shopHubScriptsLoaded) {
+    const script = document.createElement('script');
+    script.src = 'script.js';
+    document.body.appendChild(script);
+    window.shopHubScriptsLoaded = true;
+  }
       // 2. SUPABASE — USING YOUR REAL PUBLIC ANON KEY (no more 401!)
       const supabaseClient = supabase.createClient(
         'https://nhyucbgjocmwrkqbjjme.supabase.co',
