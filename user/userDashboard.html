@@ -7,7 +7,7 @@
 
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="../styles.css">
+  <link rel="stylesheet" href="styles.css">
 
   <style>
     :root { --primary: #6366f1; --purple: #a78bfa; }
@@ -86,30 +86,30 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
     (async () => {
-      // 1. LOAD NAVIGATION + FORCE SCRIPT RE-EXECUTION (HAMBURGER MENU 100% WORKS)
-      try {
-        const res = await fetch('../nav.html');
-        if (!res.ok) throw new Error();
-        const html = await res.text();
+  try {
+    // 1. Load nav.html
+    const res = await fetch('nav.html');
+    if (!res.ok) throw new Error('nav not found');
+    const html = await res.text();
+    
+    // Inject the navigation HTML
+    document.getElementById('global-navigation').innerHTML = html;
 
-        const navContainer = document.getElementById('global-navigation');
-        navContainer.innerHTML = html;
+    // 2. Load script.js ONLY ONCE (this runs the menu button code!)
+    if (!window.shopHubScriptsLoaded) {
+      const script = document.createElement('script');
+      script.src = 'script.js';        // correct path from your page
+      script.onload = () => console.log('script.js loaded – menu works!');
+      script.onerror = () => console.error('Failed to load script.js');
+      document.body.appendChild(script);
 
-        // CRITICAL: Re-inject EVERY script from nav.html (this makes the menu button work!)
-        navContainer.querySelectorAll('script').forEach(oldScript => {
-          const newScript = document.createElement('script');
-          if (oldScript.src) {
-            newScript.src = oldScript.src;
-            newScript.async = false;
-          } else {
-            newScript.textContent = oldScript.textContent;
-          }
-          document.head.appendChild(newScript);  // ← head instead of body = more reliable
-          oldScript.remove();
-        });
-      } catch (e) {
-        console.warn("nav.html failed to load");
-      }
+      window.shopHubScriptsLoaded = true; // prevent double-loading
+    }
+
+  } catch (err) {
+    console.warn('Failed to load navigation');
+  }
+})();
 
       // 2. SUPABASE
       const supabaseClient = supabase.createClient(
