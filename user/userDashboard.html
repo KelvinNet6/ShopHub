@@ -102,6 +102,25 @@
           });
         })
         .catch(() => console.log("nav.html not loaded"));
+      .then(html => {
+  const nav = document.getElementById('global-navigation');
+  nav.innerHTML = html;
+
+  // FIX: rebind hamburger toggle even if scripts fail
+  setTimeout(() => {
+    const menuBtn = document.getElementById("menu-btn");
+    const mobileMenu = document.getElementById("mobile-menu");
+
+    if (menuBtn && mobileMenu) {
+      menuBtn.onclick = () => {
+        mobileMenu.classList.toggle("open");
+      };
+    } else {
+      console.warn("⚠️ nav elements not found in nav.html");
+    }
+  }, 50);
+})
+
 
       // 2. SUPABASE — USING YOUR REAL PUBLIC ANON KEY (no more 401!)
       const supabaseClient = supabase.createClient(
