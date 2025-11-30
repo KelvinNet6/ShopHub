@@ -4,144 +4,304 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Orders • ShopHub</title>
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css">
   <style>
-   
+    :root { --primary: #6366f1; --purple: #a78bfa; }
+    body { background: #000; color: white; min-height: 100vh; font-family: 'Inter', sans-serif; }
+    .main-content { padding: 120px 2rem 6rem; max-width: 1200px; margin: 0 auto; }
+    .page-title {
+      font-size: 4rem; font-weight: 900; text-align: center;
+      background: linear-gradient(90deg, #fff, #a78bfa);
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      margin-bottom: 1rem;
+    }
+    .page-subtitle { text-align: center; opacity: 0.8; font-size: 1.3rem; margin-bottom: 3rem; }
+
+    .orders-grid {
+      display: grid; gap: 2rem; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+    }
+    .order-card {
+      background: #0f0f0f; border-radius: 24px; padding: 2rem;
+      border: 1px solid rgba(255,255,255,0.08); box-shadow: 0 10px 40px rgba(0,0,0,0.6);
+      transition: transform 0.3s;
+    }
+    .order-card:hover { transform: translateY(-8px); }
+    .order-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; opacity: 0.9; }
+    .order-id { font-weight: 800; font-size: 1.4rem; color: var(--purple); }
+    .order-date { font-size: 0.95rem; opacity: 0.7; }
+
+    .items-container { margin: 1.5rem 0; }
+    .order-item {
+      display: flex; justify-content: space-between; padding: 0.7rem 0; font-size: 1.05rem;
+      border-bottom: 1px solid #1a1a1a;
+    }
+    .order-item:last-child { border-bottom: none; }
+    .item-name { opacity: 0.9; }
+
+    .order-total {
+      font-size: 1.6rem; font-weight: 800; color: var(--purple); text-align: right; margin: 1.5rem 0;
+    }
+    .status-badge {
+      padding: 0.4rem 1rem; border-radius: 50px; font-size: 0.85rem; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 1px;
+    }
+    .status-paid { background: #166534; color: #4ade80; }
+    .status-shipped { background: #1e40af; color: #93c5fd; }
+    .status-delivered { background: #166534; color: #86efac; }
+    .status-pending { background: #7c2d12; color: #fdba74; }
+
+    .no-orders {
+      text-align: center; padding: 6rem 2rem; opacity: 0.6; font-size: 1.4rem;
+    }
+    .loading { text-align: center; padding: 4rem; opacity: 0.6; }
+    #floating-checkout {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 998;
+    width: 90%;
+    max-width: 420px;
+  }
+
+  #floating-checkout-btn {
+    width: 100%;
+    padding: 1.4rem 2rem;
+    background: linear-gradient(135deg, var(--primary), var(--purple));
+    color: white;
+    border: none;
+    border-radius: 50px;
+    font-family: 'Inter', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 800;
+    cursor: pointer;
+    box-shadow: 0 15px 40px rgba(99, 102, 241, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+  }
+
+  #floating-checkout-btn:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 25px 60px rgba(99, 102, 241, 0.6);
+  }
+
+  #floating-checkout-btn:active {
+    transform: translateY(-2px);
+  }
+
+  #floating-count-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #4ade80;
+    color: black;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    font-weight: 900;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+  }
+
+  #floating-checkout i {
+    font-size: 1.6rem;
+    margin-left: 1rem;
+  }
+
+  #floating-total {
+    font-size: 1.1rem;
+    opacity: 0.9;
+  }
+
+  @media (min-width: 768px) {
+    #floating-checkout {
+      bottom: 30px;
+      width: auto;
+      left: auto;
+      right: 30px;
+      transform: none;
+    }
+    #floating-checkout-btn {
+      padding: 1.4rem 2.5rem;
+    }
+  }
   </style>
 </head>
 <body>
 
-<div id="global-navigation"></div>
+  <div id="global-navigation"></div>
 
-  <!-- Main Content -->
   <div class="main-content">
     <h1 class="page-title">THE VAULT - PURCHASES</h1>
     <p class="page-subtitle">Here are all your recent purchases</p>
 
-    <div class="orders-grid">
-
-      <!-- Order #1001 -->
-      <div class="order-card">
-        <div class="order-header"><div class="order-id">Order #1001</div><div class="order-date">November 15, 2025 • 2:34 PM</div></div>
-        <div class="order-body">
-          <div class="items-container">
-            <div class="order-item"><span class="item-name">2 × Wireless Earbuds Pro</span><span>$198.00</span></div>
-            <div class="order-item"><span class="item-name">1 × Leather Laptop Bag</span><span>$89.99</span></div>
-          </div>
-          <div class="order-total">$287.99</div>
-          <div style="text-align:right;"><span class="status-badge status-paid">PAID</span></div>
-        </div>
-      </div>
-
-      <!-- Order #1002 -->
-      <div class="order-card">
-        <div class="order-header"><div class="order-id">Order #1002</div><div class="order-date">November 10, 2025 • 11:12 AM</div></div>
-        <div class="order-body">
-          <div class="items-container">
-            <div class="order-item"><span class="item-name">1 × Mechanical Keyboard RGB</span><span>$149.00</span></div>
-            <div class="order-item"><span class="item-name">1 × Gaming Mouse Ultra</span><span>$79.99</span></div>
-            <div class="order-item"><span class="item-name">3 × USB-C Cable 100W</span><span>$44.97</span></div>
-          </div>
-          <div class="order-total">$273.96</div>
-          <div style="text-align:right;"><span class="status-badge status-shipped">SHIPPED</span></div>
-        </div>
-      </div>
-
-      <!-- Order #1003 -->
-      <div class="order-card">
-        <div class="order-header"><div class="order-id">Order #1003</div><div class="order-date">November 5, 2025 • 9:47 PM</div></div>
-        <div class="order-body">
-          <div class="items-container">
-            <div class="order-item"><span class="item-name">1 × Smart Watch Series 8</span><span>$399.00</span></div>
-          </div>
-          <div class="order-total">$399.00</div>
-          <div style="text-align:right;"><span class="status-badge status-pending">PENDING PAYMENT</span></div>
-        </div>
-      </div>
-
-      <!-- Order #1004 -->
-      <div class="order-card">
-        <div class="order-header"><div class="order-id">Order #1004</div><div class="order-date">October 28, 2025 • 3:18 PM</div></div>
-        <div class="order-body">
-          <div class="items-container">
-            <div class="order-item"><span class="item-name">1 × 4K Webcam Pro</span><span>$129.00</span></div>
-            <div class="order-item"><span class="item-name">1 × Desk Lamp LED</span><span>$45.00</span></div>
-          </div>
-          <div class="order-total">$174.00</div>
-          <div style="text-align:right;"><span class="status-badge status-delivered">DELIVERED</span></div>
-        </div>
-      </div>
-
-      <!-- Order #1005 -->
-      <div class="order-card">
-        <div class="order-header"><div class="order-id">Order #1005</div><div class="order-date">October 20, 2025 • 7:22 AM</div></div>
-        <div class="order-body">
-          <div class="items-container">
-            <div class="order-item"><span class="item-name">3 × Noise-Cancelling Headphones</span><span>$747.00</span></div>
-          </div>
-          <div class="order-total">$747.00</div>
-          <div style="text-align:right;"><span class="status-badge status-shipped">SHIPPED</span></div>
-        </div>
-      </div>
-
-      <!-- Order #1006 -->
-      <div class="order-card">
-        <div class="order-header"><div class="order-id">Order #1006</div><div class="order-date">October 12, 2025 • 4:55 PM</div></div>
-        <div class="order-body">
-          <div class="items-container">
-            <div class="order-item"><span class="item-name">1 × Standing Desk Converter</span><span>$279.99</span></div>
-            <div class="order-item"><span class="item-name">1 × Ergonomic Chair</span><span>$449.00</span></div>
-          </div>
-          <div class="order-total">$728.99</div>
-          <div style="text-align:right;"><span class="status-badge status-delivered">DELIVERED</span></div>
-        </div>
-      </div>
-
+    <div id="loading" class="loading">Loading your orders...</div>
+    <div id="orders-container" class="orders-grid" style="display:none;"></div>
+    <div id="no-orders" class="no-orders" style="display:none;">
+      <i class="fas fa-shopping-bag" style="font-size:4rem;opacity:0.3;margin-bottom:2rem;"></i>
+      <p>No orders yet. Time to treat yourself!</p>
+      <a href="../index.html" style="color:var(--primary);text-decoration:underline;">Browse Products</a>
     </div>
   </div>
-
-<script>
-  // Helper: load a text file (HTML, CSS, JS, etc.)
-  async function loadFile(url) {
-    const res = await fetch(url);
-    if (!res.ok) {
-      console.error(`Failed to load ${url} → ${res.status} ${res.statusText}`);
-      return '';
+<!-- FLOATING CHECKOUT BUTTON -->
+<div id="floating-checkout" style="display:none;">
+  <button id="floating-checkout-btn" onclick="window.location.href='pages/checkout.html'">
+    <span id="floating-text">PROCEED TO CHECKOUT</span>
+    <span id="floating-total">$0.00</span>
+    <div id="floating-count-badge">0</div>
+    <i class="fas fa-shopping-bag"></i>
+  </button>
+</div>
+  <!-- Supabase + Nav Loader -->
+  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+  <script>
+    // Load navigation
+    async function loadFile(url) {
+      const res = await fetch(url);
+      if (!res.ok) return '';
+      return await res.text();
     }
-    return await res.text();
+
+    (async () => {
+      const navHtml = await loadFile('nav.html');
+      if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
+    })();
+
+    // Initialize Supabase
+    const supabase = supabase.createClient(
+      'https://nhyucbgjocmwrkqbjjme.supabase.co',
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
+    );
+
+    // Check login
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      alert("Please log in to view your orders");
+      window.location.href = "../Admin/adLogin.html";
+      return;
+    }
+
+    const userId = session.user.id;
+
+    // Fetch user's profile to get customer_id (from profiles table)
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    const customerId = profile?.id || null;
+
+    if (!customerId) {
+      document.getElementById('loading').innerHTML = "Error: Profile not found";
+      return;
+    }
+
+    // Fetch all orders for this customer
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('*')
+      .eq('customer_id', customerId)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      console.error("Error fetching orders:", error);
+      document.getElementById('loading').innerHTML = "Failed to load orders";
+      return;
+    }
+
+    const container = document.getElementById('orders-container');
+    document.getElementById('loading').style.display = 'none';
+
+    if (!orders || orders.length === 0) {
+      document.getElementById('no-orders').style.display = 'block';
+      return;
+    }
+
+    container.style.display = 'grid';
+
+    orders.forEach(order => {
+      let details = {};
+      try {
+        details = JSON.parse(order.shipping_address || '{}');
+      } catch (e) {
+        console.log("Could not parse shipping_address for order", order.id);
+      }
+
+      const items = details.items || [];
+      const total = (details.subtotal || 0) - (details.discount || 0) + (details.tax || 0);
+      const date = new Date(order.created_at).toLocaleDateString('en-US', {
+        month: 'long', day: 'numeric', year: 'numeric'
+      });
+      const time = new Date(order.created_at).toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit'
+      });
+
+      const status = order.status || 'pending';
+      const statusClass = {
+        paid: 'status-paid',
+        shipped: 'status-shipped',
+        delivered: 'status-delivered',
+        pending: 'status-pending'
+      }[status] || 'status-pending';
+
+      const paddedId = String(order.id).padStart(6, '0');
+
+      const card = document.createElement('div');
+      card.className = 'order-card';
+      card.innerHTML = `
+        <div class="order-header">
+          <div class="order-id">Order #${paddedId}</div>
+          <div class="order-date">${date} • ${time}</div>
+        </div>
+        <div class="order-body">
+          <div class="items-container">
+            ${items.length > 0 ? items.map(item => `
+              <div class="order-item">
+                <span class="item-name">${item.quantity} × ${item.name}</span>
+                <span>$${(item.price * item.quantity).toFixed(2)}</span>
+              </div>
+            `).join('') : '<div class="order-item"><span>No items</span></div>'}
+          </div>
+          <div class="order-total">$${total.toFixed(2)}</div>
+          <div style="text-align:right;">
+            <span class="status-badge ${statusClass}">${status.toUpperCase()}</span>
+          </div>
+        </div>
+      `;
+      container.appendChild(card);
+    });
+    function updateFloatingCheckout() {
+    const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
+    const button = document.getElementById("floating-checkout");
+    const countBadge = document.getElementById("floating-count-badge");
+    const totalEl = document.getElementById("floating-total");
+
+    if (cart.length === 0) {
+      button.style.display = "none";
+      return;
+    }
+
+    const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
+    const totalPrice = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
+
+    countBadge.textContent = totalItems;
+    totalEl.textContent = `$${totalPrice.toFixed(2)}`;
+    button.style.display = "block";
   }
 
-  (async () => {
-    // 1. Load the navigation HTML
-    const navHtml = await loadFile('nav.html');   // adjust path if needed
-    if (navHtml) {
-      document.getElementById('global-navigation').innerHTML = navHtml;
-    }
+  document.addEventListener("DOMContentLoaded", updateFloatingCheckout);
 
-    // 2. If nav.html contains its own <script> tags with src="", load them too
-    const scriptElements = document.querySelectorAll('#global-navigation script[src]');
-    scriptElements.forEach(oldScript => {
-      const newScript = document.createElement('script');
-      newScript.src = oldScript.src;
-      newScript.async = false;           // preserve execution order
-      document.body.appendChild(newScript);
-      oldScript.remove();                // avoid duplicate loading
-    });
-
-    // 3. Optionally load your main script.js (only once!)
-    if (!window.shopHubScriptsLoaded) {
-      const script = document.createElement('script');
-      script.src = 'script.js';          // or 'user/script.js' if it's inside /user
-      script.onload = () => console.log('script.js loaded');
-      script.onerror = () => console.error('Failed to load script.js');
-      document.body.appendChild(script);
-      window.shopHubScriptsLoaded = true;
-    }
-  })();
-</script>
-  <script src="script.js"></script>
+  window.updateFloatingCheckout = updateFloatingCheckout;
+  </script>
 </body>
 </html>
