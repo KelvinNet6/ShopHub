@@ -104,23 +104,63 @@
 
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script>
-    (async () => {
-      // === 1. Load Navigation (correct path + fallback) ===
-      let navHtml = '';
-      try {
-        const res = await fetch('nav.html');   // ← Works if my-orders.html is in /pages/user/
-        if (res.ok) navHtml = await res.text();
-      } catch (e) {}
-      if (navHtml) {
-        document.getElementById('global-navigation').innerHTML = navHtml;
+    // === 1. Load Navigation — FULLY WORKING (with CSS + JS) ===
+async function loadNavigation() {
+  try {
+    const res = await fetch('../nav.html'); // ← adjust path if needed
+    if (!res.ok) throw new Error('nav not found');
+
+    const html = await res.text();
+
+    // Insert the HTML
+    document.getElementById('global-navigation').innerHTML = html;
+
+    // Re-inject all <link> and <style> tags
+    const styles = document.querySelectorAll('#global-navigation link[rel="stylesheet"], #global-navigation style');
+    styles.forEach(old => {
+      const node = old.tagName === 'LINK' ? document.createElement('link') : document.createElement('style');
+      if (old.tagName === 'LINK') {
+        node.rel = 'stylesheet';
+        node.href = old.href;
       } else {
-        // Simple fallback nav
-        document.getElementById('global-navigation').innerHTML = `
-          <nav style="background:rgba(0,0,0,0.8);padding:1rem;position:fixed;top:0;left:0;right:0;z-index:1000;text-align:center;">
-            <a href="../index.html" style="color:#a78bfa;font-size:2rem;font-weight:900;text-decoration:none;">ShopHub</a>
-          </nav>
-        `;
+        node.textContent = old.textContent;
       }
+      document.head.appendChild(node);
+    });
+
+    // Re-inject all <script> tags (especially mobile menu toggle)
+    const scripts = document.querySelectorAll('#global-navigation script');
+    scripts.forEach(oldScript => {
+      const newScript = document.createElement('script');
+      if (oldScript.src) {
+        newScript.src = oldScript.src;
+        newScript.async = false;
+      } else {
+        newScript.textContent = oldScript.textContent;
+      }
+      document.body.appendChild(newScript);
+      oldScript.remove();
+    });
+
+  } catch (err) {
+    console.log("nav.html failed → using fallback");
+    document.getElementById('global-navigation').innerHTML = `
+      <nav style="background:rgba(0,0,0,0.9);backdrop-filter:blur(12px);padding:1rem;position:fixed;top:0;left:0;right:0;z-index:1000;">
+        <div style="max-width:1400px;margin:0 auto;display:flex;justify-content:space-between;align-items:center;">
+          <a href="../index.html" style="color:#a78bfa;font-size:2rem;font-weight:900;text-decoration:none;">ShopHub</a>
+          <div style="display:flex;gap:2rem;">
+            <a href="../index.html" style="color:white;text-decoration:none;font-weight:600;">Home</a>
+            <a href="my-orders.html" style="color:#a78bfa;text-decoration:none;font-weight:600;">Orders</a>
+            <a href="#" onclick="supabaseClient.auth.signOut();location.href='../index.html'" style="color:white;text-decoration:none;font-weight:600;">Logout</a>
+          </div>
+        </div>
+      </nav>
+    `;
+  }
+}
+
+// Call it
+await loadNavigation();
 
       // === 2. Supabase Client ===
       const supabaseClient = supabase.createClient(
