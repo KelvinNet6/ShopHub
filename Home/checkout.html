@@ -275,8 +275,6 @@ console.log('✅ Profile loaded:', {
   userId: window.loggedInUserId 
 });
   // STRIPE
-  const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
-// STRIPE – THIS IS THE ONLY VERSION THAT FORCES WHITE TEXT IN 2025
 const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
 const elements = stripe.elements({ appearance: { theme: 'night' } });
 const card = elements.create('card', {
