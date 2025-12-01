@@ -1,3 +1,6 @@
+// =========================
+//  NAV INITIALIZER
+// =========================
 (function () {
   function initMobileMenu() {
     const menuBtn   = document.getElementById("menuBtn");
@@ -5,11 +8,8 @@
     const slideMenu = document.getElementById("slideMenu");
     const overlay   = document.getElementById("overlay");
 
-    if (!menuBtn || !closeBtn || !slideMenu || !overlay) {
-      return false;
-    }
+    if (!menuBtn || !closeBtn || !slideMenu || !overlay) return false;
 
-    // Reset listeners (clean cloning)
     const menuBtnNew = menuBtn.cloneNode(true);
     const closeBtnNew = closeBtn.cloneNode(true);
     const overlayNew = overlay.cloneNode(true);
@@ -33,13 +33,8 @@
     menuBtnNew.addEventListener("click", openMenu);
     closeBtnNew.addEventListener("click", closeMenu);
     overlayNew.addEventListener("click", closeMenu);
+    document.addEventListener("keydown", e => e.key === "Escape" && closeMenu());
 
-    // Escape key
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape") closeMenu();
-    });
-
-    // Expose globally so logoutUser() can close menu
     window.closeMenu = closeMenu;
 
     console.log("Navigation initialized");
@@ -53,22 +48,26 @@
     observer.observe(document.body, { childList: true, subtree: true });
   }
 })();
-  
-const supabase = createClient(
+
+window.supabaseClient = supabase.createClient(
   "https://nhyucbgjocmwrkqbjjme.supabase.co",
   "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
 );
 
+
+// =========================
+//  LOGOUT (GLOBAL)
+// =========================
 window.logoutUser = function () {
-  supabase.auth.signOut().then(() => {
-    localStorage.removeItem("shophub_cart");
-    alert("Logged out! Cart emptied.");
-
-    if (window.closeMenu) closeMenu();
-
-    location.href = "../index.html";
-  }).catch(err => {
-    console.error("Logout error:", err);
-    alert("Error: " + err.message);
-  });
+  window.supabaseClient.auth.signOut()
+    .then(() => {
+      localStorage.removeItem("shophub_cart");
+      alert("Logged out! Cart emptied.");
+      if (window.closeMenu) window.closeMenu();
+      location.href = "../index.html";
+    })
+    .catch(err => {
+      console.error("Logout error:", err);
+      alert("Error: " + err.message);
+    });
 };
