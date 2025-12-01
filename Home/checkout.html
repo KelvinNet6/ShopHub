@@ -68,13 +68,14 @@ input:focus, select:focus {
     .back-link:hover { color: white; }
  
     /* FINAL WORKING FIX – BLACK TEXT GONE FOREVER */
+/* PERFECT DARK GLASSY CARD – CLEAN & WORKING (2025) */
 #card-element {
   padding: 1.4rem 1.8rem;
-  background: #000000;   
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(20, 20, 40, 0.88) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18);
   border-radius: 18px;
-  backdrop-filter: blur(12px);
-  position: relative;
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
 }
 
 /* Overlay a dark layer + force white text on everything Stripe renders */
@@ -274,19 +275,19 @@ console.log('✅ Profile loaded:', {
   customerId: window.customerId, 
   userId: window.loggedInUserId 
 });
-// STRIPE – THIS IS THE ONLY VERSION THAT FORCES WHITE TEXT IN 2025
+
+  // STRIPE – THE ONLY CODE YOU NEED (DEC 2025)
 const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
+
 const elements = stripe.elements({
   appearance: {
-    theme: 'none',   
+    theme: 'night',                          // forces dark mode inside the iframe
     variables: {
-      colorBackground: 'rgba(248, 248, 252, 0.96)',
-      colorText: '#f0f0ff',                  
-      colorTextPlaceholder: 'rgba(240, 240, 255, 0.65)',
-      caretColor: '#d0d0ff',
+      colorText: '#ffffff',                  // white numbers
+      colorTextPlaceholder: 'rgba(255,255,255,0.55)',
+      caretColor: '#ffffff',
       fontFamily: 'Inter, sans-serif',
-      fontSize: '1.05rem',
-      borderRadius: '18px'
+      fontSize: '1.05rem'
     }
   }
 });
@@ -294,24 +295,16 @@ const elements = stripe.elements({
 const card = elements.create('card', {
   style: {
     base: {
-      color: '#f8f8ff',                   
+      color: '#ffffff',
       fontSize: '1.05rem',
-      fontFamily: 'Inter, sans-serif',
-      '::placeholder': {
-        color: 'rgba(240, 240, 255, 0.65)'
-      },
-      ':focus': {
-        color: '#ffffff'
-      }
+      '::placeholder': { color: 'rgba(255,255,255,0.55)' }
     },
-    invalid: {
-      color: '#fca5a5'
-    }
+    invalid: { color: '#fca5a5' }
   }
 });
 
 card.mount('#card-element');
-
+  
   // CART
   const cart = JSON.parse(localStorage.getItem("shophub_cart") || '[]');
   let discount = 0;
