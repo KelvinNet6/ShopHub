@@ -265,16 +265,49 @@ console.log('✅ Profile loaded:', {
 });
   // STRIPE
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
- const elements = stripe.elements({
+// STRIPE – THIS IS THE ONLY VERSION THAT FORCES WHITE TEXT IN 2025
+const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
+
+const elements = stripe.elements({
   appearance: {
     theme: 'night',
     variables: {
-      colorText: 'rgba(255, 255, 255, 0.55)',
-      colorTextPlaceholder: 'rgba(255, 255, 255, 0.55)',
-      caretColor: '#ffffff'
+      colorPrimary: '#ffffff',
+      colorBackground: 'rgba(20, 20, 40, 0.88)',
+      colorText: '#ffffff',                    // ← MAIN FIX
+      colorDanger: '#fca5a5',
+      fontFamily: 'Inter, sans-serif',
+      fontSize: '1.05rem',
+      colorTextPlaceholder: 'rgba(255,255,255,0.55)', // ← placeholder
+      caretColor: '#ffffff'                    // ← blinking cursor
+    },
+    rules: {
+      '.Input': {
+        color: '#ffffff',
+        backgroundColor: 'rgba(20, 20, 40, 0.88)',
+        caretColor: '#ffffff',
+        '::placeholder': {
+          color: 'rgba(255,255,255,0.55)'
+        }
+      },
+      '.Label': { color: '#ffffff' }
     }
   }
 });
+
+const card = elements.create('card', {
+  style: {
+    base: {
+      color: '#ffffff',
+      fontSize: '1.05rem',
+      '::placeholder': { color: 'rgba(255,255,255,0.55)' },
+      caretColor: '#ffffff'
+    },
+    invalid: { color: '#fca5a5' }
+  }
+});
+
+card.mount('#card-element');
   const card = elements.create('card');
   card.mount('#card-element');
   card.on('change', (event) => {
