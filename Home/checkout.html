@@ -231,12 +231,11 @@ if (profileError) {
   // Fallback customer_id = 1
   window.customerId = 1;
 } else {
-  window.customerId = profile.id;  // ✅ INTEGER from profiles
+  window.customerId = profile.id;  
 }
 
 window.loggedInUserId = session.user.id;
 
-// ✅ AUTOFILL with SAME profile data
 if (profile) {
   document.getElementById("email").value = profile.email || "";
   document.getElementById("first-name").value = profile.first_name || "";
@@ -249,22 +248,21 @@ console.log('✅ Profile loaded:', {
   userId: window.loggedInUserId 
 });
 
-// STRIPE – LIGHT GREY + BLACK TEXT (FINAL 2025 VERSION)
 const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
 
 const elements = stripe.elements({
   appearance: {
-    theme: 'stripe',                                   // light base
+    theme: 'stripe',                    
     variables: {
       colorPrimary: '#6366f1',
-      colorBackground: 'rgba(248, 248, 252, 0.96)',    // light frosted glass
-      colorText: '#111111',                            // BLACK bold text
+      colorBackground: 'rgba(248, 248, 252, 0.96)',   
+      colorText: '#111111',                      
       colorTextPlaceholder: 'rgba(0,0,0,0.45)',
       caretColor: '#111111',
-      colorDanger: '#ef4444',                          // RED errors
+      colorDanger: '#ef4444',                   
       fontFamily: 'Inter, sans-serif',
       fontSize: '1.05rem',
-      fontWeight: '600',                               // BOLD numbers
+      fontWeight: '600',                           
       borderRadius: '18px'
     },
     rules: {
