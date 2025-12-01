@@ -88,29 +88,37 @@
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
 
   <script>
-    (async () => {
-      // ===================================================================
-      // 1. LOAD NAVIGATION + script.js (HAMBURGER MENU WORKS 100%)
-      // ===================================================================
-      try {
-        const navRes = await fetch('nav.html');  // ← correct path from /pages/user/
-        if (!navRes.ok) throw new Error();
-        const navHtml = await navRes.text();
-        document.getElementById('global-navigation').innerHTML = navHtml;
+(async () => {
+  // ============================================================
+  // 1. LOAD script.js FIRST (so logoutUser exists globally)
+  // ============================================================
+  if (!window.shopHubScriptsLoaded) {
+    await new Promise(resolve => {
+      const script = document.createElement('script');
+      script.src = 'script.js';
+      script.onload = resolve;
+      script.onerror = () => console.error("Failed to load script.js");
+      document.body.appendChild(script);
+    });
 
-        // Load script.js ONLY ONCE — this contains your menu toggle, cart, etc.
-        if (!window.shopHubScriptsLoaded) {
-          const script = document.createElement('script');
-          script.src = 'script.js';  // ← correct path
-          script.onload = () => console.log('script.js loaded – menu works!');
-          document.body.appendChild(script);
-          window.shopHubScriptsLoaded = true;
-        }
-      } catch (e) {
-        console.warn('Failed to load nav.html or script.js');
-      }
+    window.shopHubScriptsLoaded = true;
+    console.log("script.js loaded before nav.html ✔");
+  }
 
-      // ===================================================================
+  // ============================================================
+  // 2. NOW load nav.html — safe because logoutUser exists
+  // ============================================================
+  try {
+    const navRes = await fetch('nav.html');
+    if (!navRes.ok) throw new Error("Navigation failed to load");
+
+    const navHtml = await navRes.text();
+    document.getElementById('global-navigation').innerHTML = navHtml;
+
+    console.log("nav.html loaded ✔");
+  } catch (e) {
+    console.warn("Failed to load nav.html:", e);
+  }
       // 2. SUPABASE + ORDERS LOGIC
       // ===================================================================
       const supabaseClient = supabase.createClient(
