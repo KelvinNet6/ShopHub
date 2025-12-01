@@ -278,27 +278,15 @@ console.log('✅ Profile loaded:', {
 const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
 const elements = stripe.elements({
   appearance: {
-    theme: 'stripe',
+    theme: 'none',   
     variables: {
-      colorPrimary: '#6366f1',
       colorBackground: 'rgba(248, 248, 252, 0.96)',
-      colorText: '#e0e0ff',                    // ← light text
-      colorTextPlaceholder: 'rgba(224, 224, 255, 0.6)',
-      caretColor: '#c0c0ff',
-      colorDanger: '#fca5a5',
+      colorText: '#f0f0ff',                  
+      colorTextPlaceholder: 'rgba(240, 240, 255, 0.65)',
+      caretColor: '#d0d0ff',
       fontFamily: 'Inter, sans-serif',
-      fontSize: '1.05rem'
-    },
-    rules: {
-      '.Input': {
-        color: '#e0e0ff',
-        backgroundColor: 'rgba(248, 248, 252, 0.96)',
-        caretColor: '#c0c0ff',
-        '::placeholder': 'rgba(224, 224, 255, 0.6)'   // ← STRING, not object!
-      },
-      '.Label': {
-        color: '#e0e0ff'
-      }
+      fontSize: '1.05rem',
+      borderRadius: '18px'
     }
   }
 });
@@ -306,10 +294,14 @@ const elements = stripe.elements({
 const card = elements.create('card', {
   style: {
     base: {
-      color: '#e0e0ff',
+      color: '#f8f8ff',                   
       fontSize: '1.05rem',
+      fontFamily: 'Inter, sans-serif',
       '::placeholder': {
-        color: 'rgba(224, 224, 255, 0.6)'
+        color: 'rgba(240, 240, 255, 0.65)'
+      },
+      ':focus': {
+        color: '#ffffff'
       }
     },
     invalid: {
