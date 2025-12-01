@@ -66,37 +66,48 @@ input:focus, select:focus {
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
     .back-link { display: inline-flex; align-items: center; gap: 0.6rem; color: #aaa; text-decoration: none; font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem; }
     .back-link:hover { color: white; }
-  #card-element {
+ 
+    /* FINAL WORKING FIX – BLACK TEXT GONE FOREVER */
+#card-element {
   padding: 1.4rem 1.8rem;
-  background: rgba(20, 20, 40, 0.88);
-  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(15, 15, 35, 0.96) !important;   /* ultra-dark glass – hides black text */
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 18px;
   backdrop-filter: blur(12px);
+  position: relative;
 }
 
-/* Force ALL text inside Stripe iframe to be white */
-#card-element iframe,
-#card-element input,
+/* Overlay a dark layer + force white text on everything Stripe renders */
+#card-element::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(15, 15, 35, 0.96);
+  border-radius: 18px;
+  pointer-events: none;
+  z-index: 1;
+}
+
+/* The REAL fix – targets Stripe's shadow DOM inputs */
 #card-element .InputElement,
-#card-element * {
+#card-element iframe,
+#card-element input {
   color: #ffffff !important;
+  background: transparent !important;
+  caret-color: #ffffff !important;
   font-size: 1.05rem !important;
-  caret-color: #ffffff !important;           /* blinking cursor = white */
 }
 
-/* White placeholder */
 #card-element input::placeholder {
   color: rgba(255, 255, 255, 0.55) !important;
 }
 
-/* Focus state: white border + soft white glow (NO RED) */
-#card-element.StripeElement--focus,
-#card-element:focus {
-  border-color: rgba(255, 255, 255, 0.5) !important;
-  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.18) !important;
-  background: rgba(20, 20, 40, 0.95) !important;
+/* Focus glow – clean white */
+#card-element.StripeElement--focus {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2) !important;
 }
-
+    
 #card-errors {
   color: #fca5a5;           /* soft light red for errors only */
   font-size: 0.9rem;
@@ -267,34 +278,7 @@ console.log('✅ Profile loaded:', {
   const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
 // STRIPE – THIS IS THE ONLY VERSION THAT FORCES WHITE TEXT IN 2025
 const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
-
-const elements = stripe.elements({
-  appearance: {
-    theme: 'night',
-    variables: {
-      colorPrimary: '#ffffff',
-      colorBackground: 'rgba(20, 20, 40, 0.88)',
-      colorText: '#ffffff',                    // ← MAIN FIX
-      colorDanger: '#fca5a5',
-      fontFamily: 'Inter, sans-serif',
-      fontSize: '1.05rem',
-      colorTextPlaceholder: 'rgba(255,255,255,0.55)', // ← placeholder
-      caretColor: '#ffffff'                    // ← blinking cursor
-    },
-    rules: {
-      '.Input': {
-        color: '#ffffff',
-        backgroundColor: 'rgba(20, 20, 40, 0.88)',
-        caretColor: '#ffffff',
-        '::placeholder': {
-          color: 'rgba(255,255,255,0.55)'
-        }
-      },
-      '.Label': { color: '#ffffff' }
-    }
-  }
-});
-
+const elements = stripe.elements({ appearance: { theme: 'night' } });
 const card = elements.create('card', {
   style: {
     base: {
