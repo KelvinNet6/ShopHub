@@ -66,21 +66,48 @@ input:focus, select:focus {
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
     .back-link { display: inline-flex; align-items: center; gap: 0.6rem; color: #aaa; text-decoration: none; font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem; }
     .back-link:hover { color: white; }
-    #card-element {
-      padding: 1.4rem 1.8rem;
-      background: rgba(20, 20, 40, 0.88); 
-      border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 18px;
-      backdrop-filter: blur(12px);
-      color: #fff;
-    }
-    #card-errors {
-      color: #f87171;
-      font-size: 0.9rem;
-      margin-top: 0.5rem;
-      height: 20px;
-      font-weight: 500;
-    }
+   #card-element {
+  padding: 1.4rem 1.8rem;
+  background: rgba(20, 20, 40, 0.88);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 18px;
+  backdrop-filter: blur(12px);
+}
+
+/* THIS IS THE KEY PART – forces white text inside Stripe’s iframe */
+#card-element .InputElement,
+#card-element input,
+#card-element iframe,
+#card-element * {
+  color: #ffffff !important;
+  font-family: inherit !important;
+  font-size: 1.05rem !important;
+}
+
+/* White placeholder */
+#card-element input::placeholder {
+  color: rgba(255, 255, 255, 0.55) !important;
+}
+
+/* White caret (blinking cursor) */
+#card-element input {
+  caret-color: white !important;
+}
+
+/* Red focus glow */
+#card-element.StripeElement--focus,
+#card-element:focus {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 4px rgba(239, 68, 68, 0.25) !important;
+}
+
+#card-errors {
+  color: #f87171;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+  height: 20px;
+  font-weight: 500;
+}
     .discount-box { display: flex; gap: 1rem; margin: 2rem 0; }
     .apply-btn { padding: 0 2rem; background: var(--primary); border: none; border-radius: 18px; color: white; font-weight: 800; cursor: pointer; transition: var(--transition); }
     .apply-btn:hover { background: #818cf8; }
