@@ -274,8 +274,9 @@ console.log('✅ Profile loaded:', {
   customerId: window.customerId, 
   userId: window.loggedInUserId 
 });
-  // STRIPE
+// STRIPE – THIS IS THE ONLY VERSION THAT FORCES WHITE TEXT IN 2025
 const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
+
 const elements = stripe.elements({
   appearance: {
     theme: 'night',
@@ -302,11 +303,20 @@ const elements = stripe.elements({
     }
   }
 });
+
+const card = elements.create('card', {
+  style: {
+    base: {
+      color: '#ffffff',
+      fontSize: '1.05rem',
+      '::placeholder': { color: 'rgba(255,255,255,0.55)' },
+      caretColor: '#ffffff'
+    },
+    invalid: { color: '#fca5a5' }
+  }
+});
+
 card.mount('#card-element');
-  card.mount('#card-element');
-  card.on('change', (event) => {
-    document.getElementById('card-errors').textContent = event.error?.message || '';
-  });
 
   // CART
   const cart = JSON.parse(localStorage.getItem("shophub_cart") || '[]');
