@@ -279,27 +279,31 @@ const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S
 
 const elements = stripe.elements({
   appearance: {
-    theme: 'night',
+    theme: 'stripe',                                 
     variables: {
-      colorPrimary: '#ffffff',
-      colorBackground: 'rgba(20, 20, 40, 0.88)',
-      colorText: '#ffffff',                    // ← MAIN FIX
-      colorDanger: '#fca5a5',
-      fontFamily: 'Inter, sans-serif',
-      fontSize: '1.05rem',
-      colorTextPlaceholder: 'rgba(255,255,255,0.55)', // ← placeholder
-      caretColor: '#ffffff'                    // ← blinking cursor
+      colorPrimary:        '#6366f1',              
+      colorBackground:     'rgba(248, 248, 252, 0.96)',
+      colorText:           '#e0e0ff',              
+      colorTextPlaceholder:'rgba(224, 224, 255, 0.6)',
+      caretColor:          '#c0c0ff',              
+      colorDanger:         '#fca5a5',
+      fontFamily:          'Inter, sans-serif',
+      fontSize:            '1.05rem',
+      spacingUnit:         '4px'
     },
     rules: {
       '.Input': {
-        color: '#ffffff',
-        backgroundColor: 'rgba(20, 20, 40, 0.88)',
-        caretColor: '#ffffff',
+        color:             '#e0e0ff',
+        backgroundColor:   'rgba(248, 248, 252, 0.96)',
+        caretColor:        '#c0c0ff',
         '::placeholder': {
-          color: 'rgba(255,255,255,0.55)'
+          color: 'rgba(224, 224, 255, 0.6)'
         }
       },
-      '.Label': { color: '#ffffff' }
+      '.Label': {
+        color: '#e0e0ff',
+        fontWeight: '600'
+      }
     }
   }
 });
