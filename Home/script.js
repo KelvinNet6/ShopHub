@@ -39,13 +39,13 @@ document.getElementById('myVaultLink').addEventListener('click', (e) => {
   if (currentUser) {
     // User is logged in
     if (isAdmin) {
-      window.location.href = 'admin.html';            // or /admin/dashboard.html
+      window.location.href = '../Admin/Landing.html';          
     } else {
-      window.location.href = 'dashboard.html';        // regular user dashboard
+      window.location.href = '../user/userDashboard.html';        
     }
   } else {
     // Not logged in → go to login (and remember where they wanted to go)
     const redirectTo = encodeURIComponent(window.location.pathname);
-    window.location.href = `login.html?redirect=${redirectTo}`;
+    window.location.href = `../Adimin/adLogin.html?redirect=${redirectTo}`;
   }
 });
