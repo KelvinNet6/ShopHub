@@ -160,11 +160,9 @@
         msg.innerHTML = `<div class="error">${error.message}</div>`;
       } else {
         msg.innerHTML = `<div class="success">Login successful! Redirecting...</div>`;
-        // The redirect is now handled 100% by onAuthStateChange below
       }
     }
 
-    // REGISTER + AUTO LOGIN
     async function registerWithEmail() {
       const name = document.getElementById('regName').value.trim();
       const email = document.getElementById('regEmail').value.trim();
@@ -203,40 +201,45 @@
       client.auth.signInWithOAuth({ provider: 'apple', options: { redirectTo: window.location.href } });
     }
 
-    // FINAL REDIRECT LOGIC — NOW 100% WORKING FOR BOTH ADMIN & USER
-    client.auth.onAuthStateChange(async (event, session) => {
-      if (event === 'SIGNED_IN' && session?.user) {
-        const user = session.user;
+client.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_IN' && session?.user) {
+    await redirectUserBasedOnRole(session.user);
+  }
+});
+(async () => {
+  const { data: { session } } = await client.auth.getSession();
+  if (session?.user) {
+    await redirectUserBasedOnRole(session.user);
+  }
+})();
+async function redirectUserBasedOnRole(user) {
+  // Get or create profile
+  let { data: profile } = await client
+    .from('profiles')
+    .select('role')
+    .eq('id', user.id)
+    .maybeSingle();
 
-        let { data: profile } = await client
-          .from('profiles')
-          .select('role')
-          .eq('id', user.id)
-          .maybeSingle();
-
-        if (!profile) {
-          const name = user.user_metadata.full_name || user.email?.split('@')[0] || 'User';
-          await client.from('profiles').insert({
-            id: user.id,
-            full_name: name,
-            email: user.email,
-            role: 'user'
-          });
-          profile = { role: 'user' };
-        }
-
-        // REDIRECT WITH DELAY SO USER SEES SUCCESS MESSAGE
-        setTimeout(() => {
-          if (profile.role === 'admin') {
-            window.location.href = 'landing.html';                    // Inside Admin folder
-          } else {
-            window.location.href = '../user/userDashboard.html';           // Go up one level
-          }
-        }, 1500);
-      }
+  if (!profile) {
+    const name = user.user_metadata?.full_name || user.email?.split('@')[0] || 'User';
+    await client.from('profiles').insert({
+      id: user.id,
+      full_name: name,
+      email: user.email,
+      role: 'user'
     });
+    profile = { role: 'user' };
+  }
+  const isFreshLogin = performance.now() < 10000; 
 
-    // Check if already logged in
+  setTimeout(() => {
+    if (profile.role === 'admin') {
+      window.location.href = 'landing.html';                   
+    } else {
+      window.location.href = '../user/userDashboard.html';     
+    }
+  }, isFreshLogin ? 1500 : 0); 
+}
     client.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         client.auth.onAuthStateChange()('SIGNED_IN', session);
