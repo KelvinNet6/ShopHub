@@ -352,29 +352,24 @@ footer {
     const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE";
     const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
     
-  async function goToVault() {
-    const { data: { session } } = await client.auth.getSession();
+  async function goToVault(e) {
+    e?.preventDefault();
+
+    const { data: { session } } = await supabase.auth.getSession();
 
     if (session?.user) {
-      window.location.href = "user/userDashboard.html";
+      window.location.href = "user/userDashboard.html";   
     } else {
-      // Not logged in → go to login page and remember where we wanted to go
-      const vaultUrl = "user/userDashboard.html";
-      const loginUrl = "Admin/adLogin.html"; 
-      window.location.href = `${loginUrl}?redirectTo=${encodeURIComponent(vaultUrl)}`;
+      const afterLoginGoTo = "user/userDashboard.html";
+      window.location.href = `Admin/adLogin.html?redirectTo=${encodeURIComponent(afterLoginGoTo)}`;
     }
   }
-
-  document.getElementById('myVaultLink')?.addEventListener('click', (e) => {
-    e.preventDefault();
-    goToVault();
-  });
-  if (window.location.pathname.includes('adLogin.html')) {
-    client.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        window.location.href = `Admin/adLogin.html?redirectTo=${encodeURIComponent(window.location.href)}`;
-      }
-    });
+  document.getElementById('myVaultLink')?.addEventListener('click', goToVault);
+  if (window.location.pathname.includes('userDashboard.html')) {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      window.location.href = `Admin/adLogin.html?redirectTo=${encodeURIComponent(window.location.href)}`;
+    }
   }
 
     function getPublicImageUrl(path) {
