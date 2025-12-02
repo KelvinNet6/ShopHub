@@ -35,9 +35,9 @@ document.getElementById('myVaultLink').addEventListener('click', (e) => {
   if (currentUser) {
     // User is logged in
     if (isAdmin) {
-      window.location.href = '../Admin/landing.html';          
+      window.location.href = '/ShopHub/Admin/landing.html';          
     } else {
-      window.location.href = '../user/userDashboard.html';        
+      window.location.href = '/ShopHub/user/userDashboard.html';        
     }
   } else {
     // Not logged in → go to login (and remember where they wanted to go)
