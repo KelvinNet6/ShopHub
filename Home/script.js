@@ -32,3 +32,20 @@
     currentUser = session?.user ?? null;
     if (currentUser) checkIfAdmin(currentUser.id);
   });
+// Smart "My Vault" navigation
+document.getElementById('myVaultLink').addEventListener('click', (e) => {
+  e.preventDefault();
+
+  if (currentUser) {
+    // User is logged in
+    if (isAdmin) {
+      window.location.href = 'admin.html';            // or /admin/dashboard.html
+    } else {
+      window.location.href = 'dashboard.html';        // regular user dashboard
+    }
+  } else {
+    // Not logged in → go to login (and remember where they wanted to go)
+    const redirectTo = encodeURIComponent(window.location.pathname);
+    window.location.href = `login.html?redirect=${redirectTo}`;
+  }
+});
