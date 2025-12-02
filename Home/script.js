@@ -42,6 +42,6 @@ document.getElementById('myVaultLink').addEventListener('click', (e) => {
   } else {
     // Not logged in → go to login (and remember where they wanted to go)
     const redirectTo = encodeURIComponent(window.location.pathname);
-    window.location.href = `../Admin/adLogin.html?redirect=${redirectTo}`;
+   window.location.href = `/ShopHub/Admin/adLogin.html?redirect=${redirectTo}`;
   }
 });
