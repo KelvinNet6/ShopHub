@@ -265,7 +265,7 @@ async function deleteProduct(id) {
   loadProducts();
 }
 async function loadOrders() {
-  const { data: orders } = await supabase
+  const { data: orders, error } = await supabase
     .from("orders")
     .select(`
       *,
@@ -274,47 +274,59 @@ async function loadOrders() {
     `)
     .order("id", { ascending: false });
 
+  // ALWAYS check for errors first!
+  if (error) {
+    console.error("Failed to load orders:", error);
+    alert("Failed to load orders: " + error.message);
+    
+    // Optionally show empty the table
+    const tbody = document.getElementById("ordersTableBody");
+    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#ef4444;">Error loading orders: ${error.message}</td></tr>`;
+    return;
+  }
+
+  // Now safe to assume orders is an array (or empty array)
+  if (!orders) orders = []; // extra safety
+
   const tbody = document.getElementById("ordersTableBody");
   if (!tbody) return;
 
   const table = tbody.closest("table");
   const headerCols = table.querySelectorAll("thead th").length;
 
-  // Update total count on orders.html
+  // Update total count
   const totalEl = document.getElementById("totalOrders");
   if (totalEl) totalEl.textContent = orders.length;
 
-  // === LANDING PAGE / DASHBOARD (5 columns) ===
+  // === DASHBOARD (5 columns) ===
   if (headerCols === 5) {
     tbody.innerHTML = orders.slice(0, 5).map(o => `
       <tr>
         <td>#${o.id}</td>
-        <td>${o.customers.name}</td>
+        <td>${o.customers?.name || '—'}</td>
         <td>${fmtDate(o.created_at)}</td>
-        <td>$${Number(o.total).toFixed(2)}</td>
-        <td><span class="status ${o.status}">${o.status}</span></td>
+        <td>$${Number(o.total || 0).toFixed(2)}</td>
+        <td><span class="status ${o.status}">${o.status || 'unknown'}</span></td>
       </tr>
     `).join("");
     return;
   }
 
-  // === FULL ORDERS PAGE (8 columns) ===
-  // Make sure we have exactly 8 columns
+  // === FULL ORDERS PAGE ===
   const theadRow = table.querySelector("thead tr");
-  if (theadRow.children.length < 8) {
-    // Add missing headers if needed
-    while (theadRow.children.length < 8) {
-      if (theadRow.children.length === 6) {
-        theadRow.insertAdjacentHTML("beforeend", "<th>Items</th><th>Actions</th>");
-      } else if (theadRow.children.length === 7) {
-        theadRow.insertAdjacentHTML("beforeend", "<th>Actions</th>");
-      }
+
+  // Ensure 8 columns in header
+  while (theadRow.children.length < 8) {
+    if (theadRow.children.length === 6) {
+      theadRow.insertAdjacentHTML("beforeend", "<th>Items</th><th>Actions</th>");
+    } else if (theadRow.children.length === 7) {
+      theadRow.insertAdjacentHTML("beforeend", "<th>Actions</th>");
     }
   }
 
   tbody.innerHTML = orders.map(o => {
     const items = (o.order_items || [])
-      .map(i => `${i.products.name} ×${i.quantity}`)
+      .map(i => `${i.products?.name || 'Unknown'} ×${i.quantity}`)
       .join("<br>") || "<em style='color:#999'>—</em>";
 
     return `
@@ -322,13 +334,13 @@ async function loadOrders() {
         <td><strong>#${o.id}</strong></td>
         <td>${fmtDate(o.created_at)}</td>
         <td>
-          <div><strong>${o.customers.name}</strong></div>
-          <small style="color:#64748b;">${o.customers.email}</small>
+          <div><strong>${o.customers?.name || '—'}</strong></div>
+          <small style="color:#64748b;">${o.customers?.email || ''}</small>
         </td>
         <td style="font-size:13.5px; line-height:1.6;">${items}</td>
-        <td style="color:#10b981; font-weight:600;">$${Number(o.total).toFixed(2)}</td>
-        <td style="text-transform:capitalize;">${o.payment_method}</td>
-        <td><span class="status ${o.status}">${o.status}</span></td>
+        <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
+        <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
+        <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
         <td class="actions">
           <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
           <button class="btn edit"   onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
@@ -337,6 +349,11 @@ async function loadOrders() {
       </tr>
     `;
   }).join("");
+
+  // If no orders
+  if (orders.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No orders found</td></tr>`;
+  }
 }
 async function openOrder(id) {
   const { data: order } = await supabase.from("orders").select("*, customers(name,email)").eq("id",id).single();
