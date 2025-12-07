@@ -266,13 +266,30 @@ async function deleteProduct(id) {
 }
 async function loadOrders() {
   const { data: orders, error } = await supabase
-    .from("orders")
-    .select(`
-      *,
-      customers(name, email),
-      order_items(quantity, products(name))
-    `)
-    .order("id", { ascending: false });
+  .from("orders")
+  .select(`
+    id,
+    total,
+    status,
+    payment_method,
+    shipping_address,
+    created_at,
+
+    customers:customer_id (
+      name,
+      email
+    ),
+
+    order_items (
+      quantity,
+      price,
+      products:product_id (
+        name
+      )
+    )
+  `)
+  .order("id", { ascending: false });
+
 
   // ALWAYS check for errors first!
   if (error) {
