@@ -399,18 +399,29 @@ card.on('change', (event) => {
 
       const totalPrice = customerData.subtotal - discount + customerData.tax;
 
-      // 🔥 1️⃣ CREATE ORDER (TEXT shipping_address)
-      const { data: order, error: orderError } = await supabaseClient
-        .from('orders')
-        .insert([{
-          customer_id: window.customerId,           // ✅ YOUR COLUMN
-          total: totalPrice,                        // ✅ YOUR COLUMN  
-          status: 'pending',                        // ✅ YOUR COLUMN
-          payment_method: 'stripe',                 // ✅ YOUR COLUMN
-          shipping_address: JSON.stringify(customerData)  // ✅ TEXT COLUMN
-        }])
-        .select('id')
-        .single();
+     const { data: order, error: orderError } = await supabaseClient
+  .from('orders')
+  .insert([{
+    customer_id: window.customerId,
+    total: totalPrice,
+    status: 'pending',
+    payment_method: 'stripe',
+
+    // ← ADD THESE STRUCTURED FIELDS
+    customer_name: `${firstName} ${lastName}`,
+    customer_email: email,
+    items: cart,  // assuming your column is jsonb type
+    shipping_address: JSON.stringify({
+      ...customerData,
+      line1: document.getElementById("address").value,
+      line2: document.getElementById("apt").value || null,
+      city: document.getElementById("city").value,
+      postal_code: document.getElementById("postal").value,
+      country: document.getElementById("country").value
+    })
+  }])
+  .select('id')
+  .single();
 
       if (orderError) throw new Error(`Order failed: ${orderError.message}`);
 
