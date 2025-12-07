@@ -346,25 +346,32 @@ async function loadOrders() {
       .map(i => `${i.products?.name || 'Unknown'} ×${i.quantity}`)
       .join("<br>") || "<em style='color:#999'>—</em>";
 
-    return `
-      <tr>
-        <td><strong>#${o.id}</strong></td>
-        <td>${fmtDate(o.created_at)}</td>
-        <td>
-          <div><strong>${o.customers?.name || '—'}</strong></div>
-          <small style="color:#64748b;">${o.customers?.email || ''}</small>
-        </td>
-        <td style="font-size:13.5px; line-height:1.6;">${items}</td>
-        <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
-        <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
-        <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
-        <td class="actions">
-          <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
-          <button class="btn edit"   onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
-          <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
-        </td>
-      </tr>
-    `;
+   return `
+  <tr>
+    <td><strong>#${o.id}</strong></td>
+    <td>${fmtDate(o.created_at)}</td>
+    <td>
+      <div><strong>${o.customers?.name || '—'}</strong></div>
+      <small style="color:#64748b;">${o.customers?.email || ''}</small>
+    </td>
+    <td style="font-size:13.5px; line-height:1.6;">${items}</td>
+    <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
+    <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
+    <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
+
+    <!-- 🔥 NEW ADDRESS COLUMN -->
+    <td style="font-size:12.5px;line-height:1.4;">
+      ${formatAddress(o.shipping_address)}
+    </td>
+
+    <td class="actions">
+      <button class="btn view" onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
+      <button class="btn edit" onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
+      <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
+    </td>
+  </tr>
+`;
+
   }).join("");
 
   // If no orders
