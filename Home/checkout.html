@@ -400,9 +400,8 @@ document.getElementById("submit").addEventListener("click", async () => {
     // 🔥 1️⃣ CREATE ORDER WITH STRUCTURED FIELDS (FIX CUSTOMER NULL)
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
-      .insert([{
+     .insert([{
   customer_id: window.customerId,
-  customer_name: customerData.name,
   total: totalPrice,
   status: 'pending',
   payment_method: 'stripe',
