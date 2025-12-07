@@ -346,7 +346,7 @@ async function loadOrders() {
       .map(i => `${i.products?.name || 'Unknown'} ×${i.quantity}`)
       .join("<br>") || "<em style='color:#999'>—</em>";
 
-   return `
+ return `
   <tr>
     <td><strong>#${o.id}</strong></td>
     <td>${fmtDate(o.created_at)}</td>
@@ -359,14 +359,12 @@ async function loadOrders() {
     <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
     <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 
-    <!-- 🔥 NEW ADDRESS COLUMN -->
-    <td style="font-size:12.5px;line-height:1.4;">
-      ${formatAddress(o.shipping_address)}
-    </td>
+    <!-- ⭐ SHIPPING ADDRESS COLUMN -->
+    <td>${o.shipping_address || '—'}</td>
 
     <td class="actions">
-      <button class="btn view" onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
-      <button class="btn edit" onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
+      <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
+      <button class="btn edit"   onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
       <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
     </td>
   </tr>
