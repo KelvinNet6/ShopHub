@@ -362,135 +362,140 @@ card.on('change', (event) => {
     renderCart();
   };
 
-  // 🔥 COMPLETE ORDER - YOUR EXACT SCHEMA
-  document.getElementById("submit").addEventListener("click", async () => {
-    if (cart.length === 0) return alert("Your bag is empty!");
+  // 🔥 COMPLETE ORDER - YOUR EXACT SCHEMA + FIXES
+document.getElementById("submit").addEventListener("click", async () => {
+  if (cart.length === 0) return alert("Your bag is empty!");
 
-    const button = document.getElementById("submit");
-    const spinner = document.getElementById("spinner");
-    const text = document.getElementById("button-text");
-    button.disabled = true; 
-    text.style.display = "none"; 
-    spinner.style.display = "inline";
+  const button = document.getElementById("submit");
+  const spinner = document.getElementById("spinner");
+  const text = document.getElementById("button-text");
+  button.disabled = true; 
+  text.style.display = "none"; 
+  spinner.style.display = "inline";
 
-    try {
-      // FORM DATA
-      const email = document.getElementById("email").value;
-      const firstName = document.getElementById("first-name").value;
-      const lastName = document.getElementById("last-name").value;
-      if (!email || !firstName || !lastName) {
-        throw new Error("Please fill in all required fields.");
-      }
-
-      const customerData = {
-        name: `${firstName} ${lastName}`,
-        email,
-        phone: document.getElementById("phone").value,
-        address: document.getElementById("address").value,
-        apt: document.getElementById("apt").value,
-        city: document.getElementById("city").value,
-        postal: document.getElementById("postal").value,
-        country: document.getElementById("country").value,
-        items: cart,
-        subtotal: cart.reduce((s, i) => s + i.price * i.quantity, 0),
-        discount,
-        tax: cart.reduce((s, i) => s + i.price * i.quantity, 0) * 0.08
-      };
-
-      const totalPrice = customerData.subtotal - discount + customerData.tax;
-
-     const { data: order, error: orderError } = await supabaseClient
-  .from('orders')
-  .insert([{
-    customer_id: window.customerId,
-    total: totalPrice,
-    status: 'pending',
-    payment_method: 'stripe',
-
-    // ← ADD THESE STRUCTURED FIELDS
-    customer_name: `${firstName} ${lastName}`,
-    customer_email: email,
-    items: cart,  // assuming your column is jsonb type
-    shipping_address: JSON.stringify({
-      ...customerData,
-      line1: document.getElementById("address").value,
-      line2: document.getElementById("apt").value || null,
-      city: document.getElementById("city").value,
-      postal_code: document.getElementById("postal").value,
-      country: document.getElementById("country").value
-    })
-  }])
-  .select('id')
-  .single();
-
-      if (orderError) throw new Error(`Order failed: ${orderError.message}`);
-
-      console.log('✅ Order created:', order.id);
-
-      // 🔥 2️⃣ EDGE FUNCTION
-      const paymentRes = await fetch(
-        "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            amount: Math.round(totalPrice * 100),
-            email: email
-          })
-        }
-      );
-
-      const paymentData = await paymentRes.json();
-      if (paymentData.error) throw new Error(paymentData.error);
-
-      const { clientSecret } = paymentData;
-      if (!clientSecret) throw new Error("Failed to create PaymentIntent");
-
-      // 🔥 3️⃣ STRIPE CONFIRM
-      const paymentResult = await stripe.confirmCardPayment(clientSecret, {
-        payment_method: {
-          card: card,
-          billing_details: { name: customerData.name, email: customerData.email }
-        }
-      });
-
-      if (paymentResult.error) throw new Error(paymentResult.error.message);
-
-      console.log('✅ Payment succeeded:', paymentResult.paymentIntent.id);
-
-      // 🔥 4️⃣ UPDATE ORDER
-      const updatedAddress = {
-        ...customerData,
-        payment_id: paymentResult.paymentIntent.id,
-        payment_status: paymentResult.paymentIntent.status
-      };
-
-      await supabaseClient
-        .from("orders")
-        .update({
-          status: "paid",
-          payment_method: 'stripe',
-          shipping_address: JSON.stringify(updatedAddress)  // ✅ TEXT
-        })
-        .eq("id", order.id);
-
-      // 🔥 5️⃣ SUCCESS
-      localStorage.removeItem("shophub_cart");
-      const orderIdDisplay = String(order.id).padStart(6, '0');
-      alert(`✅ Order #${orderIdDisplay} PAID!\n\n💳 $${totalPrice.toFixed(2)}`);
-      
-      window.location.href = `thank-you.html?order_id=${order.id}`;
-
-    } catch (err) {
-      console.error('❌ Checkout failed:', err);
-      document.getElementById("card-errors").textContent = err.message;
-    } finally {
-      button.disabled = false;
-      text.style.display = "inline";
-      spinner.style.display = "none";
+  try {
+    // FORM DATA
+    const email = document.getElementById("email").value;
+    const firstName = document.getElementById("first-name").value;
+    const lastName = document.getElementById("last-name").value;
+    if (!email || !firstName || !lastName) {
+      throw new Error("Please fill in all required fields.");
     }
-  });
 
+    const customerData = {
+      name: `${firstName} ${lastName}`,
+      email,
+      phone: document.getElementById("phone").value,
+      address: document.getElementById("address").value,
+      apt: document.getElementById("apt").value,
+      city: document.getElementById("city").value,
+      postal: document.getElementById("postal").value,
+      country: document.getElementById("country").value,
+    };
+
+    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const tax = subtotal * 0.08;
+    const totalPrice = subtotal - discount + tax;
+
+    // 🔥 1️⃣ CREATE ORDER WITH STRUCTURED FIELDS (FIX CUSTOMER NULL)
+    const { data: order, error: orderError } = await supabaseClient
+      .from('orders')
+      .insert([{
+        customer_id: window.customerId,
+        customer_name: customerData.name,      // ← FIX: Populate customer_name
+        customer_email: email,                 // ← FIX: Populate customer_email (if column exists)
+        total: totalPrice,
+        status: 'pending',
+        payment_method: 'stripe',
+        shipping_address: JSON.stringify(customerData)  // Keep as TEXT/JSON for full details
+      }])
+      .select('id')
+      .single();
+
+    if (orderError) throw new Error(`Order failed: ${orderError.message}`);
+
+    console.log('✅ Order created:', order.id);
+
+    // 🔥 2️⃣ INSERT ORDER ITEMS (FIX ITEMS NOT SAVED)
+    const orderItems = cart.map(item => ({
+      order_id: order.id,
+      product_id: item.id,                   // ← Assume item.id exists (product_id from cart)
+      quantity: item.quantity,
+      price: item.price,                     // Price at purchase
+      // subtotal: item.price * item.quantity  // Add if your table has this column
+    }));
+
+    const { error: itemsError } = await supabaseClient
+      .from('order_items')
+      .insert(orderItems);
+
+    if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
+
+    console.log('✅ Order items inserted:', orderItems.length);
+
+    // 🔥 3️⃣ EDGE FUNCTION FOR PAYMENT INTENT
+    const paymentRes = await fetch(
+      "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: Math.round(totalPrice * 100),
+          email: email
+        })
+      }
+    );
+
+    const paymentData = await paymentRes.json();
+    if (paymentData.error) throw new Error(paymentData.error);
+
+    const { clientSecret } = paymentData;
+    if (!clientSecret) throw new Error("Failed to create PaymentIntent");
+
+    // 🔥 4️⃣ STRIPE CONFIRM
+    const paymentResult = await stripe.confirmCardPayment(clientSecret, {
+      payment_method: {
+        card: card,
+        billing_details: { name: customerData.name, email: customerData.email }
+      }
+    });
+
+    if (paymentResult.error) throw new Error(paymentResult.error.message);
+
+    console.log('✅ Payment succeeded:', paymentResult.paymentIntent.id);
+
+    // 🔥 5️⃣ UPDATE ORDER
+    const updatedAddress = {
+      ...customerData,
+      payment_id: paymentResult.paymentIntent.id,
+      payment_status: paymentResult.paymentIntent.status
+    };
+
+    await supabaseClient
+      .from("orders")
+      .update({
+        status: "paid",
+        payment_method: 'stripe',
+        shipping_address: JSON.stringify(updatedAddress)  // ✅ TEXT
+      })
+      .eq("id", order.id);
+
+    // 🔥 6️⃣ SUCCESS
+    localStorage.removeItem("shophub_cart");
+    const orderIdDisplay = String(order.id).padStart(6, '0');
+    alert(`✅ Order #${orderIdDisplay} PAID!\n\n💳 $${totalPrice.toFixed(2)}`);
+    
+    window.location.href = `thank-you.html?order_id=${order.id}`;
+
+  } catch (err) {
+    console.error('❌ Checkout failed:', err);
+    document.getElementById("card-errors").textContent = err.message;
+  } finally {
+    button.disabled = false;
+    text.style.display = "inline";
+    spinner.style.display = "none";
+  }
+});
   renderCart();
 });
 </script>
