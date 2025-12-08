@@ -454,8 +454,7 @@ function showAddressModal(address) {
   modal.style.display = "flex";
 }
 
-
-function downloadInvoicePDF() {
+window.downloadInvoicePDF = function() {
   const element = document.getElementById("invoiceArea");
   const images = element.querySelectorAll("img");
 
@@ -473,8 +472,7 @@ function downloadInvoicePDF() {
       .from(element)
       .save();
   });
-}
-
+};
 
 function closeAddressModal() {
   document.getElementById("addressModalBg").style.display = "none";
