@@ -403,19 +403,27 @@ tr:hover { background: #f9fafb; }
 .status.delivered  { background: #ecfdf5; color: #047857; }
 .status.cancelled  { background: #fee2e2; color: #991b1b; }
 
-.address-table {
-  width: 100%;
-  margin-top: 15px;
-  border-collapse: collapse;
+.invoice-section {
+  margin-bottom: 18px;
 }
 
-.address-table td {
-  padding: 8px 10px;
+.invoice-title {
+  font-size: 18px;
+  font-weight: 700;
   border-bottom: 1px solid #e5e7eb;
+  padding-bottom: 6px;
+  margin-bottom: 12px;
 }
 
-.address-table td:first-child {
+.invoice-line {
+  margin-bottom: 6px;
+}
+
+.invoice-label {
   font-weight: 600;
+  color: #1f2937;
+}
+
+.invoice-value {
   color: #374151;
-  width: 35%;
 }
