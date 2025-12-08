@@ -292,27 +292,14 @@ async function loadOrders() {
 
   if (error) {
     console.error("Failed to load orders:", error);
-    return [];
+    return { orders: [], error };
   }
 
-  return orders;
+  return { orders, error: null };
 }
 
-
-
-  // ALWAYS check for errors first!
-  if (error) {
-    console.error("Failed to load orders:", error);
-    alert("Failed to load orders: " + error.message);
-    
-    // Optionally show empty the table
-    const tbody = document.getElementById("ordersTableBody");
-    if (tbody) tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#ef4444;">Error loading orders: ${error.message}</td></tr>`;
-    return;
-  }
-
-  // Now safe to assume orders is an array (or empty array)
-  if (!orders) orders = []; // extra safety
+async function renderOrders() {
+  const { orders, error } = await loadOrders();
 
   const tbody = document.getElementById("ordersTableBody");
   if (!tbody) return;
@@ -320,16 +307,24 @@ async function loadOrders() {
   const table = tbody.closest("table");
   const headerCols = table.querySelectorAll("thead th").length;
 
+  // Handle error
+  if (error) {
+    tbody.innerHTML = `<tr><td colspan="${headerCols}" style="text-align:center; color:#ef4444;">Error loading orders: ${error.message}</td></tr>`;
+    return;
+  }
+
+  const safeOrders = orders || [];
+
   // Update total count
   const totalEl = document.getElementById("totalOrders");
-  if (totalEl) totalEl.textContent = orders.length;
+  if (totalEl) totalEl.textContent = safeOrders.length;
 
-  // === DASHBOARD (5 columns) ===
+  // DASHBOARD view (5 columns)
   if (headerCols === 5) {
-    tbody.innerHTML = orders.slice(0, 5).map(o => `
+    tbody.innerHTML = safeOrders.slice(0, 5).map(o => `
       <tr>
         <td>#${o.id}</td>
-        <td>${o.customers?.name || '—'}</td>
+        <td>${o.customers?.full_name || '—'}</td>
         <td>${fmtDate(o.created_at)}</td>
         <td>$${Number(o.total || 0).toFixed(2)}</td>
         <td><span class="status ${o.status}">${o.status || 'unknown'}</span></td>
@@ -338,58 +333,54 @@ async function loadOrders() {
     return;
   }
 
-  // === FULL ORDERS PAGE ===
+  // FULL ORDERS PAGE (8 columns)
   const theadRow = table.querySelector("thead tr");
-
-  // Ensure 8 columns in header
   while (theadRow.children.length < 8) {
-    if (theadRow.children.length === 6) {
-      theadRow.insertAdjacentHTML("beforeend", "<th>Items</th><th>Actions</th>");
-    } else if (theadRow.children.length === 7) {
-      theadRow.insertAdjacentHTML("beforeend", "<th>Actions</th>");
-    }
+    if (theadRow.children.length === 6) theadRow.insertAdjacentHTML("beforeend", "<th>Items</th><th>Actions</th>");
+    else if (theadRow.children.length === 7) theadRow.insertAdjacentHTML("beforeend", "<th>Actions</th>");
   }
 
-  tbody.innerHTML = orders.map(o => {
+  tbody.innerHTML = safeOrders.map(o => {
     const items = (o.order_items || [])
       .map(i => `${i.products?.name || 'Unknown'} ×${i.quantity}`)
       .join("<br>") || "<em style='color:#999'>—</em>";
 
- return `
-  <tr>
-    <td><strong>#${o.id}</strong></td>
-    <td>${fmtDate(o.created_at)}</td>
-    <td>
-      <div><strong>${o.customers?.name || '—'}</strong></div>
-      <small style="color:#64748b;">${o.customers?.email || ''}</small>
-    </td>
-    <td style="font-size:13.5px; line-height:1.6;">${items}</td>
-    <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
-    <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
-    <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
-
- <td>
-  <button class="btn view" onclick='showAddressModal(JSON.parse(this.dataset.address))'
-        data-address='${o.shipping_address}'>
-    <i class="fa fa-map"></i> View
-</button>
-</td>
-
-    <td class="actions">
-      <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
-      <button class="btn edit"   onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
-      <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
-    </td>
-  </tr>
-`;
-
+    return `
+      <tr>
+        <td><strong>#${o.id}</strong></td>
+        <td>${fmtDate(o.created_at)}</td>
+        <td>
+          <div><strong>${o.customers?.full_name || '—'}</strong></div>
+          <small style="color:#64748b;">${o.customers?.email || ''}</small>
+        </td>
+        <td style="font-size:13.5px; line-height:1.6;">${items}</td>
+        <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
+        <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
+        <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
+        <td>
+          <button class="btn view" onclick='showAddressModal(JSON.parse(this.dataset.address))'
+                  data-address='${o.shipping_address}'>
+            <i class="fa fa-map"></i> View
+          </button>
+        </td>
+        <td class="actions">
+          <button class="btn view" onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
+          <button class="btn edit" onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
+          <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
+        </td>
+      </tr>
+    `;
   }).join("");
 
-  // If no orders
-  if (orders.length === 0) {
+  // No orders
+  if (safeOrders.length === 0) {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No orders found</td></tr>`;
   }
 }
+
+// Call this on page load
+document.addEventListener("DOMContentLoaded", renderOrders);
+
 
 function showAddressModal(address) {
   const modal = document.getElementById("addressModalBg");
