@@ -382,17 +382,18 @@ async function renderOrders() {
 document.addEventListener("DOMContentLoaded", renderOrders);
 
 
-function showAddressModal(address) {
+function showAddressModal(address, orderItems) {
   const modal = document.getElementById("addressModalBg");
   const addressBox = document.getElementById("invoiceAddressBox");
 
+  // Check if the address object is valid
   if (!address || typeof address !== "object") {
     addressBox.innerHTML = "<p>No address available</p>";
     modal.style.display = "flex";
     return;
   }
 
-  // Customer info
+  // Extract Customer Info
   const name = address.name || "-";
   const email = address.email || "-";
   const phone = address.phone || "-";
@@ -401,9 +402,23 @@ function showAddressModal(address) {
   const city = address.city || "-";
   const postal = address.postal || "-";
   const country = address.country || "-";
+  const paymentStatus = address.payment_status || "-";
+  const paymentId = address.payment_id || "-";
 
-  // Items
-  const itemsHtml = (address.items || []).map(item => `
+  // Display Customer Information
+  let invoiceHtml = `
+    <div style="margin-bottom:15px;">
+      <strong>Customer:</strong> ${name} <br>
+      <strong>Email:</strong> ${email} <br>
+      <strong>Phone:</strong> ${phone} <br>
+      <strong>Address:</strong> ${street}${apt}, ${city}, ${postal}, ${country} <br>
+      <strong>Payment ID:</strong> ${paymentId} <br>
+      <strong>Payment Status:</strong> ${paymentStatus}
+    </div>
+  `;
+
+  // Prepare Items Table (Product name, quantity, price, total)
+  const itemsHtml = (orderItems || []).map(item => `
     <tr>
       <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-right:5px;"> ${item.name}</td>
       <td>${item.quantity}</td>
@@ -412,21 +427,14 @@ function showAddressModal(address) {
     </tr>
   `).join("");
 
-  // Totals
-  const subtotal = Number(address.subtotal || 0).toFixed(2);
-  const discount = Number(address.discount || 0).toFixed(2);
-  const tax = Number(address.tax || 0).toFixed(2);
-  const total = (Number(subtotal) - Number(discount) + Number(tax)).toFixed(2);
+  // Calculate Totals
+  const subtotal = orderItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+  const discount = 0; // Assuming no discount for now
+  const tax = (subtotal * 0.08).toFixed(2);  // Tax at 8% (adjust as needed)
+  const total = (parseFloat(subtotal) - discount + parseFloat(tax)).toFixed(2);
 
-  addressBox.innerHTML = `
-    <div style="margin-bottom:15px;">
-      <strong>Customer:</strong> ${name} <br>
-      <strong>Email:</strong> ${email} <br>
-      <strong>Phone:</strong> ${phone} <br>
-      <strong>Address:</strong> ${street}${apt}, ${city}, ${postal}, ${country} <br>
-      <strong>Payment Status:</strong> ${address.payment_status || '-'}
-    </div>
-
+  // Add Items Table and Totals to Invoice
+  invoiceHtml += `
     <div style="margin-top:15px;">
       <table style="width:100%; border-collapse:collapse;">
         <thead>
@@ -451,6 +459,10 @@ function showAddressModal(address) {
     </div>
   `;
 
+  // Insert the generated invoice HTML into the modal
+  addressBox.innerHTML = invoiceHtml;
+
+  // Show the modal
   modal.style.display = "flex";
 }
 
