@@ -488,12 +488,20 @@ function showAddressModal(orderId) {
   });
 }
 async function fetchOrderDetails(orderId) {
+  // Ensure that orderId is an integer
+  const orderIdInt = parseInt(orderId, 10);  // Forcefully parse the orderId to an integer
+
+  if (isNaN(orderIdInt)) {
+    console.error("Invalid orderId. It must be a valid integer.");
+    return null;
+  }
+
   try {
-    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}`, {
+    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderIdInt}`, {
       headers: {
         'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
         'Content-Type': 'application/json',
-        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',  // Add your actual API key here
+        'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE', 
       }
     });
 
@@ -513,14 +521,15 @@ async function fetchOrderDetails(orderId) {
       throw new Error('Order not found or invalid order data');
     }
 
-    // Fetch order items
-    const orderItems = await fetchOrderItems(orderId);
+    // Fetch order items using the orderId
+    const orderItems = await fetchOrderItems(orderIdInt);
 
+    // Return the complete order with items
     return { ...order[0], items: orderItems };
 
   } catch (error) {
     console.error("Error fetching order details:", error);
-    return null; // Return null if there's an error
+    return null;  // Return null in case of an error
   }
 }
 
