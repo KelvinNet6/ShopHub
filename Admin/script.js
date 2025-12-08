@@ -487,54 +487,81 @@ function showAddressModal(orderId) {
     modal.style.display = "flex";
   });
 }
-async function fetchOrderDetails(orderId) {
-  // Ensure that orderId is a valid integer (parse if necessary)
-  const orderIdInt = parseInt(orderId, 10);
+async function getOrderIdFromUrl() {
+  // Method 1: From query param ?orderId=123
+  const params = new URLSearchParams(window.location.search);
+  let orderId = params.get('orderId');
 
-  // If the parsed orderId is not a valid integer, log an error and return null
-  if (isNaN(orderIdInt)) {
-    console.error("Invalid orderId. It must be a valid integer.");
+  // Method 2: From path like /order/123 or /123
+  if (!orderId) {
+    const match = window.location.pathname.match(/\/(\d+)(\/|$)/);
+    if (match) {
+      orderId = match[1];
+    }
+  }
+
+  // Clean and validate
+  if (!orderId || !/^\d+$/.test(orderId)) {
+    console.error("No valid order ID found in URL");
+    document.body.innerHTML = "<h1>Order Not Found</h1><p>Invalid or missing order ID.</p>";
+    return null;
+  }
+
+  return parseInt(orderId, 10); // guaranteed clean integer
+}
+
+// Call it properly
+(async () => {
+  const orderId = getOrderIdFromUrl();
+  if (!orderId) return;
+
+  const order = await fetchOrderDetails(orderId);
+  if (order) {
+    console.log("Order loaded:", order);
+    // render your order details
+  } else {
+    document.body.innerHTML = "<h1>Order Not Found</h1>";
+  }
+})();
+
+async function fetchOrderDetails(orderId) {
+  // Final safety net - should never trigger if getOrderIdFromUrl is used
+  if (!Number.isInteger(orderId) || orderId <= 0) {
+    console.error("Invalid orderId in fetchOrderDetails:", orderId);
     return null;
   }
 
   try {
-    // Fetch order details from Supabase (make sure to use the correct table structure)
-    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderIdInt}`, {
-      headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
-        'Content-Type': 'application/json',
+    const response = await fetch(
+      `https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}&select=*,order_items(*)`,
+      {
+        headers: {
+          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
+          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
+        }
       }
-    });
+    );
 
-    // Check if the response is successful
     if (!response.ok) {
-      const errorDetails = await response.text();  // Get detailed error message from Supabase
-      console.error(`Failed to fetch order details: ${response.status} ${response.statusText}`);
-      console.error(`Error Details: ${errorDetails}`);
-      throw new Error(`Failed to fetch order details: ${response.status} - ${response.statusText}`);
+      const text = await response.text();
+      console.error("Supabase error:", response.status, text);
+      throw new Error(`HTTP ${response.status}`);
     }
 
-    // Parse the order details
-    const order = await response.json();
+    const data = await response.json();
 
-    // Check if the order exists and is valid
-    if (!order || order.length === 0) {
-      throw new Error('Order not found or invalid order data');
+    if (!data || data.length === 0) {
+      console.warn("Order not found for ID:", orderId);
+      return null;
     }
 
-    // Fetch order items using the orderId
-    const orderItems = await fetchOrderItems(orderIdInt);
+    return data[0]; // Already includes order_items if you have RPC or row-level policy
 
-    // Combine order details with order items and return
-    return { ...order[0], items: orderItems };
-
-  } catch (error) {
-    console.error("Error fetching order details:", error);
-    return null;  // Return null in case of an error
+  } catch (err) {
+    console.error("fetchOrderDetails failed:", err);
+    return null;
   }
 }
-
-
 
 // Function to fetch order items from Supabase
 async function fetchOrderItems(orderId) {
