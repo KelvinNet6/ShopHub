@@ -360,9 +360,10 @@ async function loadOrders() {
     <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 
  <td>
-  <button class="btn view" onclick='showAddressModal(${JSON.stringify(JSON.parse(o.shipping_address || "{}"))})'>
+  <button class="btn view" onclick='showAddressModal(JSON.parse(this.dataset.address))'
+        data-address='${o.shipping_address}'>
     <i class="fa fa-map"></i> View
-  </button>
+</button>
 </td>
 
     <td class="actions">
