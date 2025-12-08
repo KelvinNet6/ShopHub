@@ -402,3 +402,20 @@ tr:hover { background: #f9fafb; }
 .status.shipped    { background: #d1fae5; color: #065f46; }
 .status.delivered  { background: #ecfdf5; color: #047857; }
 .status.cancelled  { background: #fee2e2; color: #991b1b; }
+
+.address-table {
+  width: 100%;
+  margin-top: 15px;
+  border-collapse: collapse;
+}
+
+.address-table td {
+  padding: 8px 10px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+.address-table td:first-child {
+  font-weight: 600;
+  color: #374151;
+  width: 35%;
+}
