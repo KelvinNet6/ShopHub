@@ -82,7 +82,15 @@
       <select class="status-select" id="statusSelect"></select>
     </div>
   </div>
-
+<!-- Address Modal -->
+<div id="addressModal" class="modal" style="display:none;">
+  <div class="modal-content">
+    <span class="close" onclick="closeAddressModal()">&times;</span>
+    <h3>Shipping Address</h3>
+    <table id="addressTable" class="modal-table"></table>
+  </div>
+</div>
+  
  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="script.js" defer></script>
   
