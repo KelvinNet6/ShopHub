@@ -380,6 +380,33 @@ async function loadOrders() {
     tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#94a3b8;">No orders found</td></tr>`;
   }
 }
+
+function showAddressModal(address) {
+  const modal = document.getElementById("addressModal");
+  const table = document.getElementById("addressModalTable");
+
+  if (!address || typeof address !== "object") {
+    table.innerHTML = "<tr><td>No address available</td></tr>";
+  } else {
+    // Format all keys into a table
+    table.innerHTML = Object.entries(address)
+      .filter(([key]) => key !== "items") // ignore items here
+      .map(([key, value]) => `
+        <tr>
+          <td>${key}</td>
+          <td>${value || "—"}</td>
+        </tr>
+      `)
+      .join("");
+  }
+
+  modal.style.display = "flex";
+}
+
+function closeAddressModal() {
+  document.getElementById("addressModal").style.display = "none";
+}
+
 async function openOrder(id) {
   const { data: order } = await supabase.from("orders").select("*, customers(name,email)").eq("id",id).single();
   const { data: items } = await supabase.from("order_items").select("*, products(name)").eq("order_id",id);
