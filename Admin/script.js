@@ -266,29 +266,38 @@ async function deleteProduct(id) {
 }
 async function loadOrders() {
   const { data: orders, error } = await supabase
-  .from("orders")
-  .select(`
-    id,
-    total,
-    status,
-    payment_method,
-    shipping_address,
-    created_at,
+    .from("orders")
+    .select(`
+      id,
+      total,
+      status,
+      payment_method,
+      shipping_address,
+      created_at,
 
-    customers:customer_id (
-      name,
-      email
-    ),
+      customers:customer_id (
+        full_name,
+        email
+      ),
 
-    order_items (
-      quantity,
-      price,
-      products:product_id (
-        name
+      order_items (
+        quantity,
+        price,
+        products:product_id (
+          name
+        )
       )
-    )
-  `)
-  .order("id", { ascending: false });
+    `)
+    .order("id", { ascending: false });
+
+  if (error) {
+    console.error("Failed to load orders:", error);
+    return [];
+  }
+
+  return orders;
+}
+
 
 
   // ALWAYS check for errors first!
