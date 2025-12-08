@@ -110,35 +110,6 @@
       }
     });
   }
-     function showAddress(address) {
-  const modal = document.getElementById("addressModal");
-  const table = document.getElementById("addressTable");
-
-  if (!address || Object.keys(address).length === 0) {
-    table.innerHTML = "<tr><td>No address available</td></tr>";
-  } else {
-    table.innerHTML = Object.entries(address)
-      .map(([key, value]) => `
-        <tr>
-          <td><strong>${key}</strong></td>
-          <td>${value || '—'}</td>
-        </tr>
-      `)
-      .join("");
-  }
-
-  modal.style.display = "flex";
-}
-
-function closeAddressModal() {
-  document.getElementById("addressModal").style.display = "none";
-}
-
-window.onclick = function (e) {
-  const modal = document.getElementById("addressModal");
-  if (e.target === modal) closeAddressModal();
-};
-
   loadSidebar();
 </script>
 </body>
