@@ -487,21 +487,24 @@ function showAddressModal(orderId) {
     modal.style.display = "flex";
   });
 }
-
-// Function to fetch order details including items and shipping address
 async function fetchOrderDetails(orderId) {
   try {
     const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}`, {
       headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE', 
         'Content-Type': 'application/json',
       }
     });
 
+    // Check if the response is successful
     if (!response.ok) {
-      throw new Error(`Failed to fetch order details: ${response.status} ${response.statusText}`);
+      const errorDetails = await response.text();  // Get detailed error message from Supabase
+      console.error(`Failed to fetch order details: ${response.status} ${response.statusText}`);
+      console.error(`Error Details: ${errorDetails}`);
+      throw new Error(`Failed to fetch order details: ${response.status} - ${response.statusText}`);
     }
 
+    // Parse the order details
     const order = await response.json();
 
     // Check if the order exists and is valid
@@ -512,7 +515,6 @@ async function fetchOrderDetails(orderId) {
     // Fetch order items
     const orderItems = await fetchOrderItems(orderId);
 
-    // Combine order details with order items
     return { ...order[0], items: orderItems };
 
   } catch (error) {
@@ -520,6 +522,7 @@ async function fetchOrderDetails(orderId) {
     return null; // Return null if there's an error
   }
 }
+
 
 // Function to fetch order items from Supabase
 async function fetchOrderItems(orderId) {
