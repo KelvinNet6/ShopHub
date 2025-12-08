@@ -82,14 +82,16 @@
       <select class="status-select" id="statusSelect"></select>
     </div>
   </div>
-<div id="addressModal" class="modal-bg" style="display:none;">
-  <div class="modal">
-    <div class="modal-header">
-      <h2>Shipping Address</h2>
-      <button class="close-btn" onclick="closeAddressModal()">&times;</button>
-    </div>
 
-    <table id="addressModalTable" class="address-table"></table>
+  <!-- ADDRESS MODAL -->
+<div class="modal-bg" id="addressModalBg" style="display:none;">
+  <div class="modal">
+
+    <span class="close-modal" onclick="closeAddressModal()">×</span>
+    <h2>Shipping Address</h2>
+
+    <table class="address-table" id="addressModalTable"></table>
+
   </div>
 </div>
   
