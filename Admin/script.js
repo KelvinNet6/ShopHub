@@ -388,12 +388,24 @@ function showAddressModal(orderId) {
 
   // Fetch order details from the database
   fetchOrderDetails(orderId).then(order => {
-    const orderItems = order.items;  // Array of products from order_items table
-    const address = JSON.parse(order.shipping_address); // Shipping address stored as a JSON string
+    const orderItems = order.items || []; // Ensure orderItems is always an array
+    let address;
+
+    // Ensure that the shipping_address is correctly handled
+    if (typeof order.shipping_address === 'string') {
+      try {
+        address = JSON.parse(order.shipping_address); // Parse if it's a stringified JSON
+      } catch (e) {
+        console.error("Error parsing shipping address:", e);
+        address = {}; // Fallback to empty object if parsing fails
+      }
+    } else {
+      address = order.shipping_address || {}; // If it's already an object, just use it
+    }
 
     // Check if the address object is valid
-    if (!address || typeof address !== "object") {
-      addressBox.innerHTML = "<p>No address available</p>";
+    if (!address || typeof address !== "object" || Object.keys(address).length === 0) {
+      addressBox.innerHTML = "<p>No valid address available</p>";
       modal.style.display = "flex";
       return;
     }
@@ -423,7 +435,7 @@ function showAddressModal(orderId) {
     `;
 
     // Prepare Items Table (Product name, quantity, price, total)
-    const itemsHtml = (orderItems || []).map(item => `
+    const itemsHtml = orderItems.map(item => `
       <tr>
         <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-right:5px;"> ${item.name}</td>
         <td>${item.quantity}</td>
@@ -478,14 +490,59 @@ function showAddressModal(orderId) {
 
 // Function to fetch order details including items and shipping address
 async function fetchOrderDetails(orderId) {
-  const response = await fetch(`your-api-endpoint/orders/${orderId}`);
-  const order = await response.json();
+  try {
+    // Fetch order details from Supabase
+    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}`, {
+      headers: {
+        'Authorization': 'Bearer YOUR_SUPABASE_API_KEY', // Replace with your actual Supabase anon key
+        'Content-Type': 'application/json',
+      }
+    });
 
-  // Assuming the order JSON includes both order data and related order items
-  const orderItems = await fetchOrderItems(orderId); // Fetch order items separately
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`Failed to fetch order details: ${response.status} ${response.statusText}`);
+    }
 
-  return { ...order, items: orderItems };
+    // Parse the order details
+    const order = await response.json();
+
+    // Fetch order items from Supabase
+    const orderItems = await fetchOrderItems(orderId);
+
+    // Combine order details with order items
+    return { ...order[0], items: orderItems }; // Assuming `order` is an array and taking the first element
+
+  } catch (error) {
+    console.error("Error fetching order details:", error);
+    return null;  // Return null or handle error as needed
+  }
 }
+
+// Function to fetch order items from Supabase
+async function fetchOrderItems(orderId) {
+  try {
+    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/order_items?order_id=eq.${orderId}`, {
+      headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',  // Replace with your actual Supabase anon key
+        'Content-Type': 'application/json',
+      }
+    });
+
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`Failed to fetch order items: ${response.status} ${response.statusText}`);
+    }
+
+    // Parse the order items
+    const orderItems = await response.json();
+    return orderItems;
+  } catch (error) {
+    console.error("Error fetching order items:", error);
+    return []; // Return an empty array in case of error
+  }
+}
+
 
 // Function to fetch order items
 async function fetchOrderItems(orderId) {
