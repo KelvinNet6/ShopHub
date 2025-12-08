@@ -84,16 +84,36 @@
   </div>
 
   <!-- ADDRESS MODAL -->
+<!-- INVOICE / ADDRESS MODAL -->
 <div class="modal-bg" id="addressModalBg" style="display:none;">
-  <div class="modal">
+  <div class="modal" style="max-width:650px; padding:25px;">
 
     <span class="close-modal" onclick="closeAddressModal()">×</span>
-    <h2>Shipping Address</h2>
 
-    <table class="address-table" id="addressModalTable"></table>
+    <!-- PDF AREA -->
+    <div id="invoiceArea" style="background:white; padding:25px; border-radius:10px;">
+
+      <!-- LOGO -->
+      <div style="text-align:center; margin-bottom:20px;">
+        <img id="invoiceLogo" src="your-logo.png" style="width:160px; height:auto;">
+      </div>
+
+      <h2 style="text-align:center; margin-bottom:15px;">Shipping Invoice</h2>
+
+      <div id="invoiceAddressBox"></div>
+
+    </div>
+
+    <!-- FOOTER ACTIONS -->
+    <div style="text-align:right; margin-top:20px;">
+      <button class="btn" onclick="downloadInvoicePDF()">
+        <i class="fa fa-download"></i> Download PDF
+      </button>
+    </div>
 
   </div>
 </div>
+
   
  <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
   <script src="script.js" defer></script>
