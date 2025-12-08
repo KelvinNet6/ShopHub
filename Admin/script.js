@@ -525,43 +525,58 @@ async function getOrderIdFromUrl() {
 })();
 
 async function fetchOrderDetails(orderId) {
-  // Final safety net - should never trigger if getOrderIdFromUrl is used
-  if (!Number.isInteger(orderId) || orderId <= 0) {
-    console.error("Invalid orderId in fetchOrderDetails:", orderId);
+  // Log the orderId before parsing it to see if it's passed correctly
+  console.log("Order ID received:", orderId);
+
+  // Ensure that orderId is a valid integer (parse if necessary)
+  const orderIdInt = parseInt(orderId, 10);
+
+  // Log the parsed orderId
+  console.log("Parsed Order ID:", orderIdInt);
+
+  // If the parsed orderId is not a valid integer, log an error and return null
+  if (isNaN(orderIdInt)) {
+    console.error("Invalid orderId. It must be a valid integer.");
     return null;
   }
 
   try {
-    const response = await fetch(
-      `https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}&select=*,order_items(*)`,
-      {
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
-        }
+    // Fetch order details from Supabase
+    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderIdInt}`, {
+      headers: {
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
+        'Content-Type': 'application/json',
       }
-    );
+    });
 
+    // Check if the response is successful
     if (!response.ok) {
-      const text = await response.text();
-      console.error("Supabase error:", response.status, text);
-      throw new Error(`HTTP ${response.status}`);
+      const errorDetails = await response.text();
+      console.error(`Failed to fetch order details: ${response.status} ${response.statusText}`);
+      console.error(`Error Details: ${errorDetails}`);
+      throw new Error(`Failed to fetch order details: ${response.status} - ${response.statusText}`);
     }
 
-    const data = await response.json();
+    // Parse the order details
+    const order = await response.json();
 
-    if (!data || data.length === 0) {
-      console.warn("Order not found for ID:", orderId);
-      return null;
+    // Check if the order exists and is valid
+    if (!order || order.length === 0) {
+      throw new Error('Order not found or invalid order data');
     }
 
-    return data[0]; // Already includes order_items if you have RPC or row-level policy
+    // Fetch order items using the orderId
+    const orderItems = await fetchOrderItems(orderIdInt);
 
-  } catch (err) {
-    console.error("fetchOrderDetails failed:", err);
-    return null;
+    // Combine order details with order items and return
+    return { ...order[0], items: orderItems };
+
+  } catch (error) {
+    console.error("Error fetching order details:", error);
+    return null;  // Return null in case of an error
   }
 }
+
 
 // Function to fetch order items from Supabase
 async function fetchOrderItems(orderId) {
