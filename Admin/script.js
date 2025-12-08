@@ -498,23 +498,26 @@ async function fetchOrderDetails(orderId) {
       }
     });
 
-    // Check if the response is successful
     if (!response.ok) {
       throw new Error(`Failed to fetch order details: ${response.status} ${response.statusText}`);
     }
 
-    // Parse the order details
     const order = await response.json();
 
-    // Fetch order items from Supabase
+    // Check if the order exists and is valid
+    if (!order || order.length === 0) {
+      throw new Error('Order not found or invalid order data');
+    }
+
+    // Fetch order items
     const orderItems = await fetchOrderItems(orderId);
 
     // Combine order details with order items
-    return { ...order[0], items: orderItems }; // Assuming `order` is an array and taking the first element
+    return { ...order[0], items: orderItems };
 
   } catch (error) {
     console.error("Error fetching order details:", error);
-    return null;  // Return null or handle error as needed
+    return null; // Return null if there's an error
   }
 }
 
@@ -523,22 +526,123 @@ async function fetchOrderItems(orderId) {
   try {
     const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/order_items?order_id=eq.${orderId}`, {
       headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',  // Replace with your actual Supabase anon key
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE', 
         'Content-Type': 'application/json',
       }
     });
 
-    // Check if the response is successful
     if (!response.ok) {
       throw new Error(`Failed to fetch order items: ${response.status} ${response.statusText}`);
     }
 
-    // Parse the order items
     const orderItems = await response.json();
     return orderItems;
+
   } catch (error) {
     console.error("Error fetching order items:", error);
-    return []; // Return an empty array in case of error
+    return []; // Return an empty array if there is an error
+  }
+}
+
+async function showAddressModal(orderId) {
+  const modal = document.getElementById("addressModalBg");
+  const addressBox = document.getElementById("invoiceAddressBox");
+
+  try {
+    // Fetch the order details
+    const order = await fetchOrderDetails(orderId);
+
+    if (!order) {
+      addressBox.innerHTML = "<p>Unable to load order details.</p>";
+      modal.style.display = "flex";
+      return;
+    }
+
+    const orderItems = order.items;
+    const address = JSON.parse(order.shipping_address); // Assuming the address is a JSON string
+
+    // Check if the address is valid
+    if (!address || typeof address !== "object") {
+      addressBox.innerHTML = "<p>No address available</p>";
+      modal.style.display = "flex";
+      return;
+    }
+
+    // Extract Customer Info
+    const name = address.name || "-";
+    const email = address.email || "-";
+    const phone = address.phone || "-";
+    const street = address.address || "-";
+    const apt = address.apt ? `, ${address.apt}` : "";
+    const city = address.city || "-";
+    const postal = address.postal || "-";
+    const country = address.country || "-";
+    const paymentStatus = address.payment_status || "-";
+    const paymentId = address.payment_id || "-";
+
+    // Generate HTML for the invoice
+    let invoiceHtml = `
+      <div style="margin-bottom:15px;">
+        <strong>Customer:</strong> ${name} <br>
+        <strong>Email:</strong> ${email} <br>
+        <strong>Phone:</strong> ${phone} <br>
+        <strong>Address:</strong> ${street}${apt}, ${city}, ${postal}, ${country} <br>
+        <strong>Payment ID:</strong> ${paymentId} <br>
+        <strong>Payment Status:</strong> ${paymentStatus}
+      </div>
+    `;
+
+    // Generate the items table
+    const itemsHtml = (orderItems || []).map(item => `
+      <tr>
+        <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-right:5px;"> ${item.name}</td>
+        <td>${item.quantity}</td>
+        <td>$${item.price.toFixed(2)}</td>
+        <td>$${(item.price * item.quantity).toFixed(2)}</td>
+      </tr>
+    `).join("");
+
+    // Calculate totals
+    const subtotal = orderItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
+    const discount = 0; // Assuming no discount for now
+    const tax = (subtotal * 0.08).toFixed(2);
+    const total = (parseFloat(subtotal) - discount + parseFloat(tax)).toFixed(2);
+
+    // Add Items Table and Totals to Invoice
+    invoiceHtml += `
+      <div style="margin-top:15px;">
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="background:#f3f4f6;">
+              <th style="padding:8px; border:1px solid #ccc;">Product</th>
+              <th style="padding:8px; border:1px solid #ccc;">Qty</th>
+              <th style="padding:8px; border:1px solid #ccc;">Price</th>
+              <th style="padding:8px; border:1px solid #ccc;">Total</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${itemsHtml}
+          </tbody>
+        </table>
+      </div>
+
+      <div style="text-align:right; margin-top:15px;">
+        <div>Subtotal: $${subtotal}</div>
+        <div>Discount: $${discount}</div>
+        <div>Tax: $${tax}</div>
+        <div style="font-weight:700; margin-top:5px;">Total: $${total}</div>
+      </div>
+    `;
+
+    // Insert the generated invoice HTML into the modal
+    addressBox.innerHTML = invoiceHtml;
+
+    // Show the modal
+    modal.style.display = "flex";
+  } catch (err) {
+    console.error("Error fetching order details:", err);
+    addressBox.innerHTML = "<p>Unable to load order details.</p>";
+    modal.style.display = "flex";
   }
 }
 
