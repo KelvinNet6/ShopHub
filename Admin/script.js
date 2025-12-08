@@ -489,10 +489,33 @@ async function fetchOrderDetails(orderId) {
 
 // Function to fetch order items
 async function fetchOrderItems(orderId) {
-  const response = await fetch(`your-api-endpoint/order_items?order_id=${orderId}`);
-  const orderItems = await response.json();
-  return orderItems;
+  try {
+    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/order_items?order_id=eq.${orderId}`, {
+      headers: {
+        'Authorization': `Bearer supabaseKey`, 
+        'Content-Type': 'application/json',
+      },
+    });
+
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
+    }
+
+    // Check if the response is JSON
+    const contentType = response.headers.get('Content-Type');
+    if (contentType && contentType.includes('application/json')) {
+      const orderItems = await response.json();
+      return orderItems;
+    } else {
+      throw new Error("Expected JSON, but received: " + contentType);
+    }
+  } catch (error) {
+    console.error("Error fetching order items:", error);
+    return []; // Return an empty array in case of an error to avoid breaking the app
+  }
 }
+
 
 window.downloadInvoicePDF = function() {
   const element = document.getElementById("invoiceArea");
