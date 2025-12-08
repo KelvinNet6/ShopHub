@@ -359,8 +359,11 @@ async function loadOrders() {
     <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
     <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 
-    <!-- ⭐ SHIPPING ADDRESS COLUMN -->
-    <td>${o.shipping_address || '—'}</td>
+   <td>
+  <button class="btn small-btn" onclick='showAddressModal(${JSON.stringify(o.shipping_address || {})})'>
+    View Address
+  </button>
+</td>
 
     <td class="actions">
       <button class="btn view"   onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
