@@ -384,44 +384,76 @@ async function loadOrders() {
 
 function showAddressModal(address) {
   const modal = document.getElementById("addressModalBg");
-  const box = document.getElementById("invoiceAddressBox");
+  const addressBox = document.getElementById("invoiceAddressBox");
 
-  // Already an object because you parse it in the button
   if (!address || typeof address !== "object") {
-    box.innerHTML = "<p>No address available</p>";
+    addressBox.innerHTML = "<p>No address available</p>";
     modal.style.display = "flex";
     return;
   }
 
-  const name = address.name || address.full_name || "—";
-  const street = address.street || address.address || "—";
-  const city = address.city || "—";
-  const state = address.state || "—";
-  const zip = address.zip || address.postal_code || "—";
-  const country = address.country || "—";
-  const phone = address.phone || "—";
-  const email = address.email || "—";
+  // Customer info
+  const name = address.name || "-";
+  const email = address.email || "-";
+  const phone = address.phone || "-";
+  const street = address.address || "-";
+  const apt = address.apt ? `, ${address.apt}` : "";
+  const city = address.city || "-";
+  const postal = address.postal || "-";
+  const country = address.country || "-";
 
-  box.innerHTML = `
-    <div class="invoice-section">
-      <div class="invoice-title">Recipient</div>
-      <div class="invoice-line"><span class="invoice-label">Name:</span> <span class="invoice-value">${name}</span></div>
-      <div class="invoice-line"><span class="invoice-label">Phone:</span> <span class="invoice-value">${phone}</span></div>
-      <div class="invoice-line"><span class="invoice-label">Email:</span> <span class="invoice-value">${email}</span></div>
+  // Items
+  const itemsHtml = (address.items || []).map(item => `
+    <tr>
+      <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-right:5px;"> ${item.name}</td>
+      <td>${item.quantity}</td>
+      <td>$${item.price.toFixed(2)}</td>
+      <td>$${(item.price * item.quantity).toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+  // Totals
+  const subtotal = Number(address.subtotal || 0).toFixed(2);
+  const discount = Number(address.discount || 0).toFixed(2);
+  const tax = Number(address.tax || 0).toFixed(2);
+  const total = (Number(subtotal) - Number(discount) + Number(tax)).toFixed(2);
+
+  addressBox.innerHTML = `
+    <div style="margin-bottom:15px;">
+      <strong>Customer:</strong> ${name} <br>
+      <strong>Email:</strong> ${email} <br>
+      <strong>Phone:</strong> ${phone} <br>
+      <strong>Address:</strong> ${street}${apt}, ${city}, ${postal}, ${country} <br>
+      <strong>Payment Status:</strong> ${address.payment_status || '-'}
     </div>
 
-    <div class="invoice-section">
-      <div class="invoice-title">Address</div>
-      <div class="invoice-line"><span class="invoice-label">Street:</span> <span class="invoice-value">${street}</span></div>
-      <div class="invoice-line"><span class="invoice-label">City:</span> <span class="invoice-value">${city}</span></div>
-      <div class="invoice-line"><span class="invoice-label">State:</span> <span class="invoice-value">${state}</span></div>
-      <div class="invoice-line"><span class="invoice-label">Postal Code:</span> <span class="invoice-value">${zip}</span></div>
-      <div class="invoice-line"><span class="invoice-label">Country:</span> <span class="invoice-value">${country}</span></div>
+    <div style="margin-top:15px;">
+      <table style="width:100%; border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="padding:8px; border:1px solid #ccc;">Product</th>
+            <th style="padding:8px; border:1px solid #ccc;">Qty</th>
+            <th style="padding:8px; border:1px solid #ccc;">Price</th>
+            <th style="padding:8px; border:1px solid #ccc;">Total</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsHtml}
+        </tbody>
+      </table>
+    </div>
+
+    <div style="text-align:right; margin-top:15px;">
+      <div>Subtotal: $${subtotal}</div>
+      <div>Discount: $${discount}</div>
+      <div>Tax: $${tax}</div>
+      <div style="font-weight:700; margin-top:5px;">Total: $${total}</div>
     </div>
   `;
 
   modal.style.display = "flex";
 }
+
 
 function downloadInvoicePDF() {
   const element = document.getElementById("invoiceArea");
