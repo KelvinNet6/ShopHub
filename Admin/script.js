@@ -455,7 +455,7 @@ function showAddressModal(address) {
 }
 
 
-function downloadInvoice() {
+function downloadInvoicePDF() {
   const element = document.getElementById("invoiceArea");
   const images = element.querySelectorAll("img");
 
