@@ -416,18 +416,24 @@ document.getElementById("submit").addEventListener("click", async () => {
     if (orderError) throw new Error(`Order failed: ${orderError.message}`);
     console.log('✅ Order created:', order.id);
 
-    // 🔥 2️⃣ INSERT ORDER ITEMS (FIX ITEMS NOT SAVED)
-    const orderItems = cart.map(item => ({
-      order_id: order.id,
-      product_id: item.id,          // ← Assume item.id exists (product_id from cart)
-      quantity: item.quantity,
-      price: item.price,            // Price at purchase
-      // subtotal: item.price * item.quantity  // Uncomment if your table has this column
-    }));
+// 🔥 2️⃣ INSERT ORDER ITEMS WITH IMAGE & NAME
+const orderItems = cart.map(item => ({
+  order_id: order.id,
+  product_id: item.id,
+  quantity: item.quantity,
+  price: item.price,
+  subtotal: item.price * item.quantity,
+  name: item.name,
+  image_url: item.image_url
+}));
 
-    const { error: itemsError } = await supabaseClient
-      .from('order_items')
-      .insert(orderItems);
+const { error: itemsError } = await supabaseClient
+  .from('order_items')
+  .insert(orderItems);
+
+if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
+console.log('✅ Order items inserted:', orderItems.length);
+
 
     if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
     console.log('✅ Order items inserted:', orderItems.length);
