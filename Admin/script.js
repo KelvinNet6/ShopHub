@@ -455,19 +455,26 @@ function showAddressModal(address) {
 }
 
 
-function downloadInvoicePDF() {
+function downloadInvoice() {
   const element = document.getElementById("invoiceArea");
+  const images = element.querySelectorAll("img");
 
-  const options = {
-    margin: 10,
-    filename: "shipping_invoice.pdf",
-    image: { type: "jpeg", quality: 0.98 },
-    html2canvas: { scale: 2 },
-    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
-  };
+  // Wait for all images to load
+  const promises = Array.from(images).map(img => {
+    if (img.complete) return Promise.resolve();
+    return new Promise(resolve => {
+      img.onload = img.onerror = resolve;
+    });
+  });
 
-  html2pdf().set(options).from(element).save();
+  Promise.all(promises).then(() => {
+    html2pdf()
+      .set({ margin: 10, filename: 'invoice.pdf', html2canvas: { scale: 2, useCORS: true } })
+      .from(element)
+      .save();
+  });
 }
+
 
 function closeAddressModal() {
   document.getElementById("addressModalBg").style.display = "none";
