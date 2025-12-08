@@ -360,7 +360,7 @@ async function loadOrders() {
     <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 
  <td>
-  <button class="btn view" onclick='showAddressModal(${JSON.stringify(o.shipping_address || {})})'>
+  <button class="btn view" onclick='showAddressModal(${JSON.stringify(JSON.parse(o.shipping_address || "{}"))})'>
     <i class="fa fa-map"></i> View
   </button>
 </td>
@@ -385,18 +385,28 @@ function showAddressModal(address) {
   const modal = document.getElementById("addressModalBg");
   const table = document.getElementById("addressModalTable");
 
-  // If invalid address
+  // Handle JSON string → convert to object
+  if (typeof address === "string") {
+    try {
+      address = JSON.parse(address);
+    } catch (e) {
+      console.error("Invalid JSON:", e);
+      address = {};
+    }
+  }
+
+  // If still invalid
   if (!address || typeof address !== "object") {
     table.innerHTML = "<tr><td>No address available</td></tr>";
     modal.style.display = "flex";
     return;
   }
 
-  // Format key/value pairs
   let html = "";
 
+  // Loop through the address fields
   Object.entries(address).forEach(([key, value]) => {
-    if (key === "items") return; // Skip items here
+    if (key === "items") return;
     html += `
       <tr>
         <td>${key}</td>
@@ -405,9 +415,9 @@ function showAddressModal(address) {
     `;
   });
 
-  // Add items if present
+  // If the address contains items (optional)
   if (Array.isArray(address.items)) {
-    html += `<tr><td colspan="2" style="font-weight:700; padding-top:10px;">Items</td></tr>`;
+    html += `<tr><td colspan="2" style="font-weight:700;padding-top:10px;">Items</td></tr>`;
     address.items.forEach(item => {
       html += `
         <tr>
@@ -422,6 +432,7 @@ function showAddressModal(address) {
   table.innerHTML = html;
   modal.style.display = "flex";
 }
+
 
 function closeAddressModal() {
   document.getElementById("addressModalBg").style.display = "none";
