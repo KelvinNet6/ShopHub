@@ -491,10 +491,9 @@ function showAddressModal(orderId) {
 // Function to fetch order details including items and shipping address
 async function fetchOrderDetails(orderId) {
   try {
-    // Fetch order details from Supabase
     const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}`, {
       headers: {
-        'Authorization': 'Bearer YOUR_SUPABASE_API_KEY', // Replace with your actual Supabase anon key
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
         'Content-Type': 'application/json',
       }
     });
@@ -542,37 +541,6 @@ async function fetchOrderItems(orderId) {
     return []; // Return an empty array in case of error
   }
 }
-
-
-// Function to fetch order items
-async function fetchOrderItems(orderId) {
-  try {
-    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/order_items?order_id=eq.${orderId}`, {
-      headers: {
-        'Authorization': `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE`, 
-        'Content-Type': 'application/json',
-      },
-    });
-
-    // Check if the response is successful
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status} - ${response.statusText}`);
-    }
-
-    // Check if the response is JSON
-    const contentType = response.headers.get('Content-Type');
-    if (contentType && contentType.includes('application/json')) {
-      const orderItems = await response.json();
-      return orderItems;
-    } else {
-      throw new Error("Expected JSON, but received: " + contentType);
-    }
-  } catch (error) {
-    console.error("Error fetching order items:", error);
-    return []; // Return an empty array in case of an error to avoid breaking the app
-  }
-}
-
 
 window.downloadInvoicePDF = function() {
   const element = document.getElementById("invoiceArea");
