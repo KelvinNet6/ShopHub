@@ -383,56 +383,58 @@ async function loadOrders() {
 
 function showAddressModal(address) {
   const modal = document.getElementById("addressModalBg");
-  const table = document.getElementById("addressModalTable");
+  const box = document.getElementById("invoiceAddressBox");
 
-  // Handle JSON string → convert to object
-  if (typeof address === "string") {
-    try {
-      address = JSON.parse(address);
-    } catch (e) {
-      console.error("Invalid JSON:", e);
-      address = {};
-    }
-  }
-
-  // If still invalid
+  // Already an object because you parse it in the button
   if (!address || typeof address !== "object") {
-    table.innerHTML = "<tr><td>No address available</td></tr>";
+    box.innerHTML = "<p>No address available</p>";
     modal.style.display = "flex";
     return;
   }
 
-  let html = "";
+  const name = address.name || address.full_name || "—";
+  const street = address.street || address.address || "—";
+  const city = address.city || "—";
+  const state = address.state || "—";
+  const zip = address.zip || address.postal_code || "—";
+  const country = address.country || "—";
+  const phone = address.phone || "—";
+  const email = address.email || "—";
 
-  // Loop through the address fields
-  Object.entries(address).forEach(([key, value]) => {
-    if (key === "items") return;
-    html += `
-      <tr>
-        <td>${key}</td>
-        <td>${value || "—"}</td>
-      </tr>
-    `;
-  });
+  box.innerHTML = `
+    <div class="invoice-section">
+      <div class="invoice-title">Recipient</div>
+      <div class="invoice-line"><span class="invoice-label">Name:</span> <span class="invoice-value">${name}</span></div>
+      <div class="invoice-line"><span class="invoice-label">Phone:</span> <span class="invoice-value">${phone}</span></div>
+      <div class="invoice-line"><span class="invoice-label">Email:</span> <span class="invoice-value">${email}</span></div>
+    </div>
 
-  // If the address contains items (optional)
-  if (Array.isArray(address.items)) {
-    html += `<tr><td colspan="2" style="font-weight:700;padding-top:10px;">Items</td></tr>`;
-    address.items.forEach(item => {
-      html += `
-        <tr>
-          <td colspan="2">
-            ${item.name} × ${item.quantity} — $${item.price}
-          </td>
-        </tr>
-      `;
-    });
-  }
+    <div class="invoice-section">
+      <div class="invoice-title">Address</div>
+      <div class="invoice-line"><span class="invoice-label">Street:</span> <span class="invoice-value">${street}</span></div>
+      <div class="invoice-line"><span class="invoice-label">City:</span> <span class="invoice-value">${city}</span></div>
+      <div class="invoice-line"><span class="invoice-label">State:</span> <span class="invoice-value">${state}</span></div>
+      <div class="invoice-line"><span class="invoice-label">Postal Code:</span> <span class="invoice-value">${zip}</span></div>
+      <div class="invoice-line"><span class="invoice-label">Country:</span> <span class="invoice-value">${country}</span></div>
+    </div>
+  `;
 
-  table.innerHTML = html;
   modal.style.display = "flex";
 }
 
+function downloadInvoicePDF() {
+  const element = document.getElementById("invoiceArea");
+
+  const options = {
+    margin: 10,
+    filename: "shipping_invoice.pdf",
+    image: { type: "jpeg", quality: 0.98 },
+    html2canvas: { scale: 2 },
+    jsPDF: { unit: "mm", format: "a4", orientation: "portrait" }
+  };
+
+  html2pdf().set(options).from(element).save();
+}
 
 function closeAddressModal() {
   document.getElementById("addressModalBg").style.display = "none";
