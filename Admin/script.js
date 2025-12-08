@@ -359,9 +359,9 @@ async function loadOrders() {
     <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
     <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 
-   <td>
-  <button class="btn small-btn" onclick='showAddressModal(${JSON.stringify(o.shipping_address || {})})'>
-    View Address
+ <td>
+  <button class="btn view" onclick='showAddressModal(${JSON.stringify(o.shipping_address || {})})'>
+    <i class="fa fa-map"></i> View
   </button>
 </td>
 
@@ -382,29 +382,49 @@ async function loadOrders() {
 }
 
 function showAddressModal(address) {
-  const modal = document.getElementById("addressModal");
+  const modal = document.getElementById("addressModalBg");
   const table = document.getElementById("addressModalTable");
 
+  // If invalid address
   if (!address || typeof address !== "object") {
     table.innerHTML = "<tr><td>No address available</td></tr>";
-  } else {
-    // Format all keys into a table
-    table.innerHTML = Object.entries(address)
-      .filter(([key]) => key !== "items") // ignore items here
-      .map(([key, value]) => `
-        <tr>
-          <td>${key}</td>
-          <td>${value || "—"}</td>
-        </tr>
-      `)
-      .join("");
+    modal.style.display = "flex";
+    return;
   }
 
+  // Format key/value pairs
+  let html = "";
+
+  Object.entries(address).forEach(([key, value]) => {
+    if (key === "items") return; // Skip items here
+    html += `
+      <tr>
+        <td>${key}</td>
+        <td>${value || "—"}</td>
+      </tr>
+    `;
+  });
+
+  // Add items if present
+  if (Array.isArray(address.items)) {
+    html += `<tr><td colspan="2" style="font-weight:700; padding-top:10px;">Items</td></tr>`;
+    address.items.forEach(item => {
+      html += `
+        <tr>
+          <td colspan="2">
+            ${item.name} × ${item.quantity} — $${item.price}
+          </td>
+        </tr>
+      `;
+    });
+  }
+
+  table.innerHTML = html;
   modal.style.display = "flex";
 }
 
 function closeAddressModal() {
-  document.getElementById("addressModal").style.display = "none";
+  document.getElementById("addressModalBg").style.display = "none";
 }
 
 async function openOrder(id) {
