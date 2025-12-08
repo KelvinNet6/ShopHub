@@ -362,7 +362,7 @@ card.on('change', (event) => {
     renderCart();
   };
 
-  // 🔥 COMPLETE ORDER - YOUR EXACT SCHEMA + FIXES
+// 🔥 COMPLETE ORDER - UPDATED FOR full_name SCHEMA
 document.getElementById("submit").addEventListener("click", async () => {
   if (cart.length === 0) return alert("Your bag is empty!");
 
@@ -376,14 +376,15 @@ document.getElementById("submit").addEventListener("click", async () => {
   try {
     // FORM DATA
     const email = document.getElementById("email").value;
-    const firstName = document.getElementById("first-name").value;
-    const lastName = document.getElementById("last-name").value;
-    if (!email || !firstName || !lastName) {
+    const fullNameInput = `${document.getElementById("first-name").value} 
+                           ${document.getElementById("last-name").value}`.trim();
+
+    if (!email || !fullNameInput) {
       throw new Error("Please fill in all required fields.");
     }
 
     const customerData = {
-      name: `${firstName} ${lastName}`,
+      name: fullNameInput,
       email,
       phone: document.getElementById("phone").value,
       address: document.getElementById("address").value,
@@ -397,30 +398,27 @@ document.getElementById("submit").addEventListener("click", async () => {
     const tax = subtotal * 0.08;
     const totalPrice = subtotal - discount + tax;
 
-    // 🔥 1️⃣ CREATE ORDER WITH STRUCTURED FIELDS (FIX CUSTOMER NULL)
+    // 🔥 CREATE ORDER
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
-     .insert([{
-  customer_id: window.customerId,
-  total: totalPrice,
-  status: 'pending',
-  payment_method: 'stripe',
-  shipping_address: JSON.stringify(customerData)
-}])
+      .insert([{
+        customer_id: window.customerId,   // should exist from session/profile
+        total: totalPrice,
+        status: 'pending',
+        payment_method: 'stripe',
+        shipping_address: JSON.stringify(customerData)
+      }])
       .select('id')
       .single();
 
     if (orderError) throw new Error(`Order failed: ${orderError.message}`);
 
-    console.log('✅ Order created:', order.id);
-
-    // 🔥 2️⃣ INSERT ORDER ITEMS (FIX ITEMS NOT SAVED)
+    // 🔥 INSERT ORDER ITEMS
     const orderItems = cart.map(item => ({
       order_id: order.id,
-      product_id: item.id,                   // ← Assume item.id exists (product_id from cart)
+      product_id: item.id,
       quantity: item.quantity,
-      price: item.price,                     // Price at purchase
-      // subtotal: item.price * item.quantity  // Add if your table has this column
+      price: item.price
     }));
 
     const { error: itemsError } = await supabaseClient
@@ -429,18 +427,13 @@ document.getElementById("submit").addEventListener("click", async () => {
 
     if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
 
-    console.log('✅ Order items inserted:', orderItems.length);
-
-    // 🔥 3️⃣ EDGE FUNCTION FOR PAYMENT INTENT
+    // 🔥 CREATE PAYMENT INTENT
     const paymentRes = await fetch(
       "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: Math.round(totalPrice * 100),
-          email: email
-        })
+        body: JSON.stringify({ amount: Math.round(totalPrice * 100), email })
       }
     );
 
@@ -450,7 +443,7 @@ document.getElementById("submit").addEventListener("click", async () => {
     const { clientSecret } = paymentData;
     if (!clientSecret) throw new Error("Failed to create PaymentIntent");
 
-    // 🔥 4️⃣ STRIPE CONFIRM
+    // 🔥 STRIPE CONFIRM
     const paymentResult = await stripe.confirmCardPayment(clientSecret, {
       payment_method: {
         card: card,
@@ -460,9 +453,7 @@ document.getElementById("submit").addEventListener("click", async () => {
 
     if (paymentResult.error) throw new Error(paymentResult.error.message);
 
-    console.log('✅ Payment succeeded:', paymentResult.paymentIntent.id);
-
-    // 🔥 5️⃣ UPDATE ORDER
+    // 🔥 UPDATE ORDER AFTER PAYMENT
     const updatedAddress = {
       ...customerData,
       payment_id: paymentResult.paymentIntent.id,
@@ -474,15 +465,14 @@ document.getElementById("submit").addEventListener("click", async () => {
       .update({
         status: "paid",
         payment_method: 'stripe',
-        shipping_address: JSON.stringify(updatedAddress)  // ✅ TEXT
+        shipping_address: JSON.stringify(updatedAddress)
       })
       .eq("id", order.id);
 
-    // 🔥 6️⃣ SUCCESS
+    // 🔥 SUCCESS
     localStorage.removeItem("shophub_cart");
     const orderIdDisplay = String(order.id).padStart(6, '0');
     alert(`✅ Order #${orderIdDisplay} PAID!\n\n💳 $${totalPrice.toFixed(2)}`);
-    
     window.location.href = `thank-you.html?order_id=${order.id}`;
 
   } catch (err) {
@@ -494,6 +484,7 @@ document.getElementById("submit").addEventListener("click", async () => {
     spinner.style.display = "none";
   }
 });
+
   renderCart();
 });
 </script>
