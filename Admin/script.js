@@ -520,36 +520,26 @@ function getOrderIdFromUrl() {
   return null;
 }
 
-// FINAL WORKING VERSION – tested on your project with order #37
 async function fetchOrderDetails(orderId) {
   const { data, error } = await supabase
     .from('orders')
     .select(`
       *,
       profiles!orders_customer_id_fkey (
-        full_name,
-        email,
-        phone,
-        avatar_url
+        full_name, email, phone, avatar_url
       ),
       order_items (
-        quantity,
-        price,
-        products (
-          name,
-          image_url
-        )
+        quantity, price,
+        products (name, image_url)
       )
     `)
     .eq('id', orderId)
     .single();
 
-  if (error) {
-    console.error("Fetch error:", error);
-    return null;
-  }
+  if (error) { console.error(error); return null; }
   return data;
 }
+
 // Render full order page (only on order view page)
 function renderSingleOrderPage(order) {
   let address = {};
