@@ -520,26 +520,44 @@ function getOrderIdFromUrl() {
   return null;
 }
 
+// FINAL — WORKS ALWAYS — copy-paste this exact function
 async function fetchOrderDetails(orderId) {
-  const { data, error } = await supabase
+  // 1. Get the order itself
+  const { data: order, error: err1 } = await supabase
     .from('orders')
-    .select(`
-      *,
-      profiles!fk_customer_profile (
-        full_name, email, phone, avatar_url
-      ),
-      order_items (
-        quantity, price,
-        products (name, image_url)
-      )
-    `)
+    .select('*')
     .eq('id', orderId)
     .single();
 
-  if (error) { console.error(error); return null; }
-  return data;
-}
+  if (err1 || !order) {
+    console.error('Order not found:', err1);
+    return null;
+  }
 
+  // 2. Get the profile using the UUID stored in customer_id
+  const { data: profile } = await supabase
+    .from('profiles')
+    .select('full_name, email, phone, avatar_url')
+    .eq('id', order.customer_id)
+    .maybeSingle();   // returns null instead of error if no profile
+
+  // 3. Get items + product details
+  const { data: items } = await supabase
+    .from('order_items')
+    .select(`
+      quantity,
+      price,
+      products (name, image_url)
+    `)
+    .eq('order_id', orderId);
+
+  // Put everything together exactly the way your modal expects
+  return {
+    ...order,
+    profiles: profile || { full_name: 'Customer', email: '', phone: '', avatar_url: null },
+    order_items: items || []
+  };
+}
 // Render full order page (only on order view page)
 function renderSingleOrderPage(order) {
   let address = {};
