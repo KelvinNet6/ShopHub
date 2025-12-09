@@ -357,12 +357,11 @@ async function renderOrders() {
         <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
         <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
         <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
-        <td>
-          <button class="btn view" onclick='showAddressModal(JSON.parse(this.dataset.address))'
-                  data-address='${o.shipping_address}'>
-            <i class="fa fa-map"></i> View
-          </button>
-        </td>
+<td>
+  <button class="btn view" onclick="showAddressModal(${o.id})">
+    View Invoice
+  </button>
+</td>
         <td class="actions">
           <button class="btn view" onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
           <button class="btn edit" onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
@@ -381,133 +380,6 @@ async function renderOrders() {
 // Call this on page load
 document.addEventListener("DOMContentLoaded", renderOrders);
 
-
-function showAddressModal(orderId) {
-  const modal = document.getElementById("addressModalBg");
-  const addressBox = document.getElementById("invoiceAddressBox");
-
-  // Fetch order details from the database
-  fetchOrderDetails(orderId).then(order => {
-    const orderItems = order.items || []; // Ensure orderItems is always an array
-    let address;
-
-    // Ensure that the shipping_address is correctly handled
-    if (typeof order.shipping_address === 'string') {
-      try {
-        address = JSON.parse(order.shipping_address); // Parse if it's a stringified JSON
-      } catch (e) {
-        console.error("Error parsing shipping address:", e);
-        address = {}; // Fallback to empty object if parsing fails
-      }
-    } else {
-      address = order.shipping_address || {}; // If it's already an object, just use it
-    }
-
-    // Check if the address object is valid
-    if (!address || typeof address !== "object" || Object.keys(address).length === 0) {
-      addressBox.innerHTML = "<p>No valid address available</p>";
-      modal.style.display = "flex";
-      return;
-    }
-
-    // Extract Customer Info
-    const name = address.name || "-";
-    const email = address.email || "-";
-    const phone = address.phone || "-";
-    const street = address.address || "-";
-    const apt = address.apt ? `, ${address.apt}` : "";
-    const city = address.city || "-";
-    const postal = address.postal || "-";
-    const country = address.country || "-";
-    const paymentStatus = address.payment_status || "-";
-    const paymentId = address.payment_id || "-";
-
-    // Display Customer Information
-    let invoiceHtml = `
-      <div style="margin-bottom:15px;">
-        <strong>Customer:</strong> ${name} <br>
-        <strong>Email:</strong> ${email} <br>
-        <strong>Phone:</strong> ${phone} <br>
-        <strong>Address:</strong> ${street}${apt}, ${city}, ${postal}, ${country} <br>
-        <strong>Payment ID:</strong> ${paymentId} <br>
-        <strong>Payment Status:</strong> ${paymentStatus}
-      </div>
-    `;
-
-    // Prepare Items Table (Product name, quantity, price, total)
-    const itemsHtml = orderItems.map(item => `
-      <tr>
-        <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-right:5px;"> ${item.name}</td>
-        <td>${item.quantity}</td>
-        <td>$${item.price.toFixed(2)}</td>
-        <td>$${(item.price * item.quantity).toFixed(2)}</td>
-      </tr>
-    `).join("");
-
-    // Calculate Totals
-    const subtotal = orderItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
-    const discount = 0; // Assuming no discount for now
-    const tax = (subtotal * 0.08).toFixed(2);  // Tax at 8% (adjust as needed)
-    const total = (parseFloat(subtotal) - discount + parseFloat(tax)).toFixed(2);
-
-    // Add Items Table and Totals to Invoice
-    invoiceHtml += `
-      <div style="margin-top:15px;">
-        <table style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr style="background:#f3f4f6;">
-              <th style="padding:8px; border:1px solid #ccc;">Product</th>
-              <th style="padding:8px; border:1px solid #ccc;">Qty</th>
-              <th style="padding:8px; border:1px solid #ccc;">Price</th>
-              <th style="padding:8px; border:1px solid #ccc;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="text-align:right; margin-top:15px;">
-        <div>Subtotal: $${subtotal}</div>
-        <div>Discount: $${discount}</div>
-        <div>Tax: $${tax}</div>
-        <div style="font-weight:700; margin-top:5px;">Total: $${total}</div>
-      </div>
-    `;
-
-    // Insert the generated invoice HTML into the modal
-    addressBox.innerHTML = invoiceHtml;
-
-    // Show the modal
-    modal.style.display = "flex";
-  }).catch(err => {
-    console.error("Error fetching order details:", err);
-    addressBox.innerHTML = "<p>Unable to load order details.</p>";
-    modal.style.display = "flex";
-  });
-}
-// SAFE: Only run order view logic on order view pages
-// ===============================================
-document.addEventListener("DOMContentLoaded", async () => {
-  // Only run if we're on a page meant to show a single order (e.g. view-order.html)
-  if (window.location.pathname.includes('order') || new URLSearchParams(location.search).has('orderId')) {
-    const orderId = getOrderIdFromUrl();
-    if (orderId) {
-      const order = await fetchOrderDetails(orderId);
-      if (order) {
-        renderSingleOrderPage(order);
-      } else {
-        document.body.innerHTML = `<div style="text-align:center;padding:100px;font-family:sans-serif;">
-          <h1>Order Not Found</h1>
-          <p>Order #${orderId} does not exist.</p>
-          <a href="orders.html">← Back to Orders</a>
-        </div>`;
-      }
-    }
-  }
-});
-
 // Safe: returns null if no valid ID, never touches document.body
 function getOrderIdFromUrl() {
   const params = new URLSearchParams(location.search);
@@ -520,41 +392,34 @@ function getOrderIdFromUrl() {
   return null;
 }
 
-// FINAL — WORKS ALWAYS — copy-paste this exact function
+// FINAL – WORKS 100% – NO FK NAMES, NO RLS ISSUES, NO [object Object]
 async function fetchOrderDetails(orderId) {
-  // 1. Get the order itself
-  const { data: order, error: err1 } = await supabase
+  // 1. Get the order
+  const { data: order, error: e1 } = await supabase
     .from('orders')
     .select('*')
     .eq('id', orderId)
     .single();
 
-  if (err1 || !order) {
-    console.error('Order not found:', err1);
-    return null;
-  }
+  if (e1 || !order) return null;
 
-  // 2. Get the profile using the UUID stored in customer_id
+  // 2. Get profile
   const { data: profile } = await supabase
     .from('profiles')
     .select('full_name, email, phone, avatar_url')
     .eq('id', order.customer_id)
-    .maybeSingle();   // returns null instead of error if no profile
+    .maybeSingle();
 
-  // 3. Get items + product details
+  // 3. Get items + products
   const { data: items } = await supabase
     .from('order_items')
-    .select(`
-      quantity,
-      price,
-      products (name, image_url)
-    `)
+    .select('quantity, price, products(name, image_url)')
     .eq('order_id', orderId);
 
-  // Put everything together exactly the way your modal expects
+  // Return exactly what your modal expects
   return {
     ...order,
-    profiles: profile || { full_name: 'Customer', email: '', phone: '', avatar_url: null },
+    profiles: profile || { full_name: 'Customer', email: '' },
     order_items: items || []
   };
 }
