@@ -784,21 +784,22 @@ async function loadAnalytics() {
     const days = Number(document.getElementById("dateRange").value) || 30;
     const since = new Date(Date.now() - days * 86400000).toISOString();
 
-    // Pull orders + order items + product category
     const { data: orders, error: ordersError } = await supabase
-      .from("orders")
-      .select(`
-        *,
-        order_items (
-          quantity,
-          price,
-          products (
-            name,
-            category
-          )
-        )
-      `)
-      .gte("created_at", since);
+  .from("orders")
+  .select(`
+    *,
+    order_items (
+      quantity,
+      price,
+      products (
+        name,
+        category_id,
+        categories(name)   -- join to get category name
+      )
+    )
+  `)
+  .gte("created_at", since);
+
 
     if (ordersError) throw ordersError;
 
@@ -868,7 +869,7 @@ async function loadAnalytics() {
     const categoryCounts = {};
     orders.forEach(order => {
       order.order_items?.forEach(item => {
-        const category = item.products?.category || "Uncategorized";
+       const category = item.products?.categories?.name || "Uncategorized";
         categoryCounts[category] = (categoryCounts[category] || 0) + (item.quantity || 0);
       });
     });
