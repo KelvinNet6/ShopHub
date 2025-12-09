@@ -524,43 +524,6 @@ async function getOrderIdFromUrl() {
   }
 })();
 
-async function getOrderIdFromUrl() {
-  // Method 1: From query param ?orderId=123
-  const params = new URLSearchParams(window.location.search);
-  let orderId = params.get('orderId');
-
-  // Method 2: From path like /order/123 or /123
-  if (!orderId) {
-    const match = window.location.pathname.match(/\/(\d+)(\/|$)/);
-    if (match) {
-      orderId = match[1];
-    }
-  }
-
-  // Clean and validate
-  if (!orderId || !/^\d+$/.test(orderId)) {
-    console.error("No valid order ID found in URL");
-    document.body.innerHTML = "<h1>Order Not Found</h1><p>Invalid or missing order ID.</p>";
-    return null;
-  }
-
-  return parseInt(orderId, 10); // guaranteed clean integer
-}
-
-// Call it properly
-(async () => {
-  const orderId = getOrderIdFromUrl();
-  if (!orderId) return;
-
-  const order = await fetchOrderDetails(orderId);
-  if (order) {
-    console.log("Order loaded:", order);
-    // render your order details
-  } else {
-    document.body.innerHTML = "<h1>Order Not Found</h1>";
-  }
-})();
-
 async function fetchOrderDetails(orderId) {
   // Final safety net - should never trigger if getOrderIdFromUrl is used
   if (!Number.isInteger(orderId) || orderId <= 0) {
