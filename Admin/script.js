@@ -75,12 +75,11 @@ async function loadRecentOrders() {
 
 // =====================================
 // CUSTOMERS
-// =====================================
 async function loadCustomers() {
-  // Step 1: Get all orders with shipping_address and customer_id
+  // Step 1: Get all orders with shipping_address
   const { data: orders, error } = await supabase
     .from("orders")
-    .select("customer_id, shipping_address")
+    .select("customer_id, shipping_address, total, created_at")
     .not("shipping_address", "is", null);
 
   if (error) {
@@ -90,48 +89,62 @@ async function loadCustomers() {
 
   if (!orders || orders.length === 0) {
     document.getElementById("totalCustomers").textContent = "0";
-    document.getElementById("customersTableBody").innerHTML = "<tr><td colspan='4'>No customers found</td></tr>";
+    document.getElementById("customersTableBody").innerHTML = `
+      <tr><td colspan="7" class="text-center">No customers found</td></tr>
+    `;
     return;
   }
 
-  // Step 2: Group by customer_id, take FIRST shipping address
+  // Step 2: Group by customer_id → keep first shipping + aggregate totals
   const customerMap = {};
 
   orders.forEach(order => {
     const cid = order.customer_id;
     if (!customerMap[cid]) {
+      const sa = order.shipping_address || {};
       customerMap[cid] = {
         id: cid,
-        ...order.shipping_address, // spread name, email, phone, address, etc.
+        name: sa.name || "",
+        email: sa.email || "",
+        phone: sa.phone || "",
+        address: [sa.address, sa.apt, sa.city, sa.country].filter(Boolean).join(", "),
+        joined: order.created_at,
+        orderCount: 0,
+        totalSpent: 0,
       };
     }
+    customerMap[cid].orderCount += 1;
+    customerMap[cid].totalSpent += Number(order.total) || 0;
   });
 
-  const derivedCustomers = Object.values(customerMap);
+  const derived = Object.values(customerMap);
 
-  // Optional: Enrich with profiles (full_name, role, etc.)
-  const customerIds = derivedCustomers.map(c => c.id);
+  // Step 3: Enrich with profiles (optional)
+  const ids = derived.map(c => c.id);
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, email, role")
-    .in("id", customerIds);
+    .select("id, full_name, email, created_at")
+    .in("id", ids);
 
   const profileMap = {};
-  profiles?.forEach(p => profileMap[p.id] = p);
+  profiles?.forEach(p => (profileMap[p.id] = p));
 
-  // Merge: prefer profile full_name/email if available
-  const finalCustomers = derivedCustomers.map(c => {
-    const profile = profileMap[c.id];
+  // Step 4: Final list with fallbacks
+  const finalCustomers = derived.map(c => {
+    const p = profileMap[c.id];
     return {
       id: c.id,
-      name: profile?.full_name || c.name || "Unknown",
-      email: profile?.email || c.email || "-",
+      name: p?.full_name || c.name || "Unknown",
+      email: p?.email || c.email || "-",
       phone: c.phone || "-",
-      address: c.address || c.city ? `${c.address || ""}, ${c.city || ""}, ${c.country || ""}`.trim().replace(/^,|,$/g, "") : "-",
+      address: c.address || "-",
+      orders: c.orderCount,
+      totalSpent: c.totalSpent.toFixed(2),
+      joined: fmtDate(p?.created_at || c.joined),
     };
   });
 
-  // Update UI
+  // Step 5: Render full table
   document.getElementById("totalCustomers").textContent = finalCustomers.length;
 
   document.getElementById("customersTableBody").innerHTML = finalCustomers
@@ -140,6 +153,9 @@ async function loadCustomers() {
         <td>${c.name}</td>
         <td>${c.email}</td>
         <td>${c.phone}</td>
+        <td>${c.orders}</td>
+        <td>$${c.totalSpent}</td>
+        <td>${c.joined}</td>
         <td>
           <button class="btn view" onclick="openCustomer(${c.id})">
             <i class="fa fa-eye"></i> View
@@ -151,40 +167,47 @@ async function loadCustomers() {
 }
 
 async function openCustomer(id) {
-  // 1. Try to get profile
+  // Get profile (optional)
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, email, created_at")
     .eq("id", id)
-    .single();
+    .single()
+    .catch(() => ({ data: null }));
 
-  // 2. Get all orders for this customer
+  // Get all orders
   const { data: orders } = await supabase
     .from("orders")
     .select("id, total, status, shipping_address, created_at")
     .eq("customer_id", id)
     .order("created_at", { ascending: false });
 
-  // Use first order's shipping address as primary
-  const firstShipping = orders[0]?.shipping_address || {};
+  if (!orders?.length) {
+    alert("No orders found.");
+    return;
+  }
+
+  const firstShipping = orders[0].shipping_address || {};
 
   // Fill modal
   document.getElementById("customerModalName").textContent = profile?.full_name || firstShipping.name || "Unknown";
   document.getElementById("customerModalEmail").textContent = profile?.email || firstShipping.email || "-";
   document.getElementById("customerModalPhone").textContent = firstShipping.phone || "-";
-  document.getElementById("customerModalAddress").textContent = 
-    [firstShipping.address, firstShipping.apt, firstShipping.city, firstShipping.country]
-      .filter(Boolean).join(", ") || "-";
-  document.getElementById("customerModalJoined").textContent = 
-    fmtDate(profile?.created_at || orders[0]?.created_at);
 
-  // Orders summary
+  const addr = [firstShipping.address, firstShipping.apt, firstShipping.city, firstShipping.country]
+    .filter(Boolean).join(", ");
+  document.getElementById("customerModalAddress").textContent = addr || "-";
+
+  document.getElementById("customerModalJoined").textContent = fmtDate(
+    profile?.created_at || orders[0].created_at
+  );
+
   const totalSpent = orders.reduce((s, o) => s + Number(o.total), 0).toFixed(2);
   document.getElementById("customerModalOrders").textContent = orders.length;
   document.getElementById("customerModalSpent").textContent = "$" + totalSpent;
 
   document.getElementById("customerOrdersList").innerHTML = orders
-    .map(o => `<div>#${o.id} — $${o.total} (${o.status})</div>`)
+    .map(o => `<div>#${o.id} — $${o.total} (${o.status}) – ${fmtDate(o.created_at)}</div>`)
     .join("") || "<div>No orders</div>";
 
   document.getElementById("customerModalBg").style.display = "flex";
