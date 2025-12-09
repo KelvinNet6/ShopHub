@@ -46,24 +46,3 @@ document.getElementById('myVaultLink').addEventListener('click', (e) => {
   }
 });
 
-//-------------------------
-async function trackVisitor() {
-  try {
-    // Get public IP
-    const ipRes = await fetch("https://api.ipify.org?format=json");
-    const ipData = await ipRes.json();
-
-    // Insert into Supabase
-    await supabase.from("visitors").insert({
-      ip: ipData.ip,
-      user_agent: navigator.userAgent
-    });
-
-    console.log("Visitor logged:", ipData.ip);
-  } catch (err) {
-    console.error("Visitor log failed:", err);
-  }
-}
-
-// Run automatically on page load
-trackVisitor();
