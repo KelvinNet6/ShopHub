@@ -776,121 +776,163 @@ async function deleteOrder(id) {
   loadToast("Order deleted successfully", "success");
   loadOrders();
 }
-// =====================================
+
 // ANALYTICS
 // =====================================
 async function loadAnalytics() {
-  const days = Number(document.getElementById("dateRange").value);
-  const since = new Date(Date.now() - days * 86400000).toISOString();
+  try {
+    const days = Number(document.getElementById("dateRange").value) || 30;
+    const since = new Date(Date.now() - days * 86400000).toISOString();
 
-  // Pull orders + order items + product category
-  const { data: orders } = await supabase
-    .from("orders")
-    .select("*, order_items(quantity, price, products(category))")
-    .gte("created_at", since);
+    // Pull orders + order items + product category
+    const { data: orders, error: ordersError } = await supabase
+      .from("orders")
+      .select(`
+        *,
+        order_items (
+          quantity,
+          price,
+          products (
+            name,
+            category
+          )
+        )
+      `)
+      .gte("created_at", since);
 
-  // Guard
-  if (!orders || orders.length === 0) {
+    if (ordersError) throw ordersError;
+
+    // Guard against no orders
+    if (!orders || orders.length === 0) {
+      document.getElementById("totalRevenue").textContent = "$0.00";
+      document.getElementById("avgOrderValue").textContent = "$0.00";
+      document.getElementById("conversionRate").textContent = "0%";
+      document.getElementById("monthlyGrowth").textContent = "0%";
+      document.getElementById("topCategory").textContent = "—";
+      return;
+    }
+
+    // -----------------------------------------
+    // 1️⃣ Revenue
+    // Compute from order_items if total is missing
+    // -----------------------------------------
+    const revenue = orders.reduce((sum, order) => {
+      if (order.total) return sum + Number(order.total);
+      const orderTotal = (order.order_items || []).reduce(
+        (s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0),
+        0
+      );
+      return sum + orderTotal;
+    }, 0);
+    document.getElementById("totalRevenue").textContent = `$${revenue.toFixed(2)}`;
+
+    // -----------------------------------------
+    // 2️⃣ Average Order Value
+    // -----------------------------------------
+    const aov = revenue / Math.max(orders.length, 1);
+    document.getElementById("avgOrderValue").textContent = `$${aov.toFixed(2)}`;
+
+    // -----------------------------------------
+    // 3️⃣ Conversion Rate
+    // -----------------------------------------
+    const { data: visitorRows, error: visitorError } = await supabase
+      .from("visitors")
+      .select("id")
+      .gte("created_at", since);
+
+    if (visitorError) throw visitorError;
+
+    const visitors = visitorRows?.length || 0;
+    const conversion = visitors > 0 ? (orders.length / visitors) * 100 : 0;
+    document.getElementById("conversionRate").textContent = `${conversion.toFixed(1)}%`;
+
+    // -----------------------------------------
+    // 4️⃣ Monthly Growth
+    // -----------------------------------------
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+
+    const ordersThisMonth = orders.filter(o => new Date(o.created_at).getMonth() === thisMonth);
+    const ordersLastMonth = orders.filter(o => new Date(o.created_at).getMonth() === lastMonth);
+
+    const growth = ordersLastMonth.length === 0
+      ? 100
+      : ((ordersThisMonth.length - ordersLastMonth.length) / ordersLastMonth.length) * 100;
+
+    document.getElementById("monthlyGrowth").textContent = `${growth.toFixed(1)}%`;
+
+    // -----------------------------------------
+    // 5️⃣ Top Category
+    // -----------------------------------------
+    const categoryCounts = {};
+    orders.forEach(order => {
+      order.order_items?.forEach(item => {
+        const category = item.products?.category || "Uncategorized";
+        categoryCounts[category] = (categoryCounts[category] || 0) + (item.quantity || 0);
+      });
+    });
+
+    const topCategory =
+      Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
+    document.getElementById("topCategory").textContent = topCategory;
+
+    // -----------------------------------------
+    // 6️⃣ Sales Chart
+    // -----------------------------------------
+    const salesChartEl = document.getElementById("salesChart");
+    if (salesChartEl) {
+      new Chart(salesChartEl, {
+        type: "line",
+        data: {
+          labels: orders.map(o => fmtDate(o.created_at)),
+          datasets: [{
+            label: "Sales",
+            data: orders.map(o =>
+              o.total
+                ? Number(o.total)
+                : (o.order_items || []).reduce((s, i) => s + (Number(i.price) || 0) * (Number(i.quantity) || 0), 0)
+            ),
+            borderColor: "#6366f1",
+            tension: 0.4
+          }]
+        }
+      });
+    }
+
+    // -----------------------------------------
+    // 7️⃣ Status Chart
+    // -----------------------------------------
+    const counts = orders.reduce((acc, o) => {
+      acc[o.status] = (acc[o.status] || 0) + 1;
+      return acc;
+    }, {});
+
+    const ordersChartEl = document.getElementById("ordersChart");
+    if (ordersChartEl) {
+      new Chart(ordersChartEl, {
+        type: "bar",
+        data: {
+          labels: Object.keys(counts),
+          datasets: [{
+            data: Object.values(counts),
+            backgroundColor: ["#EF4444", "#3B82F6", "#10B981", "#F59E0B", "#6B7280"]
+          }]
+        }
+      });
+    }
+
+  } catch (err) {
+    console.error("Analytics load failed:", err);
+    // Optional: show fallback values
     document.getElementById("totalRevenue").textContent = "$0.00";
     document.getElementById("avgOrderValue").textContent = "$0.00";
     document.getElementById("conversionRate").textContent = "0%";
     document.getElementById("monthlyGrowth").textContent = "0%";
     document.getElementById("topCategory").textContent = "—";
-    return;
   }
-
-  // -----------------------------------------
-  // 1️⃣ Revenue
-  // -----------------------------------------
-  const revenue = orders.reduce((s, o) => s + Number(o.total || 0), 0);
-  document.getElementById("totalRevenue").textContent = `$${revenue.toFixed(2)}`;
-
-  // -----------------------------------------
-  // 2️⃣ AOV
-  // -----------------------------------------
-  const aov = revenue / Math.max(orders.length, 1);
-  document.getElementById("avgOrderValue").textContent = `$${aov.toFixed(2)}`;
-
-  // -----------------------------------------
-  // 3️⃣ Conversion Rate = orders / visitors
-  // -----------------------------------------
-  const { data: visitorRows } = await supabase
-  .from("visitors")
-  .select("id")
-  .gte("created_at", since);
-
-  const visitors = visitorRows.length;
-  const conversion = visitors > 0 ? (orders.length / visitors) * 100 : 0;
-  document.getElementById("conversionRate").textContent = `${conversion.toFixed(1)}%`;
-
-  // -----------------------------------------
-  // 4️⃣ Monthly Growth
-  // -----------------------------------------
-  const now = new Date();
-  const thisMonth = now.getMonth();
-  const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
-
-  const ordersThisMonth = orders.filter(o => new Date(o.created_at).getMonth() === thisMonth);
-  const ordersLastMonth = orders.filter(o => new Date(o.created_at).getMonth() === lastMonth);
-
-  const growth = ordersLastMonth.length === 0
-    ? 100
-    : ((ordersThisMonth.length - ordersLastMonth.length) / ordersLastMonth.length) * 100;
-
-  document.getElementById("monthlyGrowth").textContent = `${growth.toFixed(1)}%`;
-
-  // -----------------------------------------
-  // 5️⃣ Top Category
-  // -----------------------------------------
-  const categoryCounts = {};
-
-  orders.forEach(order => {
-    order.order_items?.forEach(item => {
-      const category = item.products?.category || "Uncategorized";
-      categoryCounts[category] = (categoryCounts[category] || 0) + item.quantity;
-    });
-  });
-
-  const topCategory =
-    Object.entries(categoryCounts).sort((a, b) => b[1] - a[1])[0]?.[0] || "—";
-
-  document.getElementById("topCategory").textContent = topCategory;
-
-  // -----------------------------------------
-  // 6️⃣ Sales Chart
-  // -----------------------------------------
-  new Chart(document.getElementById("salesChart"), {
-    type: "line",
-    data: {
-      labels: orders.map(o => fmtDate(o.created_at)),
-      datasets: [{
-        label: "Sales",
-        data: orders.map(o => Number(o.total)),
-        borderColor: "#6366f1",
-        tension: 0.4
-      }]
-    }
-  });
-
-  // -----------------------------------------
-  // 7️⃣ Status Chart
-  // -----------------------------------------
-  const counts = orders.reduce((acc, o) => {
-    acc[o.status] = (acc[o.status] || 0) + 1;
-    return acc;
-  }, {});
-
-  new Chart(document.getElementById("ordersChart"), {
-    type: "bar",
-    data: {
-      labels: Object.keys(counts),
-      datasets: [{
-        data: Object.values(counts),
-        backgroundColor: ["#EF4444", "#3B82F6", "#10B981", "#F59E0B", "#6B7280"]
-      }]
-    }
-  });
 }
+
 // =====================================
 
 // =====================================
