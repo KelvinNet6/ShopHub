@@ -487,105 +487,128 @@ function showAddressModal(orderId) {
     modal.style.display = "flex";
   });
 }
-async function getOrderIdFromUrl() {
-  // Method 1: From query param ?orderId=123
-  const params = new URLSearchParams(window.location.search);
-  let orderId = params.get('orderId');
-
-  // Method 2: From path like /order/123 or /123
-  if (!orderId) {
-    const match = window.location.pathname.match(/\/(\d+)(\/|$)/);
-    if (match) {
-      orderId = match[1];
+// SAFE: Only run order view logic on order view pages
+// ===============================================
+document.addEventListener("DOMContentLoaded", async () => {
+  // Only run if we're on a page meant to show a single order (e.g. view-order.html)
+  if (window.location.pathname.includes('order') || new URLSearchParams(location.search).has('orderId')) {
+    const orderId = getOrderIdFromUrl();
+    if (orderId) {
+      const order = await fetchOrderDetails(orderId);
+      if (order) {
+        renderSingleOrderPage(order);
+      } else {
+        document.body.innerHTML = `<div style="text-align:center;padding:100px;font-family:sans-serif;">
+          <h1>Order Not Found</h1>
+          <p>Order #${orderId} does not exist.</p>
+          <a href="orders.html">← Back to Orders</a>
+        </div>`;
+      }
     }
   }
+});
 
-  // Clean and validate
-  if (!orderId || !/^\d+$/.test(orderId)) {
-    console.error("No valid order ID found in URL");
-    document.body.innerHTML = "<h1>Order Not Found</h1><p>Invalid or missing order ID.</p>";
-    return null;
-  }
+// Safe: returns null if no valid ID, never touches document.body
+function getOrderIdFromUrl() {
+  const params = new URLSearchParams(location.search);
+  const id = params.get('orderId');
+  if (id && /^\d+$/.test(id)) return parseInt(id, 10);
 
-  return parseInt(orderId, 10); // guaranteed clean integer
+  const match = location.pathname.match(/\/(\d+)\/?$/);
+  if (match) return parseInt(match[1], 10);
+
+  return null;
 }
 
-// Call it properly
-(async () => {
-  const orderId = getOrderIdFromUrl();
-  if (!orderId) return;
-
-  const order = await fetchOrderDetails(orderId);
-  if (order) {
-    console.log("Order loaded:", order);
-    // render your order details
-  } else {
-    document.body.innerHTML = "<h1>Order Not Found</h1>";
-  }
-})();
-
+// Use Supabase client instead of raw fetch (cleaner + safer)
 async function fetchOrderDetails(orderId) {
-  // Final safety net - should never trigger if getOrderIdFromUrl is used
-  if (!Number.isInteger(orderId) || orderId <= 0) {
-    console.error("Invalid orderId in fetchOrderDetails:", orderId);
+  const { data, error } = await supabase
+    .from('orders')
+    .select(`
+      *,
+      customers (full_name, email),
+      order_items (
+        quantity,
+        price,
+        products (name, image_url)
+      )
+    `)
+    .eq('id', orderId)
+    .single();
+
+  if (error || !data) {
+    console.error("Order not found:", error?.message);
     return null;
   }
-
-  try {
-    const response = await fetch(
-      `https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/orders?id=eq.${orderId}&select=*,order_items(*)`,
-      {
-        headers: {
-          'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE',
-        }
-      }
-    );
-
-    if (!response.ok) {
-      const text = await response.text();
-      console.error("Supabase error:", response.status, text);
-      throw new Error(`HTTP ${response.status}`);
-    }
-
-    const data = await response.json();
-
-    if (!data || data.length === 0) {
-      console.warn("Order not found for ID:", orderId);
-      return null;
-    }
-
-    return data[0]; // Already includes order_items if you have RPC or row-level policy
-
-  } catch (err) {
-    console.error("fetchOrderDetails failed:", err);
-    return null;
-  }
+  return data;
 }
 
-// Function to fetch order items from Supabase
-async function fetchOrderItems(orderId) {
+// Render full order page (only on order view page)
+function renderSingleOrderPage(order) {
+  let address = {};
   try {
-    const response = await fetch(`https://nhyucbgjocmwrkqbjjme.supabase.co/rest/v1/order_items?order_id=eq.${orderId}`, {
-      headers: {
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE', 
-        'Content-Type': 'application/json',
-      }
-    });
+    address = typeof order.shipping_address === 'string'
+      ? JSON.parse(order.shipping_address)
+      : order.shipping_address || {};
+  } catch (e) { /* ignore */ }
 
-    if (!response.ok) {
-      throw new Error(`Failed to fetch order items: ${response.status} ${response.statusText}`);
-    }
+  const itemsHtml = (order.order_items || []).map(item => `
+    <tr>
+      <td style="padding:10px;">
+        ${item.products?.image_url ? `<img src="${item.products.image_url}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;vertical-align:middle;margin-right:10px;">` : ''}
+        ${item.products?.name || 'Unknown Product'}
+      </td>
+      <td style="padding:10px;">${item.quantity}</td>
+      <td style="padding:10px;">$${Number(item.price).toFixed(2)}</td>
+      <td style="padding:10px;">$${(item.quantity * item.price).toFixed(2)}</td>
+    </tr>
+  `).join('');
 
-    const orderItems = await response.json();
-    return orderItems;
+  document.body.innerHTML = `
+    <div style="max-width:900px;margin:40px auto;padding:20px;background:#fff;border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,0.1);font-family:system-ui,sans-serif;">
+      <h1 style="text-align:center;color:#1f2937;">Order #${order.id}</h1>
+      <p style="text-align:center;color:#6b7280;">${new Date(order.created_at).toLocaleString()}</p>
 
-  } catch (error) {
-    console.error("Error fetching order items:", error);
-    return []; // Return an empty array if there is an error
-  }
+      <div style="display:flex;justify-content:space-between;margin:30px 0;">
+        <div>
+          <strong>Status:</strong> 
+          <span style="padding:6px 12px;background:#10b981;color:white;border-radius:20px;text-transform:capitalize;">
+            ${order.status}
+          </span>
+        </div>
+        <div style="text-align:right;">
+          <strong>Total: <span style="font-size:1.8em;color:#6366f1;">$${Number(order.total).toFixed(2)}</span></strong>
+        </div>
+      </div>
+
+      <h2>Shipping Address</h2>
+      <div style="background:#f9fafb;padding:15px;border-radius:8px;">
+        <strong>${address.name || '—'}</strong><br>
+        ${address.address || ''}${address.apt ? ', ' + address.apt : ''}<br>
+        ${address.city || ''}, ${address.postal || ''}, ${address.country || ''}
+      </div>
+
+      <h2 style="margin-top:30px;">Items</h2>
+      <table style="width:100%;border-collapse:collapse;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="padding:12px;text-align:left;">Product</th>
+            <th style="padding:12px;">Qty</th>
+            <th style="padding:12px;">Price</th>
+            <th style="padding:12px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+
+      <div style="text-align:center;margin-top:40px;">
+        <button onclick="window.print()" style="padding:12px 30px;background:#6366f1;color:white;border:none;border-radius:8px;cursor:pointer;font-size:1.1em;">
+          Print Invoice
+        </button>
+      </div>
+    </div>
+  `;
 }
-
 async function showAddressModal(orderId) {
   const modal = document.getElementById("addressModalBg");
   const addressBox = document.getElementById("invoiceAddressBox");
