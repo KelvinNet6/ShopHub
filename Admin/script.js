@@ -520,24 +520,32 @@ function getOrderIdFromUrl() {
   return null;
 }
 
-// Use Supabase client instead of raw fetch (cleaner + safer)
+// CORRECT VERSION — works with your real schema: orders.customer_id → profiles.id
 async function fetchOrderDetails(orderId) {
   const { data, error } = await supabase
     .from('orders')
     .select(`
       *,
-      customers (full_name, email),
-      order_items (
+      profiles!customer_id (
+        full_name,
+        email,
+        phone,
+        avatar_url
+      ),
+      order_items!inner (
         quantity,
         price,
-        products (name, image_url)
+        products!inner (
+          name,
+          image_url
+        )
       )
     `)
     .eq('id', orderId)
     .single();
 
-  if (error || !data) {
-    console.error("Order not found:", error?.message);
+  if (error) {
+    console.error("Order fetch error:", error);
     return null;
   }
   return data;
@@ -609,106 +617,81 @@ function renderSingleOrderPage(order) {
     </div>
   `;
 }
+
 async function showAddressModal(orderId) {
   const modal = document.getElementById("addressModalBg");
-  const addressBox = document.getElementById("invoiceAddressBox");
+  const box = document.getElementById("invoiceAddressBox");
 
-  try {
-    // Fetch the order details
-    const order = await fetchOrderDetails(orderId);
-
-    if (!order) {
-      addressBox.innerHTML = "<p>Unable to load order details.</p>";
-      modal.style.display = "flex";
-      return;
-    }
-
-    const orderItems = order.items;
-    const address = JSON.parse(order.shipping_address); // Assuming the address is a JSON string
-
-    // Check if the address is valid
-    if (!address || typeof address !== "object") {
-      addressBox.innerHTML = "<p>No address available</p>";
-      modal.style.display = "flex";
-      return;
-    }
-
-    // Extract Customer Info
-    const name = address.name || "-";
-    const email = address.email || "-";
-    const phone = address.phone || "-";
-    const street = address.address || "-";
-    const apt = address.apt ? `, ${address.apt}` : "";
-    const city = address.city || "-";
-    const postal = address.postal || "-";
-    const country = address.country || "-";
-    const paymentStatus = address.payment_status || "-";
-    const paymentId = address.payment_id || "-";
-
-    // Generate HTML for the invoice
-    let invoiceHtml = `
-      <div style="margin-bottom:15px;">
-        <strong>Customer:</strong> ${name} <br>
-        <strong>Email:</strong> ${email} <br>
-        <strong>Phone:</strong> ${phone} <br>
-        <strong>Address:</strong> ${street}${apt}, ${city}, ${postal}, ${country} <br>
-        <strong>Payment ID:</strong> ${paymentId} <br>
-        <strong>Payment Status:</strong> ${paymentStatus}
-      </div>
-    `;
-
-    // Generate the items table
-    const itemsHtml = (orderItems || []).map(item => `
-      <tr>
-        <td><img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:4px; margin-right:5px;"> ${item.name}</td>
-        <td>${item.quantity}</td>
-        <td>$${item.price.toFixed(2)}</td>
-        <td>$${(item.price * item.quantity).toFixed(2)}</td>
-      </tr>
-    `).join("");
-
-    // Calculate totals
-    const subtotal = orderItems.reduce((total, item) => total + (item.price * item.quantity), 0).toFixed(2);
-    const discount = 0; // Assuming no discount for now
-    const tax = (subtotal * 0.08).toFixed(2);
-    const total = (parseFloat(subtotal) - discount + parseFloat(tax)).toFixed(2);
-
-    // Add Items Table and Totals to Invoice
-    invoiceHtml += `
-      <div style="margin-top:15px;">
-        <table style="width:100%; border-collapse:collapse;">
-          <thead>
-            <tr style="background:#f3f4f6;">
-              <th style="padding:8px; border:1px solid #ccc;">Product</th>
-              <th style="padding:8px; border:1px solid #ccc;">Qty</th>
-              <th style="padding:8px; border:1px solid #ccc;">Price</th>
-              <th style="padding:8px; border:1px solid #ccc;">Total</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${itemsHtml}
-          </tbody>
-        </table>
-      </div>
-
-      <div style="text-align:right; margin-top:15px;">
-        <div>Subtotal: $${subtotal}</div>
-        <div>Discount: $${discount}</div>
-        <div>Tax: $${tax}</div>
-        <div style="font-weight:700; margin-top:5px;">Total: $${total}</div>
-      </div>
-    `;
-
-    // Insert the generated invoice HTML into the modal
-    addressBox.innerHTML = invoiceHtml;
-
-    // Show the modal
+  const order = await fetchOrderDetails(orderId);
+  if (!order) {
+    box.innerHTML = "<p style='color:#ef4444;'>Order not found or access denied.</p>";
     modal.style.display = "flex";
-  } catch (err) {
-    console.error("Error fetching order details:", err);
-    addressBox.innerHTML = "<p>Unable to load order details.</p>";
-    modal.style.display = "flex";
+    return;
   }
+
+  // Parse shipping address (it's stored as JSON string)
+  let address = {};
+  try {
+    address = typeof order.shipping_address === "string" 
+      ? JSON.parse(order.shipping_address) 
+      : order.shipping_address || {};
+  } catch (e) {
+    address = {};
+  }
+
+  const items = order.order_items || [];
+
+  const itemsHtml = items.map(item => `
+    <tr>
+      <td><img src="${item.products?.image_url || ''}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;margin-right:8px;"> 
+        ${item.products?.name || 'Unknown Product'}
+      </td>
+      <td>${item.quantity}</td>
+      <td>$${Number(item.price).toFixed(2)}</td>
+      <td>$${(item.quantity * item.price).toFixed(2)}</td>
+    </tr>
+  `).join("");
+
+  const subtotal = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
+  const tax = (subtotal * 0.08).toFixed(2); // adjust tax rate if needed
+  const total = (subtotal + parseFloat(tax)).toFixed(2);
+
+  box.innerHTML = `
+    <div style="font-family:system-ui,sans-serif;line-height:1.6;">
+      <h3 style="margin:0 0 15px;">Invoice #${order.id}</h3>
+      <div style="margin-bottom:20px;color:#374151;">
+        <strong>${address.name || order.profiles?.full_name || 'Customer'}</strong><br>
+        ${address.email || order.profiles?.email || ''}<br>
+        ${address.phone || ''}<br><br>
+        <strong>Shipping Address:</strong><br>
+        ${address.address || ''}${address.apt ? ', ' + address.apt : ''}<br>
+        ${address.city || ''}, ${address.postal || ''}<br>
+        ${address.country || ''}
+      </div>
+
+      <table style="width:100%;border-collapse:collapse;margin:20px 0;">
+        <thead>
+          <tr style="background:#f3f4f6;">
+            <th style="padding:10px;text-align:left;">Product</th>
+            <th style="padding:10px;">Qty</th>
+            <th style="padding:10px;">Price</th>
+            <th style="padding:10px;">Total</th>
+          </tr>
+        </thead>
+        <tbody>${itemsHtml}</tbody>
+      </table>
+
+      <div style="text-align:right;font-size:15px;">
+        <div>Subtotal: $${subtotal.toFixed(2)}</div>
+        <div>Tax (8%): $${tax}</div>
+        <div style="font-weight:bold;margin-top:8px;font-size:18px;">
+          Total: $${total}
+        </div>
+      </div>
+    </div>
+  `;
+
+  modal.style.display = "flex";
 }
 
 window.downloadInvoicePDF = function() {
