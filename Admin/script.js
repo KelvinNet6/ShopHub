@@ -74,87 +74,80 @@ async function loadRecentOrders() {
 }
 
 // =====================================
-// CUSTOMERS
 async function loadCustomers() {
-  // Step 1: Get all orders with shipping_address
+  // ----- 1. Pull orders (adjust column name if needed) -----
   const { data: orders, error } = await supabase
     .from("orders")
-    .select("customer_id, shipping_address, total, created_at")
+    .select("customer_id, shipping_address, total, created_at")   // <-- change if column ≠ shipping_address
     .not("shipping_address", "is", null);
 
-  if (error) {
-    console.error("Error loading orders:", error);
-    return;
-  }
-
-  if (!orders || orders.length === 0) {
+  if (error) { console.error(error); return; }
+  if (!orders?.length) {
     document.getElementById("totalCustomers").textContent = "0";
-    document.getElementById("customersTableBody").innerHTML = `
-      <tr><td colspan="7" class="text-center">No customers found</td></tr>
-    `;
+    document.getElementById("customersTableBody").innerHTML =
+      "<tr><td colspan='7' class='text-center'>No customers found</td></tr>";
     return;
   }
 
-  // Step 2: Group by customer_id → keep first shipping + aggregate totals
-  const customerMap = {};
-
-  orders.forEach(order => {
-    const cid = order.customer_id;
-    if (!customerMap[cid]) {
-      const sa = order.shipping_address || {};
-      customerMap[cid] = {
-        id: cid,
-        name: sa.name || "",
-        email: sa.email || "",
-        phone: sa.phone || "",
-        address: [sa.address, sa.apt, sa.city, sa.country].filter(Boolean).join(", "),
-        joined: order.created_at,
-        orderCount: 0,
-        totalSpent: 0,
+  // ----- 2. Aggregate per customer -----
+  const map = {};
+  orders.forEach(o => {
+    const id = o.customer_id;
+    if (!map[id]) {
+      const sa = o.shipping_address || {};               // <-- JSON object
+      map[id] = {
+        id,
+        name:   sa.name   || "",
+        email:  sa.email  || "",
+        phone:  sa.phone  || "",   // <-- THIS LINE IS KEY
+        address: [sa.address, sa.apt, sa.city, sa.country]
+                  .filter(Boolean).join(", "),
+        joined: o.created_at,
+        orders: 0,
+        spent:  0,
       };
     }
-    customerMap[cid].orderCount += 1;
-    customerMap[cid].totalSpent += Number(order.total) || 0;
+    map[id].orders += 1;
+    map[id].spent  += Number(o.total) || 0;
   });
 
-  const derived = Object.values(customerMap);
+  const derived = Object.values(map);
 
-  // Step 3: Enrich with profiles (optional)
+  // ----- 3. Enrich with profiles (optional) -----
   const ids = derived.map(c => c.id);
   const { data: profiles } = await supabase
     .from("profiles")
     .select("id, full_name, email, created_at")
     .in("id", ids);
 
-  const profileMap = {};
-  profiles?.forEach(p => (profileMap[p.id] = p));
+  const pMap = {};
+  profiles?.forEach(p => pMap[p.id] = p);
 
-  // Step 4: Final list with fallbacks
-  const finalCustomers = derived.map(c => {
-    const p = profileMap[c.id];
+  // ----- 4. Final list -----
+  const list = derived.map(c => {
+    const p = pMap[c.id];
     return {
       id: c.id,
-      name: p?.full_name || c.name || "Unknown",
-      email: p?.email || c.email || "-",
-      phone: c.phone || "-",
-      address: c.address || "-",
-      orders: c.orderCount,
-      totalSpent: c.totalSpent.toFixed(2),
+      name:   p?.full_name || c.name  || "–",
+      email:  p?.email     || c.email || "–",
+      phone:  c.phone      || "–",                 // <-- now always from shipping_address
+      address:c.address    || "–",
+      orders: c.orders,
+      spent:  c.spent.toFixed(2),
       joined: fmtDate(p?.created_at || c.joined),
     };
   });
 
-  // Step 5: Render full table
-  document.getElementById("totalCustomers").textContent = finalCustomers.length;
-
-  document.getElementById("customersTableBody").innerHTML = finalCustomers
+  // ----- 5. Render -----
+  document.getElementById("totalCustomers").textContent = list.length;
+  document.getElementById("customersTableBody").innerHTML = list
     .map(c => `
       <tr>
         <td>${c.name}</td>
         <td>${c.email}</td>
-        <td>${c.phone}</td>
+        <td>${c.phone}</td>        <!-- PHONE IS HERE -->
         <td>${c.orders}</td>
-        <td>$${c.totalSpent}</td>
+        <td>$${c.spent}</td>
         <td>${c.joined}</td>
         <td>
           <button class="btn view" onclick="openCustomer(${c.id})">
@@ -162,12 +155,11 @@ async function loadCustomers() {
           </button>
         </td>
       </tr>
-    `)
-    .join("");
+    `).join("");
 }
 
 async function openCustomer(id) {
-  // Get profile (optional)
+  // Profile (optional)
   const { data: profile } = await supabase
     .from("profiles")
     .select("full_name, email, created_at")
@@ -175,36 +167,31 @@ async function openCustomer(id) {
     .single()
     .catch(() => ({ data: null }));
 
-  // Get all orders
+  // All orders
   const { data: orders } = await supabase
     .from("orders")
     .select("id, total, status, shipping_address, created_at")
     .eq("customer_id", id)
     .order("created_at", { ascending: false });
 
-  if (!orders?.length) {
-    alert("No orders found.");
-    return;
-  }
+  if (!orders?.length) { alert("No orders"); return; }
 
-  const firstShipping = orders[0].shipping_address || {};
+  const sa = orders[0].shipping_address || {};
 
-  // Fill modal
-  document.getElementById("customerModalName").textContent = profile?.full_name || firstShipping.name || "Unknown";
-  document.getElementById("customerModalEmail").textContent = profile?.email || firstShipping.email || "-";
-  document.getElementById("customerModalPhone").textContent = firstShipping.phone || "-";
-
-  const addr = [firstShipping.address, firstShipping.apt, firstShipping.city, firstShipping.country]
-    .filter(Boolean).join(", ");
-  document.getElementById("customerModalAddress").textContent = addr || "-";
+  document.getElementById("customerModalName").textContent   = profile?.full_name || sa.name || "–";
+  document.getElementById("customerModalEmail").textContent  = profile?.email     || sa.email || "–";
+  document.getElementById("customerModalPhone").textContent  = sa.phone || "–";   // PHONE
+  document.getElementById("customerModalAddress").textContent = [
+    sa.address, sa.apt, sa.city, sa.country
+  ].filter(Boolean).join(", ") || "–";
 
   document.getElementById("customerModalJoined").textContent = fmtDate(
     profile?.created_at || orders[0].created_at
   );
 
-  const totalSpent = orders.reduce((s, o) => s + Number(o.total), 0).toFixed(2);
+  const spent = orders.reduce((s, o) => s + Number(o.total), 0).toFixed(2);
   document.getElementById("customerModalOrders").textContent = orders.length;
-  document.getElementById("customerModalSpent").textContent = "$" + totalSpent;
+  document.getElementById("customerModalSpent").textContent  = "$" + spent;
 
   document.getElementById("customerOrdersList").innerHTML = orders
     .map(o => `<div>#${o.id} — $${o.total} (${o.status}) – ${fmtDate(o.created_at)}</div>`)
@@ -212,7 +199,6 @@ async function openCustomer(id) {
 
   document.getElementById("customerModalBg").style.display = "flex";
 }
-
 // =====================================
 // PRODUCTS (with image upload)
 // =====================================
