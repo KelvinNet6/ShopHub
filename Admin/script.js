@@ -525,7 +525,7 @@ async function fetchOrderDetails(orderId) {
     .from('orders')
     .select(`
       *,
-      profiles!orders_customer_id_fkey (
+      profiles!fk_customer_profile (
         full_name, email, phone, avatar_url
       ),
       order_items (
