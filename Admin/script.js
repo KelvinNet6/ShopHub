@@ -1011,11 +1011,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// STATUS FILTER ONLY (Orders page only)
 document.addEventListener("DOMContentLoaded", () => {
   const statusFilter = document.getElementById("statusFilter");
 
-  if (!statusFilter) return; // not on orders page or status filter doesn't exist
+  if (!statusFilter) return; // not on the orders page or status filter doesn't exist
 
   const tableBody = document.getElementById("ordersTableBody");
   if (!tableBody) return;
@@ -1035,8 +1034,9 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
       }
 
-      const statusCell = row.querySelector(".status");
-      const statusText = statusCell ? statusCell.textContent.toLowerCase() : "";
+      // Status is in the 7th column (index 6)
+      const statusCell = row.querySelector("td:nth-child(7)");
+      const statusText = statusCell ? statusCell.textContent.trim().toLowerCase() : "";
 
       const matchesStatus = selectedStatus === "all" || statusText === selectedStatus;
 
@@ -1056,7 +1056,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const headerCols = tableBody.closest("table").querySelector("thead th").length;
       const noResultsRow = document.createElement("tr");
       noResultsRow.className = "no-results-row";
-      noResultsRow.innerHTML = `
+      noResultsRow.innerHTML = ` 
         <td colspan="${headerCols}" style="text-align:center; padding:40px; color:#94a3b8; font-style:italic;">
           No orders found with status "${selectedStatus}"
         </td>`;
