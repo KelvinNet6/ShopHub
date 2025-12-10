@@ -50,7 +50,7 @@ async function loadDashboard() {
   document.getElementById("sales").textContent = `$${revenue.toFixed(2)}`;
   document.getElementById("orders").textContent = orders.length;
   document.getElementById("products").textContent = products.length;
-  document.getElementById("profiles").textContent = customers.length;
+  document.getElementById("profiles").textContent = profiles.length;
 
   loadRecentOrders();
 }
