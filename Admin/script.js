@@ -473,7 +473,6 @@ async function renderOrders() {
   </button>
 </td>
         <td class="actions">
-          <button class="btn view" onclick="openOrder(${o.id})"><i class="fa fa-eye"></i></button>
           <button class="btn edit" onclick="editOrder(${o.id})"><i class="fa fa-edit"></i></button>
           <button class="btn delete" onclick="deleteOrder(${o.id})"><i class="fa fa-trash"></i></button>
         </td>
@@ -725,48 +724,96 @@ async function updateOrderStatus(id,status) {
   loadOrders();
 }
 
-// Edit Order (opens modal with form)
+// EDIT ORDER – FULLY FIXED & TESTED
 async function editOrder(id) {
-  const { data: order } = await supabase.from("orders").select("*").eq("id", id).single();
+  // 1. Fetch order WITH customer data
+  const { data: order, error } = await supabase
+    .from("orders")
+    .select("*, customers:customer_id (full_name, email)")  // This is crucial!
+    .eq("id", id)
+    .single();
 
-  // Reuse the same modal as View, but make fields editable
-  document.getElementById("modalOrderId").textContent = `#${order.id} (Editing)`;
-  document.getElementById("modalCustomer").innerHTML = `<strong>Customer:</strong> ${order.customers.name}`;
-  document.getElementById("modalEmail").innerHTML = `<strong>Email:</strong> ${order.customers.email}`;
-  document.getElementById("modalDate").textContent = fmtDate(order.created_at);
+  if (error || !order) {
+    alert("Order not found or access denied.");
+    console.error(error);
+    return;
+  }
+
+  // 2. Fill modal with data
+  document.getElementById("modalOrderId").textContent = `Order #${order.id} (Editing)`;
   
-  // Make status editable
+  document.getElementById("modalCustomer").innerHTML = `
+    <strong>Customer:</strong> ${order.customers?.full_name || 'Unknown Customer'}
+  `;
+  
+  document.getElementById("modalEmail").innerHTML = `
+    <strong>Email:</strong> ${order.customers?.email || '—'}
+  `;
+  
+  document.getElementById("modalDate").textContent = fmtDate(order.created_at);
+
+  // 3. Editable Shipping Address
+  const addressText = typeof order.shipping_address === "string"
+    ? order.shipping_address
+    : JSON.stringify(order.shipping_address, null, 2);
+
   document.getElementById("modalAddress").innerHTML = `
     <strong>Shipping Address:</strong><br>
-    <textarea id="editShippingAddress" style="width:100%;padding:8px;margin-top:5px;">${order.shipping_address || ''}</textarea>
+    <textarea id="editShippingAddress" style="width:100%; height:120px; padding:10px; margin-top:8px; border:1px solid #ccc; border-radius:6px; font-family: monospace; font-size:14px;">
+${addressText.trim()}
+    </textarea>
+    <small style="color:#64748b;">Edit as plain text or JSON</small>
   `;
 
-  const select = document.getElementById("statusSelect");
-  select.innerHTML = ["pending","processing","shipped","delivered","cancelled"]
-    .map(s => `<option value="${s}" ${order.status===s?"selected":""}>${s}</option>`).join("");
+  // 4. Status dropdown
+  const statusSelect = document.getElementById("statusSelect");
+  statusSelect.innerHTML = ["pending", "processing", "shipped", "delivered", "cancelled"]
+    .map(s => `<option value="${s}" ${order.status === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`)
+    .join("");
 
-  // Change "View" button to "Save Changes"
-  const saveBtn = document.createElement("button");
-  saveBtn.textContent = "Save Changes";
-  saveBtn.className = "btn primary";
-  saveBtn.onclick = async () => {
-    await supabase.from("orders").update({
-      status: select.value,
-      shipping_address: document.getElementById("editShippingAddress").value
-    }).eq("id", id);
+  // 5. Replace footer with Save + Cancel buttons
+  let modalFooter = document.querySelector("#modalBg .modal-footer");
+  if (!modalFooter) {
+    modalFooter = document.createElement("div");
+    modalFooter.className = "modal-footer";
+    modalFooter.style.cssText = "margin-top: 20px; text-align: right; padding-top: 15px; border-top: 1px solid #eee;";
+    document.querySelector("#modalBg .modal-content").appendChild(modalFooter);
+  }
+
+  modalFooter.innerHTML = `
+    <button type="button" class="btn" style="margin-right:8px;" onclick="closeAllModals()">Cancel</button>
+    <button type="button" class="btn primary" id="saveOrderChanges">
+      Save Changes
+    </button>
+  `;
+
+  // 6. Attach save handler (only once!)
+  document.getElementById("saveOrderChanges").onclick = async () => {
+    const newStatus = statusSelect.value;
+    const newAddress = document.getElementById("editShippingAddress").value.trim();
+
+    const { error: updateError } = await supabase
+      .from("orders")
+      .update({
+        status: newStatus,
+        shipping_address: newAddress  // Save as string (your current format)
+      })
+      .eq("id", id);
+
+    if (updateError) {
+      alert("Failed to update order: " + updateError.message);
+      console.error(updateError);
+      return;
+    }
+
     closeAllModals();
-    loadOrders();
+    renderOrders(); // or loadOrders() + render
+    showToast("Order updated successfully!", "success");
   };
 
-  // Replace modal footer
-  const modalFooter = document.querySelector("#modalBg .modal-footer") || document.createElement("div");
-  modalFooter.innerHTML = "";
-  modalFooter.appendChild(saveBtn);
-  document.querySelector("#modalBg .modal-content").appendChild(modalFooter);
-
+  // 7. Show modal
   document.getElementById("modalBg").style.display = "flex";
 }
-
 // Delete Order
 async function deleteOrder(id) {
   if (!confirm(`Delete Order #${id} permanently? This cannot be undone.`)) return;
