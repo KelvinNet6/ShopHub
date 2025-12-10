@@ -916,3 +916,56 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// GLOBAL SEARCH FOR ALL TABLES (Customers / Products / Orders)
+document.addEventListener("DOMContentLoaded", () => {
+  const searchInput = document.getElementById("searchInput");
+  if (!searchInput) return;
+
+  searchInput.addEventListener("input", (e) => {
+    const query = e.target.value.toLowerCase().trim();
+    const page = location.pathname.split("/").pop();
+
+    // Determine which table to filter
+    let tableBody;
+    if (page === "customers.html") {
+      tableBody = document.getElementById("customersTableBody");
+    } else if (page === "products.html") {
+      tableBody = document.getElementById("productTableBody");
+    } else if (page === "orders.html") {
+      tableBody = document.getElementById("ordersTableBody");
+    } else {
+      return;
+    }
+
+    if (!tableBody) return;
+
+    const rows = tableBody.querySelectorAll("tr");
+
+    rows.forEach(row => {
+      const text = row.textContent.toLowerCase();
+      const matches = text.includes(query);
+      row.style.display = matches ? "" : "none";
+    });
+
+    // Optional: Show "No results" row if nothing matches
+    const visibleRows = Array.from(rows).filter(r => r.style.display !== "none");
+    if (visibleRows.length === 0 && query !== "") {
+      // Remove existing "no results" row if exists
+      const existing = tableBody.querySelector(".no-results-row");
+      if (existing) existing.remove();
+
+      const cols = tableBody.closest("table").querySelector("thead tr").children.length;
+      const noResultsRow = document.createElement("tr");
+      noResultsRow.className = "no-results-row";
+      noResultsRow.innerHTML = `<td colspan="${cols}" style="text-align:center; color:#94a3b8; padding:40px 0; font-style:italic;">
+        No results found for "<strong>${e.target.value}</strong>"
+      </td>`;
+      tableBody.appendChild(noResultsRow);
+    } else {
+      // Remove "no results" row when there are matches or query is cleared
+      const noResultsRow = tableBody.querySelector(".no-results-row");
+      if (noResultsRow) noResultsRow.remove();
+    }
+  });
+});
