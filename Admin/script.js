@@ -39,10 +39,10 @@ document.getElementById("closeCustomerModal")?.addEventListener("click", closeAl
 // DASHBOARD
 // =====================================
 async function loadDashboard() {
-  const [{ data: orders }, { data: products }, { data: customers }] = await Promise.all([
+  const [{ data: orders }, { data: products }, { data: profiles }] = await Promise.all([
     supabase.from("orders").select("total"),
     supabase.from("products").select("id"),
-    supabase.from("customers").select("id")
+    supabase.from("profiles").select("id")
   ]);
 
   const revenue = orders.reduce((s, o) => s + Number(o.total), 0);
@@ -50,7 +50,7 @@ async function loadDashboard() {
   document.getElementById("sales").textContent = `$${revenue.toFixed(2)}`;
   document.getElementById("orders").textContent = orders.length;
   document.getElementById("products").textContent = products.length;
-  document.getElementById("customers").textContent = customers.length;
+  document.getElementById("profiles").textContent = customers.length;
 
   loadRecentOrders();
 }
