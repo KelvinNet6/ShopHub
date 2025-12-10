@@ -724,71 +724,62 @@ async function updateOrderStatus(id,status) {
   loadOrders();
 }
 
-// EDIT ORDER – FULLY FIXED & TESTED
+// EDIT ORDER — FULLY FIXED FOR YOUR CURRENT HTML
 async function editOrder(id) {
-  // 1. Fetch order WITH customer data
   const { data: order, error } = await supabase
     .from("orders")
-    .select("*, customers:customer_id (full_name, email)")  // This is crucial!
+    .select(`
+      *,
+      customers:customer_id (full_name, email)
+    `)
     .eq("id", id)
     .single();
 
   if (error || !order) {
-    alert("Order not found or access denied.");
+    alert("Order not found!");
     console.error(error);
     return;
   }
 
-  // 2. Fill modal with data
-  document.getElementById("modalOrderId").textContent = `Order #${order.id} (Editing)`;
-  
-  document.getElementById("modalCustomer").innerHTML = `
-    <strong>Customer:</strong> ${order.customers?.full_name || 'Unknown Customer'}
-  `;
-  
-  document.getElementById("modalEmail").innerHTML = `
-    <strong>Email:</strong> ${order.customers?.email || '—'}
-  `;
-  
+  // Fill basic info
+  document.getElementById("modalOrderId").textContent = `#${order.id}`;
+  document.getElementById("modalCustomer").textContent = order.customers?.full_name || "Unknown";
+  document.getElementById("modalEmail").textContent = order.customers?.email || "—";
   document.getElementById("modalDate").textContent = fmtDate(order.created_at);
 
-  // 3. Editable Shipping Address
-  const addressText = typeof order.shipping_address === "string"
-    ? order.shipping_address
+  // Shipping Address → Editable Textarea
+  const addr = typeof order.shipping_address === "string" 
+    ? order.shipping_address 
     : JSON.stringify(order.shipping_address, null, 2);
 
   document.getElementById("modalAddress").innerHTML = `
     <strong>Shipping Address:</strong><br>
-    <textarea id="editShippingAddress" style="width:100%; height:120px; padding:10px; margin-top:8px; border:1px solid #ccc; border-radius:6px; font-family: monospace; font-size:14px;">
-${addressText.trim()}
+    <textarea id="editShippingAddress" style="width:100%; height:100px; margin-top:8px; padding:10px; border:1px solid #ddd; border-radius:6px; font-family: monospace;">
+${addr.trim()}
     </textarea>
-    <small style="color:#64748b;">Edit as plain text or JSON</small>
   `;
 
-  // 4. Status dropdown
+  // Status Select
   const statusSelect = document.getElementById("statusSelect");
-  statusSelect.innerHTML = ["pending", "processing", "shipped", "delivered", "cancelled"]
-    .map(s => `<option value="${s}" ${order.status === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`)
-    .join("");
+  const statuses = ["pending", "processing", "shipped", "delivered", "cancelled"];
+  statusSelect.innerHTML = statuses.map(s => 
+    `<option value="${s}" ${order.status === s ? "selected" : ""}>${s.charAt(0).toUpperCase() + s.slice(1)}</option>`
+  ).join("");
 
-  // 5. Replace footer with Save + Cancel buttons
-  let modalFooter = document.querySelector("#modalBg .modal-footer");
-  if (!modalFooter) {
-    modalFooter = document.createElement("div");
-    modalFooter.className = "modal-footer";
-    modalFooter.style.cssText = "margin-top: 20px; text-align: right; padding-top: 15px; border-top: 1px solid #eee;";
-    document.querySelector("#modalBg .modal-content").appendChild(modalFooter);
+  // === INJECT SAVE BUTTON (since you don't have .modal-footer) ===
+  const modal = document.querySelector("#modalBg .modal");
+  let saveBtn = modal.querySelector("#saveOrderBtn");
+  if (!saveBtn) {
+    saveBtn = document.createElement("button");
+    saveBtn.id = "saveOrderBtn";
+    saveBtn.className = "btn primary";
+    saveBtn.textContent = "Save Changes";
+    saveBtn.style.marginTop = "20px";
+    modal.appendChild(saveBtn);
   }
 
-  modalFooter.innerHTML = `
-    <button type="button" class="btn" style="margin-right:8px;" onclick="closeAllModals()">Cancel</button>
-    <button type="button" class="btn primary" id="saveOrderChanges">
-      Save Changes
-    </button>
-  `;
-
-  // 6. Attach save handler (only once!)
-  document.getElementById("saveOrderChanges").onclick = async () => {
+  // Attach save logic
+  saveBtn.onclick = async () => {
     const newStatus = statusSelect.value;
     const newAddress = document.getElementById("editShippingAddress").value.trim();
 
@@ -796,23 +787,26 @@ ${addressText.trim()}
       .from("orders")
       .update({
         status: newStatus,
-        shipping_address: newAddress  // Save as string (your current format)
+        shipping_address: newAddress || null
       })
       .eq("id", id);
 
     if (updateError) {
-      alert("Failed to update order: " + updateError.message);
-      console.error(updateError);
+      alert("Update failed: " + updateError.message);
       return;
     }
 
     closeAllModals();
-    renderOrders(); // or loadOrders() + render
-    showToast("Order updated successfully!", "success");
+    renderOrders(); // Refresh table
+    alert("Order updated successfully!");
   };
 
-  // 7. Show modal
+  // Show modal
   document.getElementById("modalBg").style.display = "flex";
+}
+
+function closeModal() {
+  document.getElementById("modalBg").style.display = "none";
 }
 // Delete Order
 async function deleteOrder(id) {
