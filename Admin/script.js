@@ -969,3 +969,70 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
+// STATUS FILTER + SEARCH COMBO (Orders page only)
+document.addEventListener("DOMContentLoaded", () => {
+  const statusFilter = document.getElementById("statusFilter");
+  const searchInput = document.getElementById("searchInput");
+
+  if (!statusFilter && !searchInput) return; // not on orders page
+
+  const tableBody = document.getElementById("ordersTableBody");
+  if (!tableBody) return;
+
+  const rows = tableBody.querySelectorAll("tr");
+
+  // Main filter function (called on every change)
+  function applyFilters() {
+    const selectedStatus = statusFilter?.value || "all";
+    const query = (searchInput?.value || "").toLowerCase().trim();
+
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      // Skip "no results" or "no orders" rows
+      if (row.querySelector(".no-results-row, td[colspan]")) {
+        row.style.display = "none";
+        return;
+      }
+
+      const statusCell = row.querySelector(".status");
+      const statusText = statusCell ? statusCell.textContent.toLowerCase() : "";
+      const rowText = row.textContent.toLowerCase();
+
+      const matchesStatus = selectedStatus === "all" || statusText === selectedStatus;
+      const matchesSearch = query === "" || rowText.includes(query);
+
+      if (matchesStatus && matchesSearch) {
+        row.style.display = "";
+        visibleCount++;
+      } else {
+        row.style.display = "none";
+      }
+    });
+
+    // Show "No results" if nothing matches
+    const existingNoResults = tableBody.querySelector(".no-results-row");
+    if (existingNoResults) existingNoResults.remove();
+
+    if (visibleCount === 0) {
+      const headerCols = tableBody.closest("table").querySelector("thead th").length;
+      const noResultsRow = document.createElement("tr");
+      noResultsRow.className = "no-results-row";
+      noResultsRow.innerHTML = `
+        <td colspan="${headerCols}" style="text-align:center; padding:40px; color:#94a3b8; font-style:italic;">
+          ${query || selectedStatus !== "all" 
+            ? `No orders found matching your filters` 
+            : `No orders yet`}
+        </td>`;
+      tableBody.appendChild(noResultsRow);
+    }
+  }
+
+  // Trigger filter on change
+  if (statusFilter) statusFilter.addEventListener("change", applyFilters);
+  if (searchInput) searchInput.addEventListener("input", applyFilters);
+
+  // Run once on load (in case you pre-select a status via URL or something)
+  applyFilters();
+});
