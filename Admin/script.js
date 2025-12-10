@@ -1011,12 +1011,11 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// STATUS FILTER + SEARCH COMBO (Orders page only)
+// STATUS FILTER ONLY (Orders page only)
 document.addEventListener("DOMContentLoaded", () => {
   const statusFilter = document.getElementById("statusFilter");
-  const searchInput = document.getElementById("searchInput");
 
-  if (!statusFilter && !searchInput) return; // not on orders page
+  if (!statusFilter) return; // not on orders page or status filter doesn't exist
 
   const tableBody = document.getElementById("ordersTableBody");
   if (!tableBody) return;
@@ -1025,9 +1024,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Main filter function (called on every change)
   function applyFilters() {
-    const selectedStatus = statusFilter?.value || "all";
-    const query = (searchInput?.value || "").toLowerCase().trim();
-
+    const selectedStatus = statusFilter.value || "all";
+    
     let visibleCount = 0;
 
     rows.forEach(row => {
@@ -1039,12 +1037,10 @@ document.addEventListener("DOMContentLoaded", () => {
 
       const statusCell = row.querySelector(".status");
       const statusText = statusCell ? statusCell.textContent.toLowerCase() : "";
-      const rowText = row.textContent.toLowerCase();
 
       const matchesStatus = selectedStatus === "all" || statusText === selectedStatus;
-      const matchesSearch = query === "" || rowText.includes(query);
 
-      if (matchesStatus && matchesSearch) {
+      if (matchesStatus) {
         row.style.display = "";
         visibleCount++;
       } else {
@@ -1062,17 +1058,14 @@ document.addEventListener("DOMContentLoaded", () => {
       noResultsRow.className = "no-results-row";
       noResultsRow.innerHTML = `
         <td colspan="${headerCols}" style="text-align:center; padding:40px; color:#94a3b8; font-style:italic;">
-          ${query || selectedStatus !== "all" 
-            ? `No orders found matching your filters` 
-            : `No orders yet`}
+          No orders found with status "${selectedStatus}"
         </td>`;
       tableBody.appendChild(noResultsRow);
     }
   }
 
   // Trigger filter on change
-  if (statusFilter) statusFilter.addEventListener("change", applyFilters);
-  if (searchInput) searchInput.addEventListener("input", applyFilters);
+  statusFilter.addEventListener("change", applyFilters);
 
   // Run once on load (in case you pre-select a status via URL or something)
   applyFilters();
