@@ -41,31 +41,32 @@
     /* Products Grid – PERFECT FIT */
     .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
     .products-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.8rem; padding-bottom: 5rem; }
-    
-  /* PERFECT CARD – NO OVERLAPPING BUTTONS */
-   .product-card {
+
+    /*---------------------------Product Card--------------------------*/
+  .product-card {
       position: relative;
       border-radius: var(--radius);
       overflow: hidden;
-      background: #000;
-      box-shadow: 0 8px 30px rgba(0,0,0,0.6);
+      background: #000;          /* ← exactly the same as body */
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
       transition: var(--transition);
       cursor: pointer;
     }
     .product-card:hover {
       transform: translateY(-12px);
-      box-shadow: 0 30px 70px rgba(99,102,241,0.45);
+      box-shadow: 0 32px 80px rgba(99,102,241,0.45);
     }
 
     .product-image {
       width: 100%;
       height: 420px;
-      background: #111;
+      background: #000;          /* also pure black fallback */
     }
     .product-image img {
       width: 100%;
       height: 100%;
       object-fit: contain;
+      background: #000;
       transition: transform 0.8s ease;
     }
     .product-card:hover .product-image img { transform: scale(1.05); }
@@ -73,7 +74,7 @@
     .product-overlay {
       position: absolute;
       inset: 0;
-      background: linear-gradient(180deg, transparent 10%, rgba(0,0,0,0.95) 80%);
+      background: linear-gradient(180deg, transparent 10%, rgba(0,0,0,0.96) 80%);
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
@@ -100,19 +101,19 @@
       margin-bottom: 1.3rem;
     }
 
-    /* SMALLER, CLEANER BUTTONS */
+    /* SMALL & CLEAN BUTTONS */
     .product-actions {
       display: flex;
       justify-content: center;
       gap: 1rem;
     }
     .action-btn {
-      padding: 0.65rem 1.3rem;     /* reduced from 0.9rem */
+      padding: 0.65rem 1.3rem;
       border-radius: 50px;
       font-weight: 800;
-      font-size: 0.82rem;         /* smaller text */
+      font-size: 0.82rem;
       letter-spacing: 0.8px;
-      min-width: 110px;           /* keeps them balanced */
+      min-width: 110px;
       transition: var(--transition);
     }
     .view-btn {
