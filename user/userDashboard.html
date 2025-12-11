@@ -199,26 +199,28 @@
       // ===================================================================
       // 3. FLOATING CHECKOUT BUTTON
       // ===================================================================
-      const updateFloating = () => {
-        const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
-        const el = document.getElementById("floating-checkout");
-        const badge = document.getElementById("floating-count-badge");
-        const totalEl = document.getElementById("floating-total");
+     const updateFloating = () => {
+  const cart = JSON.parse(localStorage.getItem("shophub_cart") || "[]");
+  const el = document.getElementById("floating-checkout");
+  const badge = document.getElementById("floating-count-badge");
+  const totalEl = document.getElementById("floating-total");
 
-        const count = cart.reduce((s,i) => s + (i.quantity||0), 0);
-        if (count === 0) {
-          el.classList.remove("visible");
-          return;
-        }
+  const count = cart.reduce((s, i) => s + (i.quantity || 0), 0);
+  const total = cart.reduce((s, i) => s + i.price * (i.quantity || 0), 0).toFixed(2);
 
-        const total = cart.reduce((s,i) => s + i.price*i.quantity, 0);
-        badge.textContent = count;
-        totalEl.textContent = "$" + total.toFixed(2);
-        el.classList.add("visible");
-      };
+  if (count === 0) {
+    el.classList.remove("visible");
+    return;
+  }
 
-      updateFloating();
-      window.updateFloatingCheckout = updateFloating; // so other pages can call it
+  // Only runs if there are items
+  badge.textContent = count;
+  totalEl.textContent = "$" + total;
+  el.classList.add("visible"); // Now this runs!
+};
+
+updateFloating();
+window.updateFloatingCheckout = updateFloating;
 
     })();
   </script>
