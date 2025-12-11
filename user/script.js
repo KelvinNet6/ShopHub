@@ -188,3 +188,51 @@
 
   console.log("ShopHub is ready – everything loaded from one file");
 })();
+
+// =====================================================
+// UPDATE USER INFO INSIDE NAVIGATION
+// =====================================================
+async function updateNavUser() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+
+    const avatar = document.getElementById("navAvatar");
+    const nameEl = document.getElementById("navUserName");
+    const emailEl = document.getElementById("navUserEmail");
+
+    if (!avatar || !nameEl || !emailEl) return; // nav not loaded yet
+
+    if (!user) {
+      avatar.textContent = "?";
+      nameEl.textContent = "Guest";
+      emailEl.textContent = "Not signed in";
+      return;
+    }
+
+    // Fetch profile if exists
+    let { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+
+    const fullName = profile?.full_name || user.email.split("@")[0];
+    const initials = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+
+    avatar.textContent = initials;
+    nameEl.textContent = fullName;
+    emailEl.textContent = user.email;
+
+  } catch (err) {
+    console.error("Nav user update failed:", err);
+  }
+}
+
+// keep checking until nav loads
+const navObserver = new MutationObserver(() => {
+  if (document.getElementById("navAvatar")) {
+    updateNavUser();
+    navObserver.disconnect();
+  }
+});
+navObserver.observe(document.body, { childList: true, subtree: true });
