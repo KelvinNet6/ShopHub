@@ -107,17 +107,25 @@
   // ============================================================
   // 2. NOW load nav.html — safe because logoutUser exists
   // ============================================================
-  try {
-    const navRes = await fetch('nav.html');
-    if (!navRes.ok) throw new Error("Navigation failed to load");
+(async () => {
+  // Wait for nav to exist
+  const navRes = await fetch('nav.html');
+  const navHtml = await navRes.text();
+  document.getElementById('global-navigation').innerHTML = navHtml;
 
-    const navHtml = await navRes.text();
-    document.getElementById('global-navigation').innerHTML = navHtml;
-
-    console.log("nav.html loaded ✔");
-  } catch (e) {
-    console.warn("Failed to load nav.html:", e);
+  // Initialize nav user update
+  if (!window.navObserverInitialized) {
+    const navObserver = new MutationObserver(() => {
+      if (document.getElementById("navAvatar")) {
+        updateNavUser();
+        navObserver.disconnect();
+      }
+    });
+    navObserver.observe(document.body, { childList: true, subtree: true });
+    window.navObserverInitialized = true;
   }
+})();
+
       // 2. SUPABASE + ORDERS LOGIC
       // ===================================================================
       const supabaseClient = supabase.createClient(
