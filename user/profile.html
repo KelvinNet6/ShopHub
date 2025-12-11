@@ -314,8 +314,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.0.0/dist/umd/supabase.js"></script>
 
-<script>
-  // ONLY NAVIGATION LOADER — everything else moved to profile.js
+<script>// Same nav loader as all your pages
   async function loadFile(url) {
     const res = await fetch(url);
     if (!res.ok) return console.error(`Failed to load ${url}`);
@@ -326,7 +325,6 @@
     const navHtml = await loadFile('nav.html');
     if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
 
-    // Re-attach scripts from nav.html
     document.querySelectorAll('#global-navigation script[src]').forEach(old => {
       const script = document.createElement('script');
       script.src = old.src;
@@ -335,7 +333,6 @@
       old.remove();
     });
 
-    // Load shared scripts
     if (!window.shopHubScriptsLoaded) {
       const script = document.createElement('script');
       script.src = 'script.js';
