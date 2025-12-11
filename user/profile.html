@@ -313,32 +313,39 @@
   }
 </style>
 
-<script>// Same nav loader as all your pages
-  async function loadFile(url) {
-    const res = await fetch(url);
-    if (!res.ok) return console.error(`Failed to load ${url}`);
-    return await res.text();
+<script>
+async function loadFile(url) {
+  const res = await fetch(url);
+  if (!res.ok) return console.error(`Failed to load ${url}`);
+  return await res.text();
+}
+
+(async () => {
+  // Load NAV HTML
+  const navHtml = await loadFile('nav.html');
+  document.getElementById('global-navigation').innerHTML = navHtml;
+
+  // Wait until the Supabase library is REALLY available
+  await new Promise(resolve => {
+    if (window.Supabase) return resolve();
+    const check = setInterval(() => {
+      if (window.Supabase) {
+        clearInterval(check);
+        resolve();
+      }
+    }, 20);
+  });
+
+  // Load main script ONCE
+  if (!window.shopHubScriptsLoaded) {
+    const s = document.createElement('script');
+    s.src = 'script.js';
+    document.body.appendChild(s);
+    window.shopHubScriptsLoaded = true;
   }
-
-  (async () => {
-    const navHtml = await loadFile('nav.html');
-    if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
-
-    document.querySelectorAll('#global-navigation script[src]').forEach(old => {
-      const script = document.createElement('script');
-      script.src = old.src;
-      script.async = false;
-      document.body.appendChild(script);
-      old.remove();
-    });
-
-    if (!window.shopHubScriptsLoaded) {
-      const script = document.createElement('script');
-      script.src = 'script.js';
-      document.body.appendChild(script);
-      window.shopHubScriptsLoaded = true;
-    }
-  })();
+})();
 </script>
+
+
 </body>
 </html>
