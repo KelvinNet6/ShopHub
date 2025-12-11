@@ -126,76 +126,115 @@
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
       );
 
-      const { data: { session } } = await supabaseClient.auth.getSession();
-      if (!session) {
-        alert("Please log in");
-        window.location.href = "../Admin/adLogin.html";
-        return;
-      }
+   const { data: { session } } = await supabaseClient.auth.getSession();
+  if (!session) {
+    alert("Please log in to view your account");
+    window.location.href = "../Admin/adLogin.html";
+    return;
+  }
 
-      const userId = session.user.id;
+  const userId = session.user.id;
 
-      // Get or create profile
-      let { data: profile } = await supabaseClient
-        .from('profiles')
-        .select('id')
-        .eq('id', userId)
-        .maybeSingle();
+  // Ensure profile exists
+  let { data: profile } = await supabaseClient
+    .from('profiles')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
 
-      if (!profile) {
-        await supabaseClient.from('profiles').insert({ id: userId });
-        profile = { id: userId };
-      }
+  if (!profile) {
+    await supabaseClient.from('profiles').insert({ id: userId });
+  }
 
-      // Load orders
-      const { data: orders } = await supabaseClient
-        .from('orders')
-        .select('*')
-        .eq('customer_id', profile.id)
-        .order('created_at', { ascending: false });
+  // FETCH ORDERS + THEIR ITEMS IN ONE QUERY (Recommended)
+  const { data: orders, error } = await supabaseClient
+    .from('orders')
+    .select(`
+      id,
+      total,
+      status,
+      payment_method,
+      created_at,
+      order_items (
+        quantity,
+        price,
+        name,
+        image_url
+      )
+    `)
+    .eq('customer_id', userId)
+    .order('created_at', { ascending: false });
 
-      document.getElementById('loading').style.display = 'none';
+  if (error) {
+    console.error("Error loading orders:", error);
+    document.getElementById('loading').textContent = "Failed to load orders";
+    return;
+  }
 
-      if (!orders || orders.length === 0) {
-        document.getElementById('no-orders').style.display = 'block';
-        return;
-      }
+  document.getElementById('loading').style.display = 'none';
 
-      const container = document.getElementById('orders-container');
-      container.style.display = 'grid';
+  if (!orders || orders.length === 0) {
+    document.getElementById('no-orders').style.display = 'block';
+    return;
+  }
 
-      orders.forEach(order => {
-        const details = JSON.parse(order.shipping_address || '{}');
-        const items = details.items || [];
-        const total = (details.subtotal || 0) - (details.discount || 0) + (details.tax || 0);
-        const date = new Date(order.created_at).toLocaleDateString('en-US', { month:'long', day:'numeric', year:'numeric' });
-        const time = new Date(order.created_at).toLocaleTimeString('en-US', { hour:'numeric', minute:'2-digit' });
-        const status = (order.status || 'pending').toUpperCase();
-        const statusClass = {PAID:'status-paid',SHIPPED:'status-shipped',DELIVERED:'status-delivered'}[status] || 'status-pending';
+  const container = document.getElementById('orders-container');
+  container.style.display = 'grid';
 
-        const card = document.createElement('div');
-        card.className = 'order-card';
-        card.innerHTML = `
-          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
-            <div class="order-id">Order #${String(order.id).padStart(6,'0')}</div>
-            <div style="font-size:.95rem;opacity:.7;">${date} • ${time}</div>
-          </div>
-          <div style="margin:1.5rem 0;">
-            ${items.map(i=>`
-              <div style="display:flex;justify-content:space-between;padding:.7rem 0;border-bottom:1px solid #1a1a1a;">
-                <span>${i.quantity} × ${i.name}</span>
-                <span>$${(i.price*i.quantity).toFixed(2)}</span>
+  orders.forEach(order => {
+    const items = order.order_items || [];
+    const date = new Date(order.created_at).toLocaleDateString('en-US', {
+      month: 'long', day: 'numeric', year: 'numeric'
+    });
+    const time = new Date(order.created_at).toLocaleTimeString('en-US', {
+      hour: 'numeric', minute: '2-digit'
+    });
+
+    const status = (order.status || 'pending').toUpperCase();
+    const statusClass = {
+      PAID: 'status-paid',
+      SHIPPED: 'status-shipped',
+      DELIVERED: 'status-delivered'
+    }[status] || 'status-pending';
+
+    const card = document.createElement('div');
+    card.className = 'order-card';
+
+    card.innerHTML = `
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+        <div class="order-id">Order #${String(order.id).padStart(6, '0')}</div>
+        <div style="font-size:.95rem; opacity:.7;">${date} • ${time}</div>
+      </div>
+
+      <div style="margin:1.5rem 0;">
+        ${items.length > 0 ? items.map(item => `
+          <div style="display:flex; justify-content:space-between; align-items:center; padding:.7rem 0; border-bottom:1px solid #1a1a1a;">
+            <div style="display:flex; align-items:center; gap:1rem;">
+              ${item.image_url ? `<img src="${item.image_url}" style="width:50px; height:50px; object-fit:cover; border-radius:8px;">` : ''}
+              <div>
+                <div>${item.quantity} × ${item.name || 'Product'}</div>
               </div>
-            `).join('')}
+            </div>
+            <span style="font-weight:600;">$${(item.price * item.quantity).toFixed(2)}</span>
           </div>
-          <div class="order-total">$${total.toFixed(2)}</div>
-          <div style="text-align:right;margin-top:1rem;">
-            <span class="status-badge ${statusClass}">${status}</span>
-          </div>
-        `;
-        container.appendChild(card);
-      });
+        `).join('') : '<p style="opacity:.6; font-style:italic;">No items found</p>'}
+      </div>
 
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+        <div>
+          <div style="font-size:.9rem; opacity:.7;">Payment</div>
+          <div style="font-weight:600;">${order.payment_method || 'Card'}</div>
+        </div>
+        <div class="order-total">$${Number(order.total || 0).toFixed(2)}</div>
+      </div>
+
+      <div style="text-align:right; margin-top:1rem;">
+        <span class="status-badge ${statusClass}">${status}</span>
+      </div>
+    `;
+
+    container.appendChild(card);
+  });
       // ===================================================================
       // 3. FLOATING CHECKOUT BUTTON
       // ===================================================================
