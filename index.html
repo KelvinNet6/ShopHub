@@ -41,34 +41,84 @@
     /* Products Grid – PERFECT FIT */
     .container { max-width: 1600px; margin: 0 auto; padding: 2rem; }
     .products-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1.8rem; padding-bottom: 5rem; }
-    .reel-card {
-      position: relative; border-radius: var(--radius); overflow: hidden; aspect-ratio: 9/16; cursor: pointer;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.5); transition: var(--transition); background: #000;
+    /* ==================== NEW PREMIUM CARD (the one you wanted) ==================== */
+    .product-card {
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      background: #0f0f0f;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+      transition: var(--transition);
+      cursor: pointer;
+      aspect-ratio: 3 / 4.2;
     }
-    .reel-card:hover { transform: translateY(-10px) scale(1.02); box-shadow: 0 25px 60px rgba(99,102,241,0.4); }
-    .reel-image { position: absolute; inset: 0; overflow: hidden; pointer-events: none; border-radius: var(--radius); }
-    .reel-image img {
-      width: 100%; height: 100%; object-fit: cover; object-position: center top;
-      transition: transform 0.7s cubic-bezier(0.4, 0, 0.2, 1);
+    .product-card:hover {
+      transform: translateY(-14px);
+      box-shadow: 0 32px 80px rgba(99,102,241,0.4);
     }
-    .reel-card:hover .reel-image img { transform: scale(1.08); }
-
-    .reel-content {
-      position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: space-between;
-      padding: 1.2rem; background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 40%);
-      pointer-events: none; z-index: 2;
+    .product-image img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      transition: transform 0.9s ease;
     }
-    .reel-content > * { pointer-events: auto; }
-    .price-tag { align-self: flex-end; background: rgba(0,0,0,0.75); color: white; padding: 0.5rem 1rem; border-radius: 50px; font-weight: 800; font-size: 1.1rem; backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,0.12); }
-    .reel-title { font-size: 2rem; font-weight: 900; text-align: center; color: white; text-shadow: 0 4px 20px rgba(0,0,0,0.9); letter-spacing: 1.5px; line-height: 1.1; }
-
-    .card-buttons { display: flex; flex-direction: column; gap: 0.6rem; align-items: center; width: 100%; margin-top: 1rem; }
-    .view-btn, .add-to-cart-btn { width: 65%; border-radius: 50px; font-weight: 800; padding: 0.55rem 1.2rem; cursor: pointer; transition: var(--transition); }
-    .view-btn { background: transparent; color: white; border: 2px solid white; font-size: 0.85rem; }
-    .view-btn:hover { background: white; color: black; }
-    .add-to-cart-btn { background: white; color: black; border: none; font-size: 0.9rem; box-shadow: 0 8px 20px rgba(0,0,0,0.4); }
-    .add-to-cart-btn:hover { background: var(--primary); color: white; transform: translateY(-2px); }
-
+    .product-card:hover .product-image img {
+      transform: scale(1.1);
+    }
+    .product-overlay {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.95) 100%);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 1.8rem;
+      z-index: 2;
+    }
+    .product-title {
+      font-size: 1.4rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      margin-bottom: 0.4rem;
+    }
+    .product-price {
+      font-size: 2rem;
+      font-weight: 900;
+      color: var(--primary);
+      margin-bottom: 1.2rem;
+    }
+    .product-actions {
+      display: flex;
+      gap: 1rem;
+      opacity: 0;
+      transform: translateY(20px);
+      transition: var(--transition);
+    }
+    .product-card:hover .product-actions {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .action-btn {
+      flex: 1;
+      padding: 0.9rem;
+      border-radius: 50px;
+      font-weight: 800;
+      font-size: 0.95rem;
+      text-align: center;
+      transition: var(--transition);
+    }
+    .view-btn {
+      background: transparent;
+      border: 2px solid white;
+      color: white;
+    }
+    .view-btn:hover { background: white; color: #000; }
+    .cart-btn {
+      background: white;
+      color: #000;
+    }
+    .cart-btn:hover { background: var(--primary); color: white; }
     /* Cart Sidebar */
     .cart-overlay { position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); opacity:0; visibility:hidden; transition:all 0.4s; z-index:1500; }
     .cart-overlay.active { opacity:1; visibility:visible; }
@@ -432,28 +482,29 @@ footer {
       renderProducts(allProducts);
     }
 
-    function renderProducts(productsToShow) {
-      grid.innerHTML = productsToShow.map(p => {
+   function renderProducts(products) {
+      grid.innerHTML = products.map(p => {
         const imgUrl = getPublicImageUrl(p.image_url);
-        const title = p.name.toUpperCase().replace(/ /g, '<br>');
         return `
-          <a href="Home/viewproduct.html?id=${p.id}" class="reel-card">
-            <div class="reel-image">
-              <img src="${imgUrl}" onerror="this.src='https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg'" alt="${p.name}" loading="lazy">
+          <a href="Home/viewproduct.html?id=${p.id}" class="product-card">
+            <div class="product-image">
+              <img src="${imgUrl}" alt="${p.name}" loading="lazy">
             </div>
-            <div class="reel-content">
-              <div class="price-tag">$${Number(p.price).toFixed(2)}</div>
-              <div class="reel-title">${title}</div>
-              <div class="card-buttons">
-                <button class="view-btn" onclick="event.stopPropagation();">VIEW PRODUCT</button>
-                <button class="add-to-cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">ADD TO CART</button>
+            <div class="product-overlay">
+              <div class="product-title">${p.name.toUpperCase()}</div>
+              <div class="product-price">$${Number(p.price).toFixed(2)}</div>
+              <div class="product-actions">
+                <div class="action-btn view-btn">QUICK VIEW</div>
+                <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">
+                  ADD TO CART
+                </div>
               </div>
             </div>
           </a>
         `;
       }).join("");
     }
-
+    
     function filterAndSort() {
       let filtered = allProducts;
       const query = searchInput.value.toLowerCase().trim();
