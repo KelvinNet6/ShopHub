@@ -4,131 +4,87 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>My Profile • ShopHub</title>
-
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
   <link rel="stylesheet" href="styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
-<body>
-
+<body class="protected">
 <div id="global-navigation"></div>
 
-<!-- Main Content -->
 <div class="main-content">
   <h1 class="page-title">MY PROFILE</h1>
   <p class="page-subtitle">Manage your account and preferences</p>
-
   <div class="profile-container">
-    
+   
     <!-- Profile Header Card -->
     <div class="profile-header-card">
       <div class="avatar-section">
-        <div class="user-avatar-extra-large">
-          JD
-        </div>
+        <div class="user-avatar-extra-large" id="avatar">..</div>
         <div class="user-info-header">
-          <h2>John Doe</h2>
-          <p class="member-since">Member since October 2024</p>
-          <p class="user-email">john.doe@example.com</p>
+          <h2 id="fullName">Loading...</h2>
+          <p class="member-since" id="memberSince">Loading...</p>
+          <p class="user-email" id="userEmail">Loading...</p>
         </div>
       </div>
       <div class="stats-grid">
         <div class="stat-item">
-          <div class="stat-number">6</div>
+          <div class="stat-number" id="totalOrders">-</div>
           <div class="stat-label">Total Orders</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">$2,611<sup>.94</sup></div>
+          <div class="stat-number" id="lifetimeSpent">-</div>
           <div class="stat-label">Lifetime Spent</div>
         </div>
         <div class="stat-item">
-          <div class="stat-number">2</div>
+          <div class="stat-number" id="pendingOrders">-</div>
           <div class="stat-label">Pending</div>
         </div>
       </div>
     </div>
 
-    <!-- Settings Grid -->
     <div class="settings-grid">
-
-      <!-- Personal Information -->
       <div class="settings-card">
-        <div class="card-title">
-          <i class="fas fa-user"></i> Personal Information
-        </div>
+        <div class="card-title">Personal Information</div>
         <div class="card-content">
-          <div class="info-row"><span>Full Name</span><strong>John Doe</strong></div>
-          <div class="info-row"><span>Phone</span><strong>+1 (555) 123-4567</strong></div>
-          <div class="info-row"><span>Date of Birth</span><strong>14 February 1995</strong></div>
-          <button class="btn-edit">Edit Profile</button>
+          <div class="info-row"><span>Full Name</span><strong id="infoName">Loading...</strong></div>
+          <div class="info-row"><span>Phone</span><strong id="infoPhone">-</strong></div>
+          <div class="info-row"><span>Date of Birth</span><strong id="infoDob">-</strong></div>
+          <button class="btn-edit" id="editProfileBtn">Edit Profile</button>
         </div>
       </div>
 
-      <!-- Shipping Address -->
       <div class="settings-card">
-        <div class="card-title">
-          <i class="fas fa-truck"></i> Default Shipping Address
-        </div>
+        <div class="card-title">Default Shipping Address</div>
         <div class="card-content">
-          <p><strong>John Doe</strong></p>
-          <p>123 Luxury Avenue, Apt 42B<br>
-             Los Angeles, CA 90210<br>
-             United States</p>
+          <p><strong id="addrName">Loading...</strong></p>
+          <p id="addrLine">Loading address...</p>
           <button class="btn-edit">Change Address</button>
         </div>
       </div>
 
-      <!-- Payment Methods -->
       <div class="settings-card">
-        <div class="card-title">
-          <i class="fas fa-credit-card"></i> Payment Methods
+        <div class="card-title">Payment Methods</div>
+        <div class="card-content" id="paymentMethodsList">
+          <div style="text-align:center;padding:2rem;color:#888;">
+            <i class="fas fa-credit-card fa-2x" style="opacity:0.3;"></i>
+            <p>No payment methods yet</p>
+          </div>
         </div>
+        <button class="btn-add" id="addPaymentBtn">+ Add Payment Method</button>
+      </div>
+
+      <div class="settings-card">
+        <div class="card-title">Account Settings</div>
         <div class="card-content">
-          <div class="payment-method">
-            <i class="fab fa-cc-visa"></i> •••• •••• •••• 4242 <span class="default-badge">Default</span>
-          </div>
-          <div class="payment-method">
-            <i class="fab fa-cc-mastercard"></i> •••• •••• •••• 8881
-          </div>
-          <button class="btn-add">+ Add Payment Method</button>
+          <div class="toggle-row"><div>Email Notifications</div><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
+          <div class="toggle-row"><div>SMS Updates</div><label class="toggle-switch"><input type="checkbox"><span class="slider"></span></label></div>
+          <div class="toggle-row"><div>Dark Mode</div><label class="toggle-switch"><input type="checkbox" checked><span class="slider"></span></label></div>
         </div>
       </div>
 
-      <!-- Account Settings -->
-      <div class="settings-card">
-        <div class="card-title">
-          <i class="fas fa-cog"></i> Account Settings
-        </div>
-        <div class="card-content">
-          <div class="toggle-row">
-            <div>Email Notifications</div>
-            <label class="toggle-switch">
-              <input type="checkbox" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div>SMS Updates</div>
-            <label class="toggle-switch">
-              <input type="checkbox">
-              <span class="slider"></span>
-            </label>
-          </div>
-          <div class="toggle-row">
-            <div>Dark Mode</div>
-            <label class="toggle-switch">
-              <input type="checkbox" checked>
-              <span class="slider"></span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Security -->
       <div class="settings-card danger-zone">
-        <div class="card-title text-danger">
-          <i class="fas fa-shield-alt"></i> Security
-        </div>
+        <div class="card-title text-danger">Security</div>
         <div class="card-content">
           <button class="btn-outline">Change Password</button>
           <button class="btn-outline">Enable Two-Factor Auth</button>
@@ -136,11 +92,9 @@
           <button class="btn-danger">Delete Account</button>
         </div>
       </div>
-
     </div>
   </div>
 </div>
-
 <style>
   :root {
     --primary: #6366f1;
@@ -359,8 +313,9 @@
   }
 </style>
 
+
 <script>
-  // Same navigation loader as your orders page
+  // ONLY NAVIGATION LOADER — everything else moved to profile.js
   async function loadFile(url) {
     const res = await fetch(url);
     if (!res.ok) return console.error(`Failed to load ${url}`);
@@ -371,6 +326,7 @@
     const navHtml = await loadFile('nav.html');
     if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
 
+    // Re-attach scripts from nav.html
     document.querySelectorAll('#global-navigation script[src]').forEach(old => {
       const script = document.createElement('script');
       script.src = old.src;
@@ -379,6 +335,7 @@
       old.remove();
     });
 
+    // Load shared scripts
     if (!window.shopHubScriptsLoaded) {
       const script = document.createElement('script');
       script.src = 'script.js';
