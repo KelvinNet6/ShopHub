@@ -63,11 +63,10 @@
   }
 
   // =========================
-  // LOAD PROFILE (only on pages that have the avatar)
-async function loadProfile() {
+  async function loadProfile() {
   try {
     // Get currently logged in user
-    const { data: { user } } = await supabase.auth.getUser(); // fetch authenticated user per docs :contentReference[oaicite:0]{index=0}
+    const { data: { user } } = await supabase.auth.getUser();
 
     if (!user) {
       window.location.href = "../Admin/adLogin.html";
@@ -110,19 +109,17 @@ async function loadProfile() {
 
     // PERSONAL INFO
     document.getElementById("infoName").textContent = name;
-    // Default phone if none found later
     document.getElementById("infoPhone").textContent = "-";
     document.getElementById("infoDob").textContent = "-"; // no DOB in profile
 
     // Fetch latest order for shipping JSON
-   const { data: order } = await supabase
-  .from("orders")
-  .select("shipping_address")
-  .eq("customer_id", user.id)
-  .order("created_at", { ascending: false })
-  .limit(1)
-  .single();
-
+    const { data: order } = await supabase
+      .from("orders")
+      .select("shipping_address")
+      .eq("customer_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
 
     if (order?.shipping_address) {
       const a = order.shipping_address;
@@ -141,21 +138,35 @@ async function loadProfile() {
     }
 
     // ORDER STATS
-   const { count: total } = await supabase
-  .from("orders")
-  .select("*", { count: "exact", head: true })
-  .eq("customer_id", user.id);
+    const { count: total } = await supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .eq("customer_id", user.id);
 
-
-   const { count: pending } = await supabase
-  .from("orders")
-  .select("*", { count: "exact", head: true })
-  .eq("customer_id", user.id)
-  .in("status", ["pending", "processing"]);
-
+    const { count: pending } = await supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .eq("customer_id", user.id)
+      .in("status", ["pending", "processing"]);
 
     document.getElementById("totalOrders").textContent = total || 0;
     document.getElementById("pendingOrders").textContent = pending || 0;
+
+    // LIFETIME SPENT: Fetch lifetime spent by the user from order_items
+    const { data: orderItems, error } = await supabase
+      .from("order_items")
+      .select("subtotal")
+      .eq("order_id", user.id); // Adjust this to link with `order_id`
+
+    if (error) {
+      console.error("Error fetching order items:", error);
+      return;
+    }
+
+    const lifetimeSpent = orderItems.reduce((total, item) => total + item.subtotal, 0);
+
+    // Display lifetime spent somewhere on the page
+    document.getElementById("lifetimeSpent").textContent = `$${lifetimeSpent.toFixed(2)}`;
 
     // PAYMENT METHODS
     const { data: cards } = await supabase
@@ -198,7 +209,6 @@ if (document.getElementById("avatar")) {
     loadProfile();
   }
 }
-
   // =========================
   // GLOBAL LOGOUT
   // =========================
