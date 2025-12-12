@@ -275,33 +275,38 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+
 <script>
-  // Same nav loader as all your pages
-  async function loadFile(url) {
-    const res = await fetch(url);
-    if (!res.ok) return console.error(`Failed to load ${url}`);
-    return await res.text();
-  }
+(async () => {
 
-  (async () => {
-    const navHtml = await loadFile('nav.html');
-    if (navHtml) document.getElementById('global-navigation').innerHTML = navHtml;
+  // 1. LOAD NAV HTML
+  const navRes = await fetch("nav.html");
+  const navHtml = await navRes.text();
+  document.getElementById("global-navigation").innerHTML = navHtml;
 
-    document.querySelectorAll('#global-navigation script[src]').forEach(old => {
-      const script = document.createElement('script');
-      script.src = old.src;
-      script.async = false;
-      document.body.appendChild(script);
-      old.remove();
-    });
+  // 2. EXECUTE ANY <script src=""> INSIDE nav.html
+  document.querySelectorAll("#global-navigation script[src]").forEach(s => {
+    const script = document.createElement("script");
+    script.src = s.src;
+    script.async = false;
+    document.body.appendChild(script);
+    s.remove();
+  });
 
-    if (!window.shopHubScriptsLoaded) {
-      const script = document.createElement('script');
-      script.src = 'script.js';
-      document.body.appendChild(script);
-      window.shopHubScriptsLoaded = true;
+  // 3. WAIT UNTIL NAV IS READY, THEN INIT USER
+  const observer = new MutationObserver(() => {
+    if (document.getElementById("navAvatar")) {
+      if (window.updateNavUser) updateNavUser();
+      observer.disconnect();
     }
-  })();
+  });
+  observer.observe(document.getElementById("global-navigation"), {
+    childList: true,
+    subtree: true
+  });
+
+})();
 </script>
 </body>
 </html>
