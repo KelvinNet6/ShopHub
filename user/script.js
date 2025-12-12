@@ -70,7 +70,7 @@ async function loadProfile() {
     const { data: { user } } = await supabase.auth.getUser(); // fetch authenticated user per docs :contentReference[oaicite:0]{index=0}
 
     if (!user) {
-      window.location.href = "/login.html";
+      window.location.href = "../Admin/adLogin.html";
       return;
     }
 
