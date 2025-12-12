@@ -115,13 +115,14 @@ async function loadProfile() {
     document.getElementById("infoDob").textContent = "-"; // no DOB in profile
 
     // Fetch latest order for shipping JSON
-    const { data: order } = await supabase
-      .from("orders")
-      .select("shipping_address")
-      .eq("user_id", user.id) // or change to .eq("customer_id", user.id) if that's your real column
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
+   const { data: order } = await supabase
+  .from("orders")
+  .select("shipping_address")
+  .eq("customer_id", user.id)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .single();
+
 
     if (order?.shipping_address) {
       const a = order.shipping_address;
@@ -140,16 +141,18 @@ async function loadProfile() {
     }
 
     // ORDER STATS
-    const { count: total } = await supabase
-      .from("orders")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id);
+   const { count: total } = await supabase
+  .from("orders")
+  .select("*", { count: "exact", head: true })
+  .eq("customer_id", user.id);
 
-    const { count: pending } = await supabase
-      .from("orders")
-      .select("*", { count: "exact", head: true })
-      .eq("user_id", user.id)
-      .in("status", ["pending", "processing"]);
+
+   const { count: pending } = await supabase
+  .from("orders")
+  .select("*", { count: "exact", head: true })
+  .eq("customer_id", user.id)
+  .in("status", ["pending", "processing"]);
+
 
     document.getElementById("totalOrders").textContent = total || 0;
     document.getElementById("pendingOrders").textContent = pending || 0;
