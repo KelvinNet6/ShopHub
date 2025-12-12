@@ -85,53 +85,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="script.js"></script>
   <script>
-(async () => {
-  // ============================================================
-  // 1. LOAD script.js FIRST (so logoutUser exists globally)
-  // ============================================================
-  if (!window.shopHubScriptsLoaded) {
-    await new Promise(resolve => {
-      const script = document.createElement('script');
-      script.src = 'script.js';
-      script.onload = resolve;
-      script.onerror = () => console.error("Failed to load script.js");
-      document.body.appendChild(script);
-    });
+(async function loadPage() {
 
-    window.shopHubScriptsLoaded = true;
-    console.log("script.js loaded before nav.html ✔");
-  }
+  console.log("script.js loaded before nav.html ✔");
 
-  // ============================================================
-  // 2. NOW load nav.html — safe because logoutUser exists
-  // ============================================================
-(async () => {
-  // Wait for nav to exist
-  const navRes = await fetch('nav.html');
-  const navHtml = await navRes.text();
-  document.getElementById('global-navigation').innerHTML = navHtml;
+  // 1. Load navigation HTML
+  const navHtml = await fetch("nav.html").then(r => r.text());
+  document.getElementById("global-navigation").innerHTML = navHtml;
 
-  // Initialize nav user update
-  if (!window.navObserverInitialized) {
-    const navObserver = new MutationObserver(() => {
-      if (document.getElementById("navAvatar")) {
-        updateNavUser();
-        navObserver.disconnect();
-      }
-    });
-    navObserver.observe(document.body, { childList: true, subtree: true });
-    window.navObserverInitialized = true;
-  }
-})();
+  // 2. Wait for nav elements, then update user
+  const observer = new MutationObserver(() => {
+    if (document.getElementById("navAvatar")) {
+      if (typeof updateNavUser === "function") updateNavUser();
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { childList: true, subtree: true });
 
-      // 2. SUPABASE + ORDERS LOGIC
-      // ===================================================================
-      const supabaseClient = supabase.createClient(
-        'https://nhyucbgjocmwrkqbjjme.supabase.co',
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE'
-      );
+  // 3. PAGE LOGIC (Orders)
+  const supabaseClient = supabase.createClient(
+    "https://nhyucbgjocmwrkqbjjme.supabase.co",
+    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
+  );
 
-   const { data: { session } } = await supabaseClient.auth.getSession();
+  const { data: { session } } = await supabaseClient.auth.getSession();
+
   if (!session) {
     alert("Please log in to view your account");
     window.location.href = "../Admin/adLogin.html";
