@@ -64,139 +64,137 @@
 
   // =========================
   // LOAD PROFILE (only on pages that have the avatar)
-  // =========================
-  async function loadProfile() {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
+async function loadProfile() {
+  try {
+    // Get currently logged in user
+    const { data: { user } } = await supabase.auth.getUser(); // fetch authenticated user per docs :contentReference[oaicite:0]{index=0}
 
-      if (!user) {
-        window.location.href = "/login.html";
-        return;
-      }
+    if (!user) {
+      window.location.href = "/login.html";
+      return;
+    }
 
-      let { data: profile } = await supabase
+    // Fetch profile row with only valid columns
+    let { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name, email, created_at, updated_at, role")
+      .eq("id", user.id)
+      .single();
+
+    // Create profile if missing
+    if (!profile) {
+      const { data: newProfile } = await supabase
         .from("profiles")
-        .select("full_name, phone, date_of_birth, created_at")
-        .eq("id", user.id)
+        .insert({
+          id: user.id,
+          full_name: user.email.split("@")[0],
+          email: user.email
+        })
+        .select()
         .single();
-
-      // Auto-create profile if missing
-      if (!profile) {
-        const { data } = await supabase
-          .from("profiles")
-          .insert({
-            id: user.id,
-            full_name: user.email.split("@")[0],
-            email: user.email
-          })
-          .select()
-          .single();
-        profile = data;
-      }
-
-      const name = profile.full_name || user.email.split("@")[0];
-
-      // Header
-      document.getElementById("avatar").textContent = getInitials(name);
-      document.getElementById("fullName").textContent = name;
-      document.getElementById("memberSince").textContent =
-        `Member since ${new Date(profile.created_at).toLocaleDateString("en-US", {
-          month: "long",
-          year: "numeric"
-        })}`;
-      document.getElementById("userEmail").textContent = user.email;
-
-      // Personal info
-      document.getElementById("infoName").textContent = name;
-      document.getElementById("infoPhone").textContent = profile.phone || "-";
-      document.getElementById("infoDob").textContent =
-        profile.date_of_birth
-          ? new Date(profile.date_of_birth).toLocaleDateString("en-US", {
-              day: "numeric",
-              month: "long",
-              year: "numeric"
-            })
-          : "-";
-
-      // Latest order address
-      const { data: order } = await supabase
-        .from("orders")
-        .select("shipping_address")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
-        .single();
-
-      if (order?.shipping_address) {
-        const a = order.shipping_address;
-        document.getElementById("addrName").textContent = name;
-        document.getElementById("addrLine").innerHTML = `
-          ${a.street || ""}<br>
-          ${a.city || ""}, ${a.state || ""} ${a.postal_code || ""}<br>
-          ${a.country || "United States"}
-        `;
-
-        if (!profile.phone && a.phone) {
-          document.getElementById("infoPhone").textContent = a.phone;
-        }
-      }
-
-      // Order stats
-      const { count: total } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id);
-
-      const { count: pending } = await supabase
-        .from("orders")
-        .select("*", { count: "exact", head: true })
-        .eq("user_id", user.id)
-        .in("status", ["pending", "processing"]);
-
-      document.getElementById("totalOrders").textContent = total || 0;
-      document.getElementById("pendingOrders").textContent = pending || 0;
-
-      // Payment methods
-      const { data: cards } = await supabase
-        .from("payment_methods")
-        .select("brand, last4, is_default")
-        .eq("user_id", user.id)
-        .order("created_at", { ascending: false });
-
-      const list = document.getElementById("paymentMethodsList");
-
-      if (!cards?.length) {
-        list.innerHTML = `
-          <div style="text-align:center;padding:2rem;color:#888;">
-            <i class="fas fa-credit-card fa-2x" style="opacity:0.3;"></i>
-            <p>No payment methods yet</p>
-          </div>
-        `;
-      } else {
-        list.innerHTML = cards
-          .map(
-            c => `
-            <div class="payment-method">
-              <i class="fab fa-cc-${c.brand.toLowerCase()}"></i>
-              •••• •••• •••• ${c.last4}
-              ${c.is_default ? '<span class="default-badge">Default</span>' : ""}
-            </div>
-          `
-          )
-          .join("");
-      }
-    } catch (err) {
-      console.error("Profile load failed:", err);
+      profile = newProfile;
     }
-  }
 
-  if (document.getElementById("avatar")) {
-    if (document.readyState === "loading") {
-      document.addEventListener("DOMContentLoaded", loadProfile);
+    // Use name
+    const name = profile.full_name || user.email.split("@")[0];
+
+    // HEADER
+    document.getElementById("avatar").textContent = getInitials(name);
+    document.getElementById("fullName").textContent = name;
+    document.getElementById("memberSince").textContent =
+      `Member since ${new Date(profile.created_at).toLocaleDateString("en-US", {
+        month: "long",
+        year: "numeric"
+      })}`;
+    document.getElementById("userEmail").textContent = profile.email || user.email;
+
+    // PERSONAL INFO
+    document.getElementById("infoName").textContent = name;
+    // Default phone if none found later
+    document.getElementById("infoPhone").textContent = "-";
+    document.getElementById("infoDob").textContent = "-"; // no DOB in profile
+
+    // Fetch latest order for shipping JSON
+    const { data: order } = await supabase
+      .from("orders")
+      .select("shipping_address")
+      .eq("user_id", user.id) // or change to .eq("customer_id", user.id) if that's your real column
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .single();
+
+    if (order?.shipping_address) {
+      const a = order.shipping_address;
+      // Show address
+      document.getElementById("addrName").textContent = name;
+      document.getElementById("addrLine").innerHTML = `
+        ${a.street || ""}<br>
+        ${a.city || ""}, ${a.state || ""} ${a.postal_code || ""}<br>
+        ${a.country || ""}
+      `;
+
+      // Use phone in JSON if available
+      if (a.phone) {
+        document.getElementById("infoPhone").textContent = a.phone;
+      }
+    }
+
+    // ORDER STATS
+    const { count: total } = await supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id);
+
+    const { count: pending } = await supabase
+      .from("orders")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", user.id)
+      .in("status", ["pending", "processing"]);
+
+    document.getElementById("totalOrders").textContent = total || 0;
+    document.getElementById("pendingOrders").textContent = pending || 0;
+
+    // PAYMENT METHODS
+    const { data: cards } = await supabase
+      .from("payment_methods")
+      .select("brand, last4, is_default")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false });
+
+    const list = document.getElementById("paymentMethodsList");
+
+    if (!cards?.length) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:2rem;color:#888;">
+          <i class="fas fa-credit-card fa-2x" style="opacity:0.3;"></i>
+          <p>No payment methods yet</p>
+        </div>
+      `;
     } else {
-      loadProfile();
+      list.innerHTML = cards
+        .map(
+          c => `
+          <div class="payment-method">
+            <i class="fab fa-cc-${c.brand.toLowerCase()}"></i>
+            •••• •••• •••• ${c.last4}
+            ${c.is_default ? '<span class="default-badge">Default</span>' : ""}
+          </div>
+        `
+        )
+        .join("");
     }
+  } catch (err) {
+    console.error("Profile load failed:", err);
   }
+}
+
+if (document.getElementById("avatar")) {
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", loadProfile);
+  } else {
+    loadProfile();
+  }
+}
 
   // =========================
   // GLOBAL LOGOUT
