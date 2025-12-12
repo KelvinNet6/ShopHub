@@ -103,11 +103,13 @@
   observer.observe(document.body, { childList: true, subtree: true });
 
   // 3. PAGE LOGIC (Orders)
-  const supabaseClient = supabase.createClient(
+  const supabaseClient = window.supabase.createClient(
     "https://nhyucbgjocmwrkqbjjme.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
   );
-
+  
+  window.supabaseClient = supabaseClient;
+  
   const { data: { session } } = await supabaseClient.auth.getSession();
 
   if (!session) {
