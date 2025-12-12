@@ -1,7 +1,3 @@
-// =========================
-// script.js – The ONLY script you need
-// =========================
-
 (() => {
   "use strict";
 
