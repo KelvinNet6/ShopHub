@@ -312,39 +312,38 @@
   }
 </style>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="script.js"></script>
+
 <script>
-async function loadFile(url) {
-  const res = await fetch(url);
-  if (!res.ok) return console.error(`Failed to load ${url}`);
-  return await res.text();
-}
-
 (async () => {
-  // Load NAV HTML
-  const navHtml = await loadFile('nav.html');
-  document.getElementById('global-navigation').innerHTML = navHtml;
 
-  // Wait until the Supabase library is REALLY available
-  await new Promise(resolve => {
-    if (window.Supabase) return resolve();
-    const check = setInterval(() => {
-      if (window.Supabase) {
-        clearInterval(check);
-        resolve();
-      }
-    }, 20);
+  // 1. LOAD NAV HTML
+  const navRes = await fetch("nav.html");
+  const navHtml = await navRes.text();
+  document.getElementById("global-navigation").innerHTML = navHtml;
+
+  // 2. EXECUTE ANY <script src=""> INSIDE nav.html
+  document.querySelectorAll("#global-navigation script[src]").forEach(s => {
+    const script = document.createElement("script");
+    script.src = s.src;
+    script.async = false;
+    document.body.appendChild(script);
+    s.remove();
   });
 
-  // Load main script ONCE
-  if (!window.shopHubScriptsLoaded) {
-    const s = document.createElement('script');
-    s.src = 'script.js';
-    document.body.appendChild(s);
-    window.shopHubScriptsLoaded = true;
-  }
+  // 3. WAIT UNTIL NAV IS READY, THEN INIT USER
+  const observer = new MutationObserver(() => {
+    if (document.getElementById("navAvatar")) {
+      if (window.updateNavUser) updateNavUser();
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.getElementById("global-navigation"), {
+    childList: true,
+    subtree: true
+  });
+
 })();
 </script>
-
-
 </body>
 </html>
