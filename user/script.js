@@ -151,19 +151,23 @@
 
     document.getElementById("totalOrders").textContent = total || 0;
     document.getElementById("pendingOrders").textContent = pending || 0;
+    
+const { data: orderItems, error } = await supabase
+  .from("order_items")
+  .select("subtotal, order_id")
+  .eq("order_id", user.id)  
+  .or(`customer_id.eq.${user.id}`); 
 
-    // LIFETIME SPENT: Fetch lifetime spent by the user from order_items
-    const { data: orderItems, error } = await supabase
-      .from("order_items")
-      .select("subtotal")
-      .eq("order_id", user.id); // Adjust this to link with `order_id`
+if (error) {
+  console.error("Error fetching order items:", error);
+  return;
+}
 
-    if (error) {
-      console.error("Error fetching order items:", error);
-      return;
-    }
+const lifetimeSpent = orderItems.reduce((total, item) => total + item.subtotal, 0);
 
-    const lifetimeSpent = orderItems.reduce((total, item) => total + item.subtotal, 0);
+// Display lifetime spent somewhere on the page
+document.getElementById("lifetimeSpent").textContent = `$${lifetimeSpent.toFixed(2)}`;
+
 
     // Display lifetime spent somewhere on the page
     document.getElementById("lifetimeSpent").textContent = `$${lifetimeSpent.toFixed(2)}`;
