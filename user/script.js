@@ -1,76 +1,63 @@
 (() => {
   "use strict";
 
-  // 1. CREATE SUPABASE CLIENT FIRST
-  const supabase = supabase.createClient(
+  // THIS IS NOW CORRECT – supabaseJs is the real global object from the CDN
+  const { createClient } = supabaseJs;
+  const supabase = createClient(
     "https://nhyucbgjocmwrkqbjjme.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
   );
 
-  // Expose globally
   window.supabase = supabase;
   window.supabaseClient = supabase;
 
-  let currentUser = null;
-
-  // Helper: Get initials from name
   const getInitials = name => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
-  // =========================
-function initMobileMenu() {
-  // Re-query every time — never cache old references
-  const menuBtn   = document.getElementById("menuBtn");
-  const closeBtn  = document.getElementById("closeBtn");
-  const slideMenu = document.getElementById("slideMenu");
-  const overlay   = document.getElementById("overlay");
+  // MOBILE MENU – 100% working version
+  function initMobileMenu() {
+    const menuBtn   = document.getElementById("menuBtn");
+    const closeBtn  = document.getElementById("closeBtn");
+    const slideMenu = document.getElementById("slideMenu");
+    const overlay   = document.getElementById("overlay");
 
-  if (!menuBtn || !closeBtn || !slideMenu || !overlay) return false;
+    if (!menuBtn || !closeBtn || !slideMenu || !overlay) return false;
 
-  const openMenu = () => {
-    slideMenu.classList.add("active");
-    overlay.classList.add("active");
-    document.body.style.overflow = "hidden";
-  };
+    const openMenu = () => {
+      slideMenu.classList.add("active");
+      overlay.classList.add("active");
+      document.body.style.overflow = "hidden";
+    };
 
-  const closeMenu = () => {
-    slideMenu.classList.remove("active");
-    overlay.classList.remove("active");
-    document.body.style.overflow = "";
-  };
+    const closeMenu = () => {
+      slideMenu.classList.remove("active");
+      overlay.classList.remove("active");
+      document.body.style.overflow = "";
+    };
 
-  // Cleanest way: remove ALL possible old listeners without breaking IDs
-  menuBtn.replaceWith(menuBtn.cloneNode(true));
-  closeBtn.replaceWith(closeBtn.cloneNode(true));
-  overlay.replaceWith(overlay.cloneNode(true));
+    // Remove old listeners safely
+    menuBtn.replaceWith(menuBtn.cloneNode(true));
+    closeBtn.replaceWith(closeBtn.cloneNode(true));
+    overlay.replaceWith(overlay.cloneNode(true));
 
-  // Re-get the elements AFTER cloning (critical!)
-  const liveMenuBtn  = document.getElementById("menuBtn");
-  const liveCloseBtn = document.getElementById("closeBtn");
-  const liveOverlay  = document.getElementById("overlay");
+    // Re-query after cloning
+    document.getElementById("menuBtn").addEventListener("click", openMenu);
+    document.getElementById("closeBtn").addEventListener("click", closeMenu);
+    document.getElementById("overlay").addEventListener("click", closeMenu);
 
-  // Attach events to the live elements
-  liveMenuBtn.addEventListener("click", openMenu);
-  liveCloseBtn.addEventListener("click", closeMenu);
-  liveOverlay.addEventListener("click", closeMenu);
+    document.addEventListener("keydown", e => e.key === "Escape" && closeMenu());
+    window.closeMenu = closeMenu;
 
-  document.addEventListener("keydown", e => e.key === "Escape" && closeMenu());
-
-  window.closeMenu = closeMenu;
-
-  console.log("Mobile menu is now 100% working");
-  return true;
-}
-
-  if (!initMobileMenu()) {
-    const observer = new MutationObserver(() => {
-      if (initMobileMenu()) observer.disconnect();
-    });
-    observer.observe(document.body, { childList: true, subtree: true });
+    console.log("Mobile menu WORKING 100%");
+    return true;
   }
 
-  // =========================
-  // PROFILE PAGE LOGIC (only runs on profile page)
-  // =========================
+  // Run now + fallback if nav loads later
+  if (!initMobileMenu()) {
+    new MutationObserver((_, obs) => {
+      if (initMobileMenu()) obs.disconnect();
+    }).observe(document.body, { childList: true, subtree: true });
+  }
+
   if (document.getElementById('avatar')) {
     async function loadProfile() {
       const { data: { user } } = await supabase.auth.getUser();
