@@ -62,8 +62,7 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
-  // =========================
-  async function loadProfile() {
+ async function loadProfile() {
   try {
     // Get currently logged in user
     const { data: { user } } = await supabase.auth.getUser();
@@ -109,8 +108,7 @@
 
     // PERSONAL INFO
     document.getElementById("infoName").textContent = name;
-    document.getElementById("infoPhone").textContent = "-";
-    document.getElementById("infoDob").textContent = "-"; // no DOB in profile
+    document.getElementById("infoPhone").textContent = "-"; // Default phone value
 
     // Fetch latest order for shipping JSON
     const { data: order } = await supabase
@@ -121,6 +119,7 @@
       .limit(1)
       .single();
 
+    // Show address and phone if available in the shipping address
     if (order?.shipping_address) {
       const a = order.shipping_address;
       // Show address
@@ -151,25 +150,24 @@
 
     document.getElementById("totalOrders").textContent = total || 0;
     document.getElementById("pendingOrders").textContent = pending || 0;
-    
-const { data: orderItems, error } = await supabase
-  .from("order_items")
-  .select("subtotal, order_id")
-  .eq("order_id", user.id)  
-  .or(`customer_id.eq.${user.id}`); 
 
-if (error) {
-  console.error("Error fetching order items:", error);
-  return;
-}
+    // LIFETIME SPENT: Fetch lifetime spent by the user from order_items
+    const { data: orderItems, error: orderItemsError } = await supabase
+      .from("order_items")
+      .select("subtotal")
+      .in("order_id", (await supabase
+        .from("orders")
+        .select("id")
+        .eq("customer_id", user.id)
+        .then(res => res.data.map(order => order.id))) // Get order IDs for the user
+      );
 
-const lifetimeSpent = orderItems.reduce((total, item) => total + item.subtotal, 0);
+    if (orderItemsError) {
+      console.error("Error fetching order items:", orderItemsError);
+      return;
+    }
 
-// Display lifetime spent somewhere on the page
-document.getElementById("lifetimeSpent").textContent = `$${lifetimeSpent.toFixed(2)}`;
-
-
-    // Display lifetime spent somewhere on the page
+    const lifetimeSpent = orderItems.reduce((total, item) => total + item.subtotal, 0);
     document.getElementById("lifetimeSpent").textContent = `$${lifetimeSpent.toFixed(2)}`;
 
     // PAYMENT METHODS
@@ -201,6 +199,7 @@ document.getElementById("lifetimeSpent").textContent = `$${lifetimeSpent.toFixed
         )
         .join("");
     }
+
   } catch (err) {
     console.error("Profile load failed:", err);
   }
@@ -213,6 +212,7 @@ if (document.getElementById("avatar")) {
     loadProfile();
   }
 }
+
   // =========================
   // GLOBAL LOGOUT
   // =========================
