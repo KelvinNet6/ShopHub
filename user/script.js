@@ -21,8 +21,6 @@
   const getInitials = name => name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
 
   // =========================
-  // MOBILE MENU
- ```js
 function initMobileMenu() {
   // Re-query every time — never cache old references
   const menuBtn   = document.getElementById("menuBtn");
