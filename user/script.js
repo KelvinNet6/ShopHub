@@ -1,31 +1,22 @@
 (() => {
   "use strict";
 
-  // =========================
-  // INITIALIZE SUPABASE
-  // =========================
-
-  // Ensure global from CDN exists
-  if (!window.supabaseJs || !window.supabaseJs.createClient) {
+  if (!window.supabase || !window.supabase.createClient) {
     console.error("Supabase CDN not loaded!");
     return;
   }
 
-  const { createClient } = window.supabaseJs;
+  const { createClient } = window.supabase;
 
   const supabase = createClient(
     "https://nhyucbgjocmwrkqbjjme.supabase.co",
     "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
   );
 
-  // Expose globally for anything outside the IIFE
   window.supabase = supabase;
 
   const getInitials = name => name.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
 
-  // =========================
-  // MOBILE MENU
-  // =========================
   function initMobileMenu() {
     const menuBtn   = document.getElementById("menuBtn");
     const closeBtn  = document.getElementById("closeBtn");
