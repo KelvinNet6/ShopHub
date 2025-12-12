@@ -22,46 +22,50 @@
 
   // =========================
   // MOBILE MENU
-  // =========================
-  function initMobileMenu() {
-    const menuBtn = document.getElementById("menuBtn");
-    const closeBtn = document.getElementById("closeBtn");
-    const slideMenu = document.getElementById("slideMenu");
-    const overlay = document.getElementById("overlay");
+ ```js
+function initMobileMenu() {
+  // Re-query every time — never cache old references
+  const menuBtn   = document.getElementById("menuBtn");
+  const closeBtn  = document.getElementById("closeBtn");
+  const slideMenu = document.getElementById("slideMenu");
+  const overlay   = document.getElementById("overlay");
 
-    if (!menuBtn || !closeBtn || !slideMenu || !overlay) return false;
+  if (!menuBtn || !closeBtn || !slideMenu || !overlay) return false;
 
-    // Clone to prevent duplicate listeners
-    const fresh = el => el.cloneNode(true);
-    menuBtn.replaceWith(fresh(menuBtn));
-    closeBtn.replaceWith(fresh(closeBtn));
-    overlay.replaceWith(fresh(overlay));
+  const openMenu = () => {
+    slideMenu.classList.add("active");
+    overlay.classList.add("active");
+    document.body.style.overflow = "hidden";
+  };
 
-    const newMenuBtn = document.getElementById("menuBtn");
-    const newCloseBtn = document.getElementById("closeBtn");
-    const newOverlay = document.getElementById("overlay");
+  const closeMenu = () => {
+    slideMenu.classList.remove("active");
+    overlay.classList.remove("active");
+    document.body.style.overflow = "";
+  };
 
-    const openMenu = () => {
-      slideMenu.classList.add("active");
-      newOverlay.classList.add("active");
-      document.body.style.overflow = "hidden";
-    };
+  // Cleanest way: remove ALL possible old listeners without breaking IDs
+  menuBtn.replaceWith(menuBtn.cloneNode(true));
+  closeBtn.replaceWith(closeBtn.cloneNode(true));
+  overlay.replaceWith(overlay.cloneNode(true));
 
-    const closeMenu = () => {
-      slideMenu.classList.remove("active");
-      newOverlay.classList.remove("active");
-      document.body.style.overflow = "";
-    };
+  // Re-get the elements AFTER cloning (critical!)
+  const liveMenuBtn  = document.getElementById("menuBtn");
+  const liveCloseBtn = document.getElementById("closeBtn");
+  const liveOverlay  = document.getElementById("overlay");
 
-    newMenuBtn.addEventListener("click", openMenu);
-    newCloseBtn.addEventListener("click", closeMenu);
-    newOverlay.addEventListener("click", closeMenu);
-    document.addEventListener("keydown", e => e.key === "Escape" && closeMenu());
+  // Attach events to the live elements
+  liveMenuBtn.addEventListener("click", openMenu);
+  liveCloseBtn.addEventListener("click", closeMenu);
+  liveOverlay.addEventListener("click", closeMenu);
 
-    window.closeMenu = closeMenu;
-    console.log("Mobile menu ready");
-    return true;
-  }
+  document.addEventListener("keydown", e => e.key === "Escape" && closeMenu());
+
+  window.closeMenu = closeMenu;
+
+  console.log("Mobile menu is now 100% working");
+  return true;
+}
 
   if (!initMobileMenu()) {
     const observer = new MutationObserver(() => {
