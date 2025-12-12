@@ -227,11 +227,14 @@
 })();
 
 
-// =========================
-// UPDATE NAV USER (outside IIFE but uses global supabase)
-// =========================
 async function updateNavUser() {
   try {
+    // Supabase not ready yet? Try again in 50ms
+    if (!window.supabase || !window.supabase.auth) {
+      setTimeout(updateNavUser, 50);
+      return;
+    }
+
     const { data: { user } } = await window.supabase.auth.getUser();
 
     const avatar = document.getElementById("navAvatar");
@@ -253,15 +256,22 @@ async function updateNavUser() {
       .single();
 
     const fullName = profile?.full_name || user.email.split("@")[0];
-    const initials = fullName.split(" ").map(n => n[0]).join("").toUpperCase().slice(0, 2);
+    const initials = fullName
+      .split(" ")
+      .map(n => n[0])
+      .join("")
+      .toUpperCase()
+      .slice(0, 2);
 
     avatar.textContent = initials;
     nameEl.textContent = fullName;
     emailEl.textContent = user.email;
+
   } catch (err) {
     console.error("Nav update failed:", err);
   }
 }
+
 
 // Observe DOM until nav appears
 const navObserver = new MutationObserver(() => {
