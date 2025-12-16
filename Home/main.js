@@ -1,6 +1,4 @@
-const supabase = window.supabaseClient;
-const getPublicImageUrl = window.getPublicImageUrl;
-    // Wishlist
+
     let wishlist = JSON.parse(localStorage.getItem("shophub_wishlist")) || [];
 
     function toggleWishlist(product, event) {
@@ -11,7 +9,7 @@ const getPublicImageUrl = window.getPublicImageUrl;
       } else {
         wishlist.push(product);
         alert(`${product.name} added to wishlist ❤️`);
-      }
+      
       localStorage.setItem("shophub_wishlist", JSON.stringify(wishlist));
       const btn = event.target.closest('.like-btn');
       btn.classList.toggle("liked");
