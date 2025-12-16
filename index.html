@@ -723,9 +723,16 @@
         <a href="#">Terms of Service</a>
       </div>
     </div>
-  </footer>
+</footer>
 
-  <script src="Home/main.js"></script>
+ <!-- Load shared client first -->
+<script src="Home/supabase-client.js"></script>
+
+<!-- Then main shop logic -->
+<script src="Home/main.js"></script>
+
+<!-- Finally auth & navigation -->
+<script src="Home/script.js"></script>
   
 </body>
 </html>
