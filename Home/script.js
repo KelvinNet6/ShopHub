@@ -1,48 +1,83 @@
-  // ———— AUTH STATE LISTENER (IMPORTANT) ————
-  let currentUser = null;
-  let isAdmin = false;
+// script.js — Authentication & Smart Navigation Handler
 
-  supabase.auth.onAuthStateChange((event, session) => {
-    currentUser = session?.user ?? null;
-    // Optional: check role from your profiles table (recommended)
-    if (currentUser) {
-      checkIfAdmin(currentUser.id);
-    } else {
-      isAdmin = false;
-    }
-  });
+let currentUser = null;
+let isAdmin = false;
 
-  // Optional but recommended: fetch role from a "profiles" table
-  async function checkIfAdmin(userId) {
-    const { data } = await supabase
+// Listen for authentication state changes (login, logout, token refresh)
+supabase.auth.onAuthStateChange(async (event, session) => {
+  currentUser = session?.user ?? null;
+
+  if (currentUser) {
+    await checkIfAdmin(currentUser.id);
+  } else {
+    isAdmin = false;
+  }
+
+  // Optional: Update UI elements based on login state (e.g., show/hide admin links)
+  updateUIForAuthState();
+});
+
+// Check if the logged-in user has admin privileges
+async function checkIfAdmin(userId) {
+  try {
+    const { data, error } = await supabase
       .from('profiles')
       .select('role')
       .eq('id', userId)
       .single();
 
+    if (error) {
+      console.error('Error fetching user role:', error);
+      isAdmin = false;
+      return;
+    }
+
     isAdmin = data?.role === 'admin';
+  } catch (err) {
+    console.error('Unexpected error checking admin status:', err);
+    isAdmin = false;
+  }
+}
+
+// Optional: Update UI elements when auth state changes
+function updateUIForAuthState() {
+  const vaultLink = document.getElementById('myVaultLink');
+  if (!vaultLink) return;
+
+  if (currentUser) {
+    vaultLink.textContent = isAdmin ? 'Admin Dashboard' : 'My Vault';
+    vaultLink.style.cursor = 'pointer';
+  } else {
+    vaultLink.textContent = 'My Vault';
+  }
+}
+
+// Handle initial session on page load
+(async () => {
+  const { data: { session } } = await supabase.auth.getSession();
+  currentUser = session?.user ?? null;
+
+  if (currentUser) {
+    await checkIfAdmin(currentUser.id);
   }
 
-  // Get initial session on page load
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    currentUser = session?.user ?? null;
-    if (currentUser) checkIfAdmin(currentUser.id);
-  });
-// Smart "My Vault" navigation
-document.getElementById('myVaultLink').addEventListener('click', (e) => {
+  updateUIForAuthState();
+})();
+
+// Smart "My Vault" click handler
+document.getElementById('myVaultLink')?.addEventListener('click', (e) => {
   e.preventDefault();
 
   if (currentUser) {
-    // User is logged in
     if (isAdmin) {
-      window.location.href = '/ShopHub/Admin/landing.html';          
+      window.location.href = '/ShopHub/Admin/landing.html';
     } else {
-      window.location.href = '/ShopHub/user/userDashboard.html';        
+      window.location.href = '/ShopHub/user/userDashboard.html';
     }
   } else {
-    // Not logged in → go to login (and remember where they wanted to go)
-    const redirectTo = encodeURIComponent(window.location.pathname);
-   window.location.href = `/ShopHub/Admin/adLogin.html?redirect=${redirectTo}`;
+    // User not logged in → redirect to admin login with return URL
+    const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
+    window.location.href = `/ShopHub/Admin/adLogin.html?redirect=${redirectTo}`;
   }
 });
 
