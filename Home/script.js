@@ -1,6 +1,3 @@
-// Home/script.js — Auth & Navigation ONLY
-
-const supabase = window.supabaseClient; // Use shared client
 
 let currentUser = null;
 let isAdmin = false;
