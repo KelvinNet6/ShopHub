@@ -83,6 +83,8 @@
     </button>
   </div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <!-- Load shared client first -->
+<script src="Home/supabase-client.js"></script>
   <script src="script.js"></script>
   <script>
 (async function loadPage() {
@@ -101,14 +103,6 @@
     }
   });
   observer.observe(document.body, { childList: true, subtree: true });
-
-const { createClient } = supabase;
-const supabaseClient = createClient(
-  "https://nhyucbgjocmwrkqbjjme.supabase.co",
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInRlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE"
-);
-window.supabaseClient = supabaseClient;
-
   
   const { data: { session } } = await supabaseClient.auth.getSession();
 
