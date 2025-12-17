@@ -99,35 +99,29 @@ async function loadProfile() {
 
 document.getElementById("infoName").textContent = name;
 
-// Fetch latest order for shipping JSON
-const { data: order } = await supabase
-  .from("orders")
-  .select("shipping_address")
-  .eq("customer_id", user.id)
-  .order("created_at", { ascending: false })
-  .limit(1)
-  .single();
-
 if (order?.shipping_address) {
-  const a = order.shipping_address;
+  // Parse JSON string if needed
+  const a = typeof order.shipping_address === "string"
+    ? JSON.parse(order.shipping_address)
+    : order.shipping_address;
 
-  // 1️⃣ Display the name on the shipping address section
+  // Display name
   document.getElementById("addrName").textContent = a.name || name;
 
-  // 2️⃣ Display full address properly, handling optional apartment
+  // Display address
   document.getElementById("addrLine").innerHTML = `
     ${a.address || ""} ${a.apt || ""}<br>
     ${a.city || ""} ${a.postal || ""}<br>
     ${a.country || ""}
   `;
 
-  // 3️⃣ Set phone number in Personal Information
+  // Phone in Personal Information
   document.getElementById("infoPhone").textContent = a.phone || "-";
 } else {
-  // Default phone if no shipping address exists
   document.getElementById("infoPhone").textContent = "-";
+  document.getElementById("addrName").textContent = name;
+  document.getElementById("addrLine").textContent = "No address yet";
 }
-
 
 
     // ORDER STATS
