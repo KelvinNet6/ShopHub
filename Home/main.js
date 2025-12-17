@@ -2,21 +2,23 @@
     let wishlist = JSON.parse(localStorage.getItem("shophub_wishlist")) || [];
 
     function toggleWishlist(product, event) {
-      const index = wishlist.findIndex(item => item.id === product.id);
-      if (index > -1) {
-        wishlist.splice(index, 1);
-        alert(`${product.name} removed from wishlist`);
-      } else {
-        wishlist.push(product);
-        alert(`${product.name} added to wishlist ❤️`);
-      
-      localStorage.setItem("shophub_wishlist", JSON.stringify(wishlist));
-      const btn = event.target.closest('.like-btn');
-      btn.classList.toggle("liked");
-      const icon = btn.querySelector('i');
-      icon.classList.toggle('fas');
-      icon.classList.toggle('far');
-    }
+  const index = wishlist.findIndex(item => item.id === product.id);
+  if (index > -1) {
+    wishlist.splice(index, 1);
+    alert(`${product.name} removed from wishlist`);
+  } else {
+    wishlist.push(product);
+    alert(`${product.name} added to wishlist ❤️`);
+  }
+
+  // This part runs in both cases (add or remove)
+  localStorage.setItem("shophub_wishlist", JSON.stringify(wishlist));
+  const btn = event.target.closest('.like-btn');
+  btn.classList.toggle("liked");
+  const icon = btn.querySelector('i');
+  icon.classList.toggle('fas');
+  icon.classList.toggle('far');
+}
 
     // Mobile Nav (from top)
     const openMobileNavBtn = document.getElementById("openMobileNav");
