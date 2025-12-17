@@ -110,22 +110,24 @@ async function loadProfile() {
       .limit(1)
       .single();
 
-    // Show address and phone if available in the shipping address
-    if (order?.shipping_address) {
-      const a = order.shipping_address;
-      // Show address
-      document.getElementById("addrName").textContent = name;
-      document.getElementById("addrLine").innerHTML = `
-        ${a.street || ""}<br>
-        ${a.city || ""}, ${a.state || ""} ${a.postal_code || ""}<br>
-        ${a.country || ""}
-      `;
+   if (order?.shipping_address) {
+  const a = order.shipping_address;
 
-      // Use phone in JSON if available
-      if (a.phone) {
-        document.getElementById("infoPhone").textContent = a.phone;
-      }
-    }
+  // Name
+  document.getElementById("addrName").textContent =
+    a.name || name;
+
+  // Address
+  document.getElementById("addrLine").innerHTML = `
+    ${a.address || ""} ${a.apt || ""}<br>
+    ${a.city || ""} ${a.postal || ""}<br>
+    ${a.country || ""}
+  `;
+
+  // Phone
+  document.getElementById("infoPhone").textContent =
+    a.phone || "-";
+}
 
     // ORDER STATS
     const { count: total } = await supabase
