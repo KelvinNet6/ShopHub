@@ -99,27 +99,20 @@ async function loadProfile() {
 
 document.getElementById("infoName").textContent = name;
 
-// Phone comes from latest shipping address
-document.getElementById("infoPhone").textContent =
-  order?.shipping_address?.phone || "-";
-// Default phone value
+// Fetch latest order for shipping JSON
+const { data: order } = await supabase
+  .from("orders")
+  .select("shipping_address")
+  .eq("customer_id", user.id)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .single();
 
-    // Fetch latest order for shipping JSON
-    const { data: order } = await supabase
-      .from("orders")
-      .select("shipping_address")
-      .eq("customer_id", user.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .single();
-
-    
 if (order?.shipping_address) {
   const a = order.shipping_address;
 
   // 1️⃣ Display the name on the shipping address section
-  document.getElementById("addrName").textContent =
-    a.name || name;
+  document.getElementById("addrName").textContent = a.name || name;
 
   // 2️⃣ Display full address properly, handling optional apartment
   document.getElementById("addrLine").innerHTML = `
@@ -129,9 +122,12 @@ if (order?.shipping_address) {
   `;
 
   // 3️⃣ Set phone number in Personal Information
-  document.getElementById("infoPhone").textContent =
-    a.phone || "-";
+  document.getElementById("infoPhone").textContent = a.phone || "-";
+} else {
+  // Default phone if no shipping address exists
+  document.getElementById("infoPhone").textContent = "-";
 }
+
 
 
     // ORDER STATS
