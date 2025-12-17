@@ -104,51 +104,51 @@
   });
   observer.observe(document.body, { childList: true, subtree: true });
   
-  const { data: { session } } = await supabaseClient.auth.getSession();
+ const { data: { session } } = await supabase.auth.getSession();
 
-  if (!session) {
-    alert("Please log in to view your account");
-    window.location.href = "../Admin/adLogin.html";
-    return;
-  }
+if (!session) {
+  alert("Please log in to view your account");
+  window.location.href = "../Admin/adLogin.html";
+  return;
+}
 
-  const userId = session.user.id;
+const userId = session.user.id;
 
-  // Ensure profile exists
-  let { data: profile } = await supabaseClient
-    .from('profiles')
-    .select('id')
-    .eq('id', userId)
-    .maybeSingle();
+// Ensure profile exists
+let { data: profile } = await supabase
+  .from('profiles')
+  .select('id')
+  .eq('id', userId)
+  .maybeSingle();
 
-  if (!profile) {
-    await supabaseClient.from('profiles').insert({ id: userId });
-  }
+if (!profile) {
+  await supabase.from('profiles').insert({ id: userId });
+}
 
-  // FETCH ORDERS + THEIR ITEMS IN ONE QUERY (Recommended)
-  const { data: orders, error } = await supabaseClient
-    .from('orders')
-    .select(`
-      id,
-      total,
-      status,
-      payment_method,
-      created_at,
-      order_items (
-        quantity,
-        price,
-        name,
-        image_url
-      )
-    `)
-    .eq('customer_id', userId)
-    .order('created_at', { ascending: false });
+// FETCH ORDERS + THEIR ITEMS IN ONE QUERY (Recommended)
+const { data: orders, error } = await supabase
+  .from('orders')
+  .select(`
+    id,
+    total,
+    status,
+    payment_method,
+    created_at,
+    order_items (
+      quantity,
+      price,
+      name,
+      image_url
+    )
+  `)
+  .eq('customer_id', userId)
+  .order('created_at', { ascending: false });
 
-  if (error) {
-    console.error("Error loading orders:", error);
-    document.getElementById('loading').textContent = "Failed to load orders";
-    return;
-  }
+if (error) {
+  console.error("Error loading orders:", error);
+  document.getElementById('loading').textContent = "Failed to load orders";
+  return;
+}
 
   document.getElementById('loading').style.display = 'none';
 
