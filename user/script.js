@@ -98,24 +98,29 @@ async function loadProfile() {
     document.getElementById("userEmail").textContent = profile.email || user.email;
 
 document.getElementById("infoName").textContent = name;
+// Fetch latest order for shipping JSON
+const { data: order } = await supabase
+  .from("orders")
+  .select("shipping_address")
+  .eq("customer_id", user.id)
+  .order("created_at", { ascending: false })
+  .limit(1)
+  .single();
 
+// Now we can safely use 'order'
 if (order?.shipping_address) {
-  // Parse JSON string if needed
   const a = typeof order.shipping_address === "string"
     ? JSON.parse(order.shipping_address)
     : order.shipping_address;
 
-  // Display name
   document.getElementById("addrName").textContent = a.name || name;
 
-  // Display address
   document.getElementById("addrLine").innerHTML = `
     ${a.address || ""} ${a.apt || ""}<br>
     ${a.city || ""} ${a.postal || ""}<br>
     ${a.country || ""}
   `;
 
-  // Phone in Personal Information
   document.getElementById("infoPhone").textContent = a.phone || "-";
 } else {
   document.getElementById("infoPhone").textContent = "-";
