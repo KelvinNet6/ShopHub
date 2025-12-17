@@ -1,11 +1,6 @@
 (() => {
   "use strict";
 
-  if (!window.supabase || !window.supabase.createClient) {
-    console.error("Supabase CDN not loaded!");
-    return;
-  }
-
   const { createClient } = window.supabase;
 
   const supabase = createClient(
