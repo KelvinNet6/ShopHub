@@ -48,10 +48,15 @@
     }).observe(document.body, { childList: true, subtree: true });
   }
 
- async function loadProfile() {
+async function loadProfile() {
   try {
-    // Get currently logged in user
-    const { data: { user } } = await supabase.auth.getUser();
+    
+    if (!window.supabase || !window.supabase.auth) {
+      setTimeout(loadProfile, 50);
+      return;
+    }
+
+    const { data: { user } } = await window.supabase.auth.getUser();
 
     if (!user) {
       window.location.href = "../Admin/adLogin.html";
