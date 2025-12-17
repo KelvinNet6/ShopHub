@@ -97,9 +97,12 @@ async function loadProfile() {
       })}`;
     document.getElementById("userEmail").textContent = profile.email || user.email;
 
-    // PERSONAL INFO
-    document.getElementById("infoName").textContent = name;
-    document.getElementById("infoPhone").textContent = "-"; // Default phone value
+document.getElementById("infoName").textContent = name;
+
+// Phone comes from latest shipping address
+document.getElementById("infoPhone").textContent =
+  order?.shipping_address?.phone || "-";
+// Default phone value
 
     // Fetch latest order for shipping JSON
     const { data: order } = await supabase
@@ -110,24 +113,26 @@ async function loadProfile() {
       .limit(1)
       .single();
 
-   if (order?.shipping_address) {
+    
+if (order?.shipping_address) {
   const a = order.shipping_address;
 
-  // Name
+  // 1️⃣ Display the name on the shipping address section
   document.getElementById("addrName").textContent =
     a.name || name;
 
-  // Address
+  // 2️⃣ Display full address properly, handling optional apartment
   document.getElementById("addrLine").innerHTML = `
     ${a.address || ""} ${a.apt || ""}<br>
     ${a.city || ""} ${a.postal || ""}<br>
     ${a.country || ""}
   `;
 
-  // Phone
+  // 3️⃣ Set phone number in Personal Information
   document.getElementById("infoPhone").textContent =
     a.phone || "-";
 }
+
 
     // ORDER STATS
     const { count: total } = await supabase
