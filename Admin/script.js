@@ -1101,26 +1101,30 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("category").addEventListener("change", handleSizeVisibility);
 
 function handleSizeVisibility() {
-  const select = document.getElementById("category");
-  const option = select.options[select.selectedIndex];
-  const sizeType = option?.dataset.sizeType;
+  const categorySelect = document.getElementById("category");
+  const categoryId = categorySelect.value;
 
   const sizeWrapper = document.getElementById("sizeWrapper");
   const shoeSizes = document.getElementById("shoeSizes");
   const clothingSizes = document.getElementById("clothingSizes");
 
-  // Reset
+  // Reset all
   sizeWrapper.style.display = "none";
   shoeSizes.style.display = "none";
   clothingSizes.style.display = "none";
 
-  if (sizeType === "shoes") {
+  if (!categoryId) return;
+
+  const selectedOption = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
+
+  if (selectedOption.includes("shoe")) {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "block";
-  }
-
-  if (sizeType === "clothing") {
+  } else if (selectedOption.includes("clothing")) {
     sizeWrapper.style.display = "block";
     clothingSizes.style.display = "block";
+  } else {
+    // No sizes for this category
+    sizeWrapper.style.display = "none";
   }
 }
