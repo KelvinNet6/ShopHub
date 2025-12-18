@@ -286,6 +286,16 @@ async function saveProduct() {
   const fileInput = document.getElementById("productImage");
   const file = fileInput.files[0];
 
+  // Collect selected sizes
+const selectedSizes = Array.from(
+  document.querySelectorAll("#sizeWrapper input[type=checkbox]:checked")
+).map(cb => cb.value);
+
+// Save sizes
+if (selectedSizes.length > 0) {
+  body.sizes = selectedSizes;
+}
+
   const body = {
     name: document.getElementById("name").value.trim(),
     category_id: document.getElementById("category").value,
@@ -359,6 +369,14 @@ async function editProduct(id) {
 
   document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
+
+  // Restore sizes
+document.querySelectorAll("#sizeWrapper input[type=checkbox]").forEach(cb => {
+  cb.checked = p.sizes?.includes(cb.value) || false;
+});
+
+handleSizeVisibility();
+
 }
 
 async function deleteProduct(id) {
@@ -1070,3 +1088,28 @@ document.addEventListener("DOMContentLoaded", () => {
   // Run once on load (in case you pre-select a status via URL or something)
   applyFilters();
 });
+
+document.getElementById("category").addEventListener("change", handleSizeVisibility);
+
+function handleSizeVisibility() {
+  const category = document.getElementById("category").value;
+  const sizeWrapper = document.getElementById("sizeWrapper");
+  const shoeSizes = document.getElementById("shoeSizes");
+  const clothingSizes = document.getElementById("clothingSizes");
+
+  // Reset
+  sizeWrapper.style.display = "none";
+  shoeSizes.style.display = "none";
+  clothingSizes.style.display = "none";
+
+  // Adjust these IDs to match your real category IDs
+  if (category === "shoes") {
+    sizeWrapper.style.display = "block";
+    shoeSizes.style.display = "block";
+  }
+
+  if (category === "clothing") {
+    sizeWrapper.style.display = "block";
+    clothingSizes.style.display = "block";
+  }
+}
