@@ -293,7 +293,7 @@ async function saveProduct() {
   const fileInput = document.getElementById("productImage");
   const file = fileInput.files[0];
 
-  // 1️⃣ Build product object first
+  // 1️⃣ Build product object
   const body = {
     name: document.getElementById("name").value.trim(),
     category_id: document.getElementById("category").value,
@@ -307,15 +307,15 @@ async function saveProduct() {
     return;
   }
 
-  // 2️⃣ Collect sizes if visible
+  // 2️⃣ Collect sizes — always attach an array, even if empty
   const sizeWrapper = document.getElementById("sizeWrapper");
+  let selectedSizes = [];
   if (sizeWrapper && sizeWrapper.style.display === "block") {
-    const selectedSizes = Array.from(
+    selectedSizes = Array.from(
       sizeWrapper.querySelectorAll("input[type=checkbox]:checked")
-    ).map(cb => cb.value.trim()); // ensure no spaces
-    if (selectedSizes.length > 0) body.sizes = selectedSizes;
-    else body.sizes = []; // empty array if none selected
+    ).map(cb => cb.value.trim());
   }
+  body.sizes = selectedSizes; // empty array if none selected
 
   // 3️⃣ Handle image upload
   if (file) {
@@ -341,7 +341,7 @@ async function saveProduct() {
     if (editingProductId) {
       await supabase.from("products").update(body).eq("id", editingProductId);
     } else {
-      await supabase.from("products").insert(body);
+      await supabase.from("products").insert([body]); // ✅ wrap in array
     }
 
     closeAllModals();
