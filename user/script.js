@@ -215,7 +215,7 @@ if (document.getElementById("avatar")) {
       localStorage.removeItem("shophub_cart");
       alert("Logged out successfully!");
       if (window.closeMenu) window.closeMenu();
-      window.location.href = "/index.html";
+      window.location.href = "../index.html";
     } catch (err) {
       console.error("Logout failed:", err);
       alert("Error: " + err.message);
