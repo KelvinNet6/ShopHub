@@ -293,16 +293,7 @@ async function saveProduct() {
   const fileInput = document.getElementById("productImage");
   const file = fileInput.files[0];
 
-  // 1️⃣ Collect sizes dynamically if visible
-  let selectedSizes = [];
-  const sizeWrapper = document.getElementById("sizeWrapper");
-  if (sizeWrapper && sizeWrapper.style.display === "block") {
-    selectedSizes = Array.from(
-      sizeWrapper.querySelectorAll("input[type=checkbox]:checked")
-    ).map(cb => cb.value);
-  }
-
-  // 2️⃣ Build product object
+  // 1️⃣ Build product object first
   const body = {
     name: document.getElementById("name").value.trim(),
     category_id: document.getElementById("category").value,
@@ -311,11 +302,18 @@ async function saveProduct() {
     stock: Number(document.getElementById("stock").value),
   };
 
-  if (selectedSizes.length > 0) body.sizes = selectedSizes;
-
   if (!body.name || !body.category_id || !body.price) {
     alert("Please fill all required fields");
     return;
+  }
+
+  // 2️⃣ Collect sizes AFTER body exists
+  const sizeWrapper = document.getElementById("sizeWrapper");
+  if (sizeWrapper && sizeWrapper.style.display === "block") {
+    const selectedSizes = Array.from(
+      sizeWrapper.querySelectorAll("input[type=checkbox]:checked")
+    ).map(cb => cb.value);
+    if (selectedSizes.length > 0) body.sizes = selectedSizes;
   }
 
   let imageUrl = null;
@@ -350,7 +348,9 @@ async function saveProduct() {
     }
     closeAllModals();
     loadProducts();
+    alert("Product saved successfully!");
   } catch (err) {
+    console.error(err);
     alert("Failed to save product: " + err.message);
   }
 }
