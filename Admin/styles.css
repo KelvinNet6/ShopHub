@@ -427,3 +427,10 @@ tr:hover { background: #f9fafb; }
 .invoice-value {
   color: #374151;
 }
+
+.size-box label {
+  display: inline-block;
+  margin-right: 12px;
+  margin-bottom: 6px;
+  cursor: pointer;
+}
