@@ -307,22 +307,21 @@ async function saveProduct() {
     return;
   }
 
-  // 2️⃣ Collect sizes AFTER body exists
+  // 2️⃣ Collect sizes if visible
   const sizeWrapper = document.getElementById("sizeWrapper");
   if (sizeWrapper && sizeWrapper.style.display === "block") {
     const selectedSizes = Array.from(
       sizeWrapper.querySelectorAll("input[type=checkbox]:checked")
-    ).map(cb => cb.value);
+    ).map(cb => cb.value.trim()); // ensure no spaces
     if (selectedSizes.length > 0) body.sizes = selectedSizes;
+    else body.sizes = []; // empty array if none selected
   }
 
-  let imageUrl = null;
-
-  // 3️⃣ Upload image if selected
+  // 3️⃣ Handle image upload
   if (file) {
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
-    
+
     const { error: uploadError } = await supabase.storage
       .from("products")
       .upload(fileName, file);
@@ -334,18 +333,17 @@ async function saveProduct() {
     }
 
     const { data } = supabase.storage.from("products").getPublicUrl(fileName);
-    imageUrl = data.publicUrl;
+    body.image_url = data.publicUrl;
   }
 
-  if (imageUrl) body.image_url = imageUrl;
-
-  // 4️⃣ Insert or update product in Supabase
+  // 4️⃣ Insert or update
   try {
     if (editingProductId) {
       await supabase.from("products").update(body).eq("id", editingProductId);
     } else {
       await supabase.from("products").insert(body);
     }
+
     closeAllModals();
     loadProducts();
     alert("Product saved successfully!");
