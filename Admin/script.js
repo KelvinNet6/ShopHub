@@ -293,12 +293,16 @@ async function saveProduct() {
   const fileInput = document.getElementById("productImage");
   const file = fileInput.files[0];
 
-  // 1️⃣ Collect selected sizes
-  const selectedSizes = Array.from(
-    document.querySelectorAll("#sizeWrapper input[type=checkbox]:checked")
-  ).map(cb => cb.value);
+  // 1️⃣ Collect sizes dynamically if visible
+  let selectedSizes = [];
+  const sizeWrapper = document.getElementById("sizeWrapper");
+  if (sizeWrapper && sizeWrapper.style.display === "block") {
+    selectedSizes = Array.from(
+      sizeWrapper.querySelectorAll("input[type=checkbox]:checked")
+    ).map(cb => cb.value);
+  }
 
-  // 2️⃣ Build product body
+  // 2️⃣ Build product object
   const body = {
     name: document.getElementById("name").value.trim(),
     category_id: document.getElementById("category").value,
@@ -307,19 +311,16 @@ async function saveProduct() {
     stock: Number(document.getElementById("stock").value),
   };
 
-  // 3️⃣ Add sizes if any
-  if (selectedSizes.length > 0) {
-    body.sizes = selectedSizes;
-  }
+  if (selectedSizes.length > 0) body.sizes = selectedSizes;
 
-  // 4️⃣ Validate required fields
   if (!body.name || !body.category_id || !body.price) {
     alert("Please fill all required fields");
     return;
   }
 
-  // 5️⃣ Handle image upload
   let imageUrl = null;
+
+  // 3️⃣ Upload image if selected
   if (file) {
     const fileExt = file.name.split(".").pop();
     const fileName = `${Date.now()}_${Math.random().toString(36).substr(2, 9)}.${fileExt}`;
@@ -334,14 +335,13 @@ async function saveProduct() {
       return;
     }
 
-    // Get public URL
     const { data } = supabase.storage.from("products").getPublicUrl(fileName);
     imageUrl = data.publicUrl;
   }
 
   if (imageUrl) body.image_url = imageUrl;
 
-  // 6️⃣ Insert or update product
+  // 4️⃣ Insert or update product in Supabase
   try {
     if (editingProductId) {
       await supabase.from("products").update(body).eq("id", editingProductId);
