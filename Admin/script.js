@@ -233,9 +233,16 @@ async function loadProducts() {
     supabase.from("products").select("*, categories(name), brands(name)").order("id")
   ]);
 
-  document.getElementById("category").innerHTML = 
-    '<option value="">Select Category</option>' + 
-    categories.map(c => `<option value="${c.id}">${c.name}</option>`).join("");
+  const categorySelect = document.getElementById("category");
+
+categorySelect.innerHTML =
+  '<option value="">Select Category</option>' +
+  categories.map(c =>
+    `<option value="${c.id}" data-size-type="${c.size_type}">
+      ${c.name}
+    </option>`
+  ).join("");
+
 
   document.getElementById("brand").innerHTML = 
     '<option value="">Select Brand</option>' + 
