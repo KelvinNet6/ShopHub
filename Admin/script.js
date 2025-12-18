@@ -259,6 +259,7 @@ categorySelect.innerHTML =
       <td>${p.brands?.name || "-"}</td>
       <td>$${Number(p.price).toFixed(2)}</td>
       <td>${p.stock}</td>
+      <td>${p.sizes}</td>
       <td>
         <button class="btn edit" onclick="editProduct(${p.id})">
           <i class="fa fa-edit"></i>
@@ -284,6 +285,10 @@ function openAddProduct() {
   document.getElementById("productImage").value = "";
   document.getElementById("imagePreview").style.display = "none";
   document.getElementById("imagePreview").src = "";
+
+  // Reset all sizes
+  document.querySelectorAll("#sizeWrapper input[type=checkbox]").forEach(cb => cb.checked = false);
+  handleSizeVisibility(); // adjust visibility based on category
 
   document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
