@@ -1099,7 +1099,10 @@ document.addEventListener("DOMContentLoaded", () => {
 document.getElementById("category").addEventListener("change", handleSizeVisibility);
 
 function handleSizeVisibility() {
-  const category = document.getElementById("category").value;
+  const select = document.getElementById("category");
+  const option = select.options[select.selectedIndex];
+  const sizeType = option?.dataset.sizeType;
+
   const sizeWrapper = document.getElementById("sizeWrapper");
   const shoeSizes = document.getElementById("shoeSizes");
   const clothingSizes = document.getElementById("clothingSizes");
@@ -1109,13 +1112,12 @@ function handleSizeVisibility() {
   shoeSizes.style.display = "none";
   clothingSizes.style.display = "none";
 
-  // Adjust these IDs to match your real category IDs
-  if (category === "shoes") {
+  if (sizeType === "shoes") {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "block";
   }
 
-  if (category === "clothing") {
+  if (sizeType === "clothing") {
     sizeWrapper.style.display = "block";
     clothingSizes.style.display = "block";
   }
