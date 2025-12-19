@@ -61,14 +61,24 @@
     closeCartBtn.addEventListener("click", () => { cartSidebar.classList.remove("open"); cartOverlay.classList.remove("active"); });
     cartOverlay.addEventListener("click", () => { cartSidebar.classList.remove("open"); cartOverlay.classList.remove("active"); });
 
-    function addToCart(product) {
-      const existing = cart.find(item => item.id === product.id);
-      if (existing) existing.quantity += 1;
-      else cart.push({ ...product, quantity: 1 });
-      localStorage.setItem("shophub_cart", JSON.stringify(cart));
-      updateCartCount();
-      alert(`${product.name} added to bag!`);
-    }
+ function addToCart(product) {
+  // Get selected size from the dropdown
+  const sizeSelect = document.getElementById("sizeSelect");
+  const size = sizeSelect ? sizeSelect.value : null;
+
+  const productWithSize = { ...product, size };
+
+  // Check if item with same id AND size already exists
+  const existing = cart.find(item => item.id === productWithSize.id && item.size === productWithSize.size);
+
+  if (existing) existing.quantity += 1;
+  else cart.push({ ...productWithSize, quantity: 1 });
+
+  localStorage.setItem("shophub_cart", JSON.stringify(cart));
+  updateCartCount();
+  alert(`${product.name}${size ? ' (Size ' + size + ')' : ''} added to bag!`);
+}
+
 
     function updateCartCount() {
       const count = cart.reduce((s, i) => s + i.quantity, 0);
@@ -77,37 +87,48 @@
       if (mobileCount) mobileCount.textContent = count;
     }
 
-    function renderCart() {
-      if (cart.length === 0) {
-        cartItemsEl.innerHTML = `<p class="empty-cart">Your bag is empty</p>`;
-        cartTotalEl.textContent = "0.00";
-        return;
-      }
-      cartItemsEl.innerHTML = cart.map(item => `
-        <div style="display:flex; gap:1rem; padding:1rem 0; border-bottom:1px solid #222;">
-          <img src="${getPublicImageUrl(item.image_url)}" style="width:80px;height:120px;object-fit:cover;border-radius:12px;">
-          <div style="flex:1;">
-            <div style="font-weight:700;">${item.name}</div>
-            <div style="color:#a78bfa;font-weight:800;">$${item.price.toFixed(2)}</div>
-            <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
-              <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},-1)">−</button>
-              <span style="min-width:30px;text-align:center;font-weight:700;">${item.quantity}</span>
-              <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},1)">+</button>
-            </div>
-            <div style="color:#ff4444;font-size:0.9rem;cursor:pointer;margin-top:0.5rem;" onclick="removeFromCart(${item.id})">Remove</div>
-          </div>
-        </div>
-      `).join("");
-      cartTotalEl.textContent = cart.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2);
-    }
+   function renderCart() {
+  if (cart.length === 0) {
+    cartItemsEl.innerHTML = `<p class="empty-cart">Your bag is empty</p>`;
+    cartTotalEl.textContent = "0.00";
+    return;
+  }
 
-    window.removeFromCart = id => { cart = cart.filter(i => i.id !== id); localStorage.setItem("shophub_cart", JSON.stringify(cart)); updateCartCount(); renderCart(); };
-    window.updateQuantity = (id, change) => {
-      const item = cart.find(i => i.id === id);
-      if (item) item.quantity = Math.max(1, item.quantity + change);
-      localStorage.setItem("shophub_cart", JSON.stringify(cart));
-      updateCartCount(); renderCart();
-    };
+  cartItemsEl.innerHTML = cart.map(item => `
+    <div style="display:flex; gap:1rem; padding:1rem 0; border-bottom:1px solid #222;">
+      <img src="${getPublicImageUrl(item.image_url)}" style="width:80px;height:120px;object-fit:cover;border-radius:12px;">
+      <div style="flex:1;">
+        <div style="font-weight:700;">${item.name}</div>
+        ${item.size ? `<div style="color:#aaa;font-size:0.9rem;">Size: ${item.size}</div>` : ''}
+        <div style="color:#a78bfa;font-weight:800;">$${item.price.toFixed(2)}</div>
+        <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
+          <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},'${item.size}',-1)">−</button>
+          <span style="min-width:30px;text-align:center;font-weight:700;">${item.quantity}</span>
+          <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},'${item.size}',1)">+</button>
+        </div>
+        <div style="color:#ff4444;font-size:0.9rem;cursor:pointer;margin-top:0.5rem;" onclick="removeFromCart(${item.id},'${item.size}')">Remove</div>
+      </div>
+    </div>
+  `).join("");
+
+  cartTotalEl.textContent = cart.reduce((s, i) => s + i.price * i.quantity, 0).toFixed(2);
+}
+
+window.removeFromCart = (id, size) => {
+  cart = cart.filter(i => !(i.id === id && i.size === size));
+  localStorage.setItem("shophub_cart", JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+};
+
+window.updateQuantity = (id, size, change) => {
+  const item = cart.find(i => i.id === id && i.size === size);
+  if (item) item.quantity = Math.max(1, item.quantity + change);
+  localStorage.setItem("shophub_cart", JSON.stringify(cart));
+  updateCartCount();
+  renderCart();
+};
+
 
     // Products
     const grid = document.getElementById("productsGrid");
