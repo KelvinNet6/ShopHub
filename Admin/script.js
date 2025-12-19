@@ -234,42 +234,50 @@ async function loadProducts() {
   ]);
 
   const categorySelect = document.getElementById("category");
+  categorySelect.innerHTML =
+    '<option value="">Select Category</option>' +
+    categories.map(c =>
+      `<option value="${c.id}" data-size-type="${c.size_type}">${c.name}</option>`
+    ).join("");
 
-categorySelect.innerHTML =
-  '<option value="">Select Category</option>' +
-  categories.map(c =>
-    `<option value="${c.id}" data-size-type="${c.size_type}">
-      ${c.name}
-    </option>`
-  ).join("");
-
-
-  document.getElementById("brand").innerHTML = 
-    '<option value="">Select Brand</option>' + 
+  document.getElementById("brand").innerHTML =
+    '<option value="">Select Brand</option>' +
     brands.map(b => `<option value="${b.id}">${b.name}</option>`).join("");
 
-  document.getElementById("productTableBody").innerHTML = products.map(p => `
-    <tr>
-      <td>${p.id}</td>
-      <td>
-        ${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:middle;">` : ''}
-        ${p.name}
-      </td>
-      <td>${p.categories?.name || "-"}</td>
-      <td>${p.brands?.name || "-"}</td>
-      <td>$${Number(p.price).toFixed(2)}</td>
-      <td>${p.stock}</td>
-      <td>${p.sizes}</td>
-      <td>
-        <button class="btn edit" onclick="editProduct(${p.id})">
-          <i class="fa fa-edit"></i>
-        </button>
-        <button class="btn delete" onclick="deleteProduct(${p.id})">
-          <i class="fa fa-trash"></i>
-        </button>
-      </td>
-    </tr>
-  `).join("");
+  // Fetch sizes for all products
+  const { data: productSizes } = await supabase
+    .from("product_sizes")
+    .select("*");
+
+  document.getElementById("productTableBody").innerHTML = products.map(p => {
+    // Filter sizes for this product
+    const sizes = productSizes.filter(s => s.product_id === p.id);
+    // Sum stock
+    const totalStock = sizes.reduce((sum, s) => sum + (s.stock || 0), 0);
+
+    return `
+      <tr>
+        <td>${p.id}</td>
+        <td>
+          ${p.image_url ? `<img src="${p.image_url}" style="width:40px;height:40px;object-fit:cover;border-radius:4px;margin-right:8px;vertical-align:middle;">` : ''}
+          ${p.name}
+        </td>
+        <td>${p.categories?.name || "-"}</td>
+        <td>${p.brands?.name || "-"}</td>
+        <td>$${Number(p.price).toFixed(2)}</td>
+        <td>${totalStock}</td>
+        <td>${sizes.map(s => `${s.size}: ${s.stock}`).join(", ")}</td>
+        <td>
+          <button class="btn edit" onclick="editProduct(${p.id})">
+            <i class="fa fa-edit"></i>
+          </button>
+          <button class="btn delete" onclick="deleteProduct(${p.id})">
+            <i class="fa fa-trash"></i>
+          </button>
+        </td>
+      </tr>
+    `;
+  }).join("");
 
   document.getElementById("addProductBtn")?.addEventListener("click", openAddProduct);
 }
