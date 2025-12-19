@@ -279,7 +279,6 @@ function openAddProduct() {
   document.getElementById("modalTitle").textContent = "Add Product";
   document.getElementById("name").value = "";
   document.getElementById("price").value = "";
-  document.getElementById("stock").value = "";
   document.getElementById("category").value = "";
   document.getElementById("brand").value = "";
   document.getElementById("productImage").value = "";
