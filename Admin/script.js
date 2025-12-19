@@ -361,13 +361,14 @@ async function saveProduct() {
       }
     });
   } else {
-    // Product WITHOUT sizes
-    const defaultStock = Number(document.getElementById("defaultStock").value || 0);
+    const generalStockInput = document.getElementById("generalStock");
+    const defaultStock = generalStockInput ? Number(generalStockInput.value || 0) : 0;
+
     sizeRows.push({
-      product_id: product.id,
-      size: "DEFAULT",
-      stock: defaultStock
-    });
+    product_id: product.id,
+    size: "DEFAULT",
+    stock: defaultStock
+   });
   }
 
   // 5️⃣ Insert stock into product_sizes table
@@ -1137,20 +1138,21 @@ function handleSizeVisibility() {
   const sizeWrapper = document.getElementById("sizeWrapper");
   const shoeSizes = document.getElementById("shoeSizes");
   const clothingSizes = document.getElementById("clothingSizes");
-  const generalStock = document.getElementById("generalStock");
+  const generalStockWrapper = document.getElementById("generalStockWrapper");
 
   if (sizeType === "shoes") {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "block";
     clothingSizes.style.display = "none";
-    generalStock.style.display = "none";
+    generalStockWrapper.style.display = "none";
   } else if (sizeType === "clothing") {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "none";
     clothingSizes.style.display = "block";
-    generalStock.style.display = "none";
+    generalStockWrapper.style.display = "none";
   } else {
     sizeWrapper.style.display = "none";
-    generalStock.style.display = "block";
+    generalStockWrapper.style.display = "block";
   }
 }
+
