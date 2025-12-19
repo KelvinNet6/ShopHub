@@ -296,7 +296,7 @@ function openAddProduct() {
 async function saveProduct() {
   const file = document.getElementById("productImage").files[0];
 
-  // 1️⃣ Insert product (NO stock here)
+  // 1️⃣ Build product object (no stock yet)
   const productBody = {
     name: document.getElementById("name").value.trim(),
     category_id: document.getElementById("category").value,
@@ -309,15 +309,20 @@ async function saveProduct() {
     return;
   }
 
-  // 2️⃣ Upload image
+  // 2️⃣ Upload image if exists
   if (file) {
     const fileName = `${Date.now()}_${crypto.randomUUID()}.${file.name.split(".").pop()}`;
-    await supabase.storage.from("products").upload(fileName, file);
-    productBody.image_url =
-      supabase.storage.from("products").getPublicUrl(fileName).data.publicUrl;
+    const { error: uploadError } = await supabase.storage.from("products").upload(fileName, file);
+    if (uploadError) {
+      console.error(uploadError);
+      alert("Image upload failed: " + uploadError.message);
+      return;
+    }
+    const { data } = supabase.storage.from("products").getPublicUrl(fileName);
+    productBody.image_url = data.publicUrl;
   }
 
-  // 3️⃣ Save product
+  // 3️⃣ Insert product
   const { data: product, error } = await supabase
     .from("products")
     .insert([productBody])
@@ -330,38 +335,47 @@ async function saveProduct() {
     return;
   }
 
-  // 4️⃣ Inventory logic
+  // 4️⃣ Handle inventory / sizes
   const sizeWrapper = document.getElementById("sizeWrapper");
   const sizeRows = [];
 
   if (sizeWrapper && sizeWrapper.style.display === "block") {
     // Product WITH sizes
     document.querySelectorAll(".size-row").forEach(row => {
-      const checked = row.querySelector("input[type=checkbox]").checked;
-      if (checked) {
+      const checkbox = row.querySelector("input[type=checkbox]");
+      const qtyInput = row.querySelector("input[type=number]");
+      if (checkbox.checked) {
         sizeRows.push({
           product_id: product.id,
-          size: row.dataset.size,
-          stock: Number(row.querySelector("input[type=number]").value || 0)
+          size: checkbox.value,
+          stock: Number(qtyInput.value || 0)
         });
       }
     });
   } else {
     // Product WITHOUT sizes
+    const defaultStock = Number(document.getElementById("defaultStock").value || 0);
     sizeRows.push({
       product_id: product.id,
       size: "DEFAULT",
-      stock: Number(document.getElementById("defaultStock").value)
+      stock: defaultStock
     });
   }
 
-  await supabase.from("product_sizes").insert(sizeRows);
+  // 5️⃣ Insert stock into product_sizes table
+  if (sizeRows.length > 0) {
+    const { error: stockError } = await supabase.from("product_sizes").insert(sizeRows);
+    if (stockError) {
+      console.error(stockError);
+      alert("Failed to save stock: " + stockError.message);
+      return;
+    }
+  }
 
   closeAllModals();
   loadProducts();
   alert("Product saved successfully!");
 }
-
 
 async function editProduct(id) {
   const { data: p } = await supabase.from("products").select("*").eq("id", id).single();
@@ -1109,29 +1123,26 @@ document.getElementById("category").addEventListener("change", handleSizeVisibil
 
 function handleSizeVisibility() {
   const categorySelect = document.getElementById("category");
-  const categoryId = categorySelect.value;
+  const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+  const sizeType = selectedOption?.dataset?.sizeType;
 
   const sizeWrapper = document.getElementById("sizeWrapper");
   const shoeSizes = document.getElementById("shoeSizes");
   const clothingSizes = document.getElementById("clothingSizes");
+  const generalStock = document.getElementById("generalStock");
 
-  // Reset all
-  sizeWrapper.style.display = "none";
-  shoeSizes.style.display = "none";
-  clothingSizes.style.display = "none";
-
-  if (!categoryId) return;
-
-  const selectedOption = categorySelect.options[categorySelect.selectedIndex].text.toLowerCase();
-
-  if (selectedOption.includes("shoe")) {
+  if (sizeType === "shoes") {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "block";
-  } else if (selectedOption.includes("clothing")) {
+    clothingSizes.style.display = "none";
+    generalStock.style.display = "none";
+  } else if (sizeType === "clothing") {
     sizeWrapper.style.display = "block";
+    shoeSizes.style.display = "none";
     clothingSizes.style.display = "block";
+    generalStock.style.display = "none";
   } else {
-    // No sizes for this category
     sizeWrapper.style.display = "none";
+    generalStock.style.display = "block";
   }
 }
