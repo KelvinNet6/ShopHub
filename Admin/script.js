@@ -410,13 +410,13 @@ async function editProduct(id) {
   /* ---------- IMAGE ---------- */
   const preview = document.getElementById("imagePreview");
   if (p.image_url) {
-    preview.src = getPublicImageUrl(p.image_url);
+    preview.src = p.image_url; // ✅ FIX HERE
     preview.style.display = "block";
   } else {
     preview.style.display = "none";
   }
 
-  /* ---------- LOAD STOCK FROM product_sizes ---------- */
+  /* ---------- LOAD STOCK ---------- */
   const { data: sizesData } = await supabase
     .from("product_sizes")
     .select("size, stock")
@@ -431,12 +431,8 @@ async function editProduct(id) {
   /* ---------- APPLY STOCK ---------- */
   sizesData?.forEach(row => {
     if (row.size === "DEFAULT") {
-      // Product WITHOUT sizes
-      if (generalStockInput) {
-        generalStockInput.value = row.stock;
-      }
+      if (generalStockInput) generalStockInput.value = row.stock;
     } else {
-      // Product WITH sizes
       const checkbox = document.querySelector(`input[type=checkbox][value="${row.size}"]`);
       if (checkbox) {
         checkbox.checked = true;
@@ -453,8 +449,6 @@ async function editProduct(id) {
   document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
 }
-
-
 
 async function deleteProduct(id) {
   if (!confirm("Delete this product permanently?")) return;
