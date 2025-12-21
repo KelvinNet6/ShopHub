@@ -1010,13 +1010,22 @@ async function loadAnalytics() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+//------------------------------------------------------------//
+document.addEventListener("DOMContentLoaded", async () => {
   const logoutBtn = document.getElementById("logoutBtn");
+
+  // ---------- PAGE PROTECTION ----------
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session) {
+    window.location.replace("adLogin.html");
+    return;
+  }
 
   if (!logoutBtn) return;
 
+  // ---------- LOGOUT ----------
   logoutBtn.addEventListener("click", async (e) => {
-    e.preventDefault(); 
+    e.preventDefault();
 
     const span = logoutBtn.querySelector("span") || logoutBtn;
     const originalText = span.textContent;
@@ -1024,17 +1033,12 @@ document.addEventListener("DOMContentLoaded", () => {
     span.textContent = "Logging out...";
     logoutBtn.style.pointerEvents = "none";
 
-    /* ---------- CLEAR LOCAL DATA ---------- */
-    localStorage.removeItem("shophub_cart");
-    localStorage.removeItem("shophub_wishlist");
-
-    
+    // Clear local and session storage
     localStorage.clear();
     sessionStorage.clear();
 
-    /* ---------- SUPABASE SIGN OUT ---------- */
+    // Supabase sign out
     const { error } = await supabase.auth.signOut();
-
     if (error) {
       alert("Logout failed: " + error.message);
       span.textContent = originalText;
@@ -1042,18 +1046,10 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    /* ---------- REDIRECT ---------- */
+    // Redirect after logout
     window.location.replace("adLogin.html");
   });
-
-  /* ---------- PAGE PROTECTION ---------- */
-  supabase.auth.getSession().then(({ data: { session } }) => {
-    if (!session) {
-      window.location.replace("adLogin.html");
-    }
-  });
 });
-
 
 // GLOBAL SEARCH FOR ALL TABLES (Customers / Products / Orders)
 document.addEventListener("DOMContentLoaded", () => {
