@@ -1010,15 +1010,19 @@ async function loadAnalytics() {
   });
 }
 
-//------------------------------------------------------------//
 document.addEventListener("DOMContentLoaded", async () => {
   const logoutBtn = document.getElementById("logoutBtn");
 
   // ---------- PAGE PROTECTION ----------
-  const { data: { session } } = await supabase.auth.getSession();
-  if (!session) {
-    window.location.replace("adLogin.html");
-    return;
+  try {
+    const { data: { session } } = await supabase.auth.getSession();
+    // Only protect pages that require login (skip if logout page itself)
+    if (!session && window.location.pathname !== "/adLogin.html") {
+      window.location.replace("adLogin.html");
+      return;
+    }
+  } catch (err) {
+    console.error("Failed to check session:", err);
   }
 
   if (!logoutBtn) return;
@@ -1033,11 +1037,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     span.textContent = "Logging out...";
     logoutBtn.style.pointerEvents = "none";
 
-    // Clear local and session storage
+    // Clear local/session storage
     localStorage.clear();
     sessionStorage.clear();
 
-    // Supabase sign out
+    // Sign out from Supabase
     const { error } = await supabase.auth.signOut();
     if (error) {
       alert("Logout failed: " + error.message);
@@ -1047,9 +1051,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     // Redirect after logout
-    window.location.replace("adLogin.html");
+    window.location.replace("../index.html");
   });
 });
+
 
 // GLOBAL SEARCH FOR ALL TABLES (Customers / Products / Orders)
 document.addEventListener("DOMContentLoaded", () => {
