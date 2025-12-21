@@ -1012,20 +1012,24 @@ async function loadAnalytics() {
 
 // =====================================
 
-// =====================================
 document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
+
   if (logoutBtn) {
     logoutBtn.addEventListener("click", async (e) => {
       e.preventDefault();
 
-      // Optional: Show "Logging out..." feedback
       const span = logoutBtn.querySelector("span") || logoutBtn;
       const originalText = span.textContent;
       span.textContent = "Logging out...";
-      logoutBtn.style.pointerEvents = "none"; // disable double-click
+      logoutBtn.style.pointerEvents = "none";
 
-      // Sign out from Supabase
+      /* ---------- CLEAR LOCAL STORAGE ---------- */
+      localStorage.removeItem("shophub_cart");
+      localStorage.removeItem("shophub_wishlist");
+      localStorage.removeItem("shophub_checkout"); // if exists
+
+      /* ---------- SIGN OUT FROM SUPABASE ---------- */
       const { error } = await supabase.auth.signOut();
 
       if (error) {
@@ -1033,16 +1037,16 @@ document.addEventListener("DOMContentLoaded", () => {
         span.textContent = originalText;
         logoutBtn.style.pointerEvents = "auto";
       } else {
-        // Force redirect to login page
-        window.location.href = "adLogin.html";
+        /* ---------- REDIRECT ---------- */
+        window.location.replace("..//index.html");
       }
     });
   }
 
-  // Optional: Protect admin pages — redirect to login if not authenticated
+  /* ---------- PAGE PROTECTION ---------- */
   supabase.auth.getSession().then(({ data: { session } }) => {
     if (!session) {
-      window.location.href = "adLogin.html";
+      window.location.replace("adLogin.html");
     }
   });
 });
