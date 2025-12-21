@@ -387,36 +387,62 @@ async function saveProduct() {
 }
 
 async function editProduct(id) {
-  const { data: p } = await supabase.from("products").select("*").eq("id", id).single();
+  const { data: p, error } = await supabase
+    .from("products")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error || !p) {
+    alert("Failed to load product");
+    return;
+  }
 
   editingProductId = id;
+
   document.getElementById("modalTitle").textContent = "Edit Product";
-  document.getElementById("name").value = p.name;
-  document.getElementById("price").value = p.price;
-  document.getElementById("stock").value = p.stock;
+  document.getElementById("name").value = p.name || "";
+  document.getElementById("price").value = p.price || "";
+  document.getElementById("stock").value = p.stock ?? "";
   document.getElementById("brand").value = p.brand_id || "";
   document.getElementById("category").value = p.category_id || "";
 
-  // Show current image if exists
+  /* ---------- IMAGE PREVIEW ---------- */
   const preview = document.getElementById("imagePreview");
   if (p.image_url) {
-    preview.src = p.image_url;
+    preview.src = getPublicImageUrl(p.image_url);
     preview.style.display = "block";
   } else {
     preview.style.display = "none";
   }
 
+  /* ---------- SIZES ---------- */
+  let sizes = [];
+
+  if (Array.isArray(p.sizes)) {
+    sizes = p.sizes;
+  } else if (typeof p.sizes === "string") {
+    try {
+      sizes = JSON.parse(p.sizes);
+    } catch {
+      sizes = [];
+    }
+  }
+
+  document.querySelectorAll("#sizeWrapper input[type=checkbox]").forEach(cb => {
+    cb.checked = sizes.includes(cb.value);
+  });
+
+  /* ---------- FORCE SIZE VISIBILITY ---------- */
+  setTimeout(() => {
+    handleSizeVisibility();
+  }, 0);
+
+  /* ---------- OPEN MODAL ---------- */
   document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
-
-  // Restore sizes
-document.querySelectorAll("#sizeWrapper input[type=checkbox]").forEach(cb => {
-  cb.checked = p.sizes?.includes(cb.value) || false;
-});
-
-handleSizeVisibility();
-
 }
+
 
 async function deleteProduct(id) {
   if (!confirm("Delete this product permanently?")) return;
