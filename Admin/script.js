@@ -1010,38 +1010,41 @@ async function loadAnalytics() {
   });
 }
 
-// =====================================
-
 document.addEventListener("DOMContentLoaded", () => {
   const logoutBtn = document.getElementById("logoutBtn");
 
-  if (logoutBtn) {
-    logoutBtn.addEventListener("click", async (e) => {
-      e.preventDefault();
+  if (!logoutBtn) return;
 
-      const span = logoutBtn.querySelector("span") || logoutBtn;
-      const originalText = span.textContent;
-      span.textContent = "Logging out...";
-      logoutBtn.style.pointerEvents = "none";
+  logoutBtn.addEventListener("click", async (e) => {
+    e.preventDefault(); 
 
-      /* ---------- CLEAR LOCAL STORAGE ---------- */
-      localStorage.removeItem("shophub_cart");
-      localStorage.removeItem("shophub_wishlist");
-      localStorage.removeItem("shophub_checkout"); // if exists
+    const span = logoutBtn.querySelector("span") || logoutBtn;
+    const originalText = span.textContent;
 
-      /* ---------- SIGN OUT FROM SUPABASE ---------- */
-      const { error } = await supabase.auth.signOut();
+    span.textContent = "Logging out...";
+    logoutBtn.style.pointerEvents = "none";
 
-      if (error) {
-        alert("Logout failed: " + error.message);
-        span.textContent = originalText;
-        logoutBtn.style.pointerEvents = "auto";
-      } else {
-        /* ---------- REDIRECT ---------- */
-        window.location.replace("../index.html");
-      }
-    });
-  }
+    /* ---------- CLEAR LOCAL DATA ---------- */
+    localStorage.removeItem("shophub_cart");
+    localStorage.removeItem("shophub_wishlist");
+
+    
+    localStorage.clear();
+    sessionStorage.clear();
+
+    /* ---------- SUPABASE SIGN OUT ---------- */
+    const { error } = await supabase.auth.signOut();
+
+    if (error) {
+      alert("Logout failed: " + error.message);
+      span.textContent = originalText;
+      logoutBtn.style.pointerEvents = "auto";
+      return;
+    }
+
+    /* ---------- REDIRECT ---------- */
+    window.location.replace("adLogin.html");
+  });
 
   /* ---------- PAGE PROTECTION ---------- */
   supabase.auth.getSession().then(({ data: { session } }) => {
@@ -1050,6 +1053,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 });
+
 
 // GLOBAL SEARCH FOR ALL TABLES (Customers / Products / Orders)
 document.addEventListener("DOMContentLoaded", () => {
