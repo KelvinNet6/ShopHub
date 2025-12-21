@@ -385,8 +385,8 @@ async function saveProduct() {
   loadProducts();
   alert("Product saved successfully!");
 }
-
 async function editProduct(id) {
+  /* ---------- LOAD PRODUCT ---------- */
   const { data: p, error } = await supabase
     .from("products")
     .select("*")
@@ -400,14 +400,14 @@ async function editProduct(id) {
 
   editingProductId = id;
 
+  /* ---------- BASIC FIELDS ---------- */
   document.getElementById("modalTitle").textContent = "Edit Product";
   document.getElementById("name").value = p.name || "";
   document.getElementById("price").value = p.price || "";
-  document.getElementById("stock").value = p.stock ?? "";
   document.getElementById("brand").value = p.brand_id || "";
   document.getElementById("category").value = p.category_id || "";
 
-  /* ---------- IMAGE PREVIEW ---------- */
+  /* ---------- IMAGE ---------- */
   const preview = document.getElementById("imagePreview");
   if (p.image_url) {
     preview.src = getPublicImageUrl(p.image_url);
@@ -416,32 +416,44 @@ async function editProduct(id) {
     preview.style.display = "none";
   }
 
-  /* ---------- SIZES ---------- */
-  let sizes = [];
+  /* ---------- LOAD STOCK FROM product_sizes ---------- */
+  const { data: sizesData } = await supabase
+    .from("product_sizes")
+    .select("size, stock")
+    .eq("product_id", id);
 
-  if (Array.isArray(p.sizes)) {
-    sizes = p.sizes;
-  } else if (typeof p.sizes === "string") {
-    try {
-      sizes = JSON.parse(p.sizes);
-    } catch {
-      sizes = [];
+  /* ---------- RESET UI ---------- */
+  document.querySelectorAll(".size-row input[type=checkbox]").forEach(cb => cb.checked = false);
+  document.querySelectorAll(".size-row input[type=number]").forEach(i => i.value = "");
+  const generalStockInput = document.getElementById("generalStock");
+  if (generalStockInput) generalStockInput.value = "";
+
+  /* ---------- APPLY STOCK ---------- */
+  sizesData?.forEach(row => {
+    if (row.size === "DEFAULT") {
+      // Product WITHOUT sizes
+      if (generalStockInput) {
+        generalStockInput.value = row.stock;
+      }
+    } else {
+      // Product WITH sizes
+      const checkbox = document.querySelector(`input[type=checkbox][value="${row.size}"]`);
+      if (checkbox) {
+        checkbox.checked = true;
+        const qtyInput = checkbox.closest(".size-row")?.querySelector("input[type=number]");
+        if (qtyInput) qtyInput.value = row.stock;
+      }
     }
-  }
-
-  document.querySelectorAll("#sizeWrapper input[type=checkbox]").forEach(cb => {
-    cb.checked = sizes.includes(cb.value);
   });
 
-  /* ---------- FORCE SIZE VISIBILITY ---------- */
-  setTimeout(() => {
-    handleSizeVisibility();
-  }, 0);
+  /* ---------- SHOW CORRECT FIELDS ---------- */
+  setTimeout(handleSizeVisibility, 0);
 
   /* ---------- OPEN MODAL ---------- */
   document.getElementById("saveProductBtn").onclick = saveProduct;
   document.getElementById("modalBg").style.display = "flex";
 }
+
 
 
 async function deleteProduct(id) {
