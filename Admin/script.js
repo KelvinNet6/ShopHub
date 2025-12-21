@@ -1038,7 +1038,7 @@ document.addEventListener("DOMContentLoaded", () => {
         logoutBtn.style.pointerEvents = "auto";
       } else {
         /* ---------- REDIRECT ---------- */
-        window.location.replace("..//index.html");
+        window.location.replace("../index.html");
       }
     });
   }
