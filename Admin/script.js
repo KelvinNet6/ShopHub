@@ -1164,21 +1164,24 @@ function handleSizeVisibility() {
   const sizeWrapper = document.getElementById("sizeWrapper");
   const shoeSizes = document.getElementById("shoeSizes");
   const clothingSizes = document.getElementById("clothingSizes");
-  const generalStockWrapper = document.getElementById("generalStockWrapper");
+  const generalStock = document.getElementById("generalStock");
 
   if (sizeType === "shoes") {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "block";
     clothingSizes.style.display = "none";
-    generalStockWrapper.style.display = "none";
-  } else if (sizeType === "clothing") {
+    generalStock.style.display = "none";
+  } 
+  else if (sizeType === "clothing") {
     sizeWrapper.style.display = "block";
     shoeSizes.style.display = "none";
     clothingSizes.style.display = "block";
-    generalStockWrapper.style.display = "none";
-  } else {
+    generalStock.style.display = "none";
+  } 
+  else {
     sizeWrapper.style.display = "none";
-    generalStockWrapper.style.display = "block";
+    shoeSizes.style.display = "none";
+    clothingSizes.style.display = "none";
+    generalStock.style.display = "block";
   }
 }
-
