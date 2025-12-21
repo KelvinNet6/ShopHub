@@ -120,20 +120,52 @@
   <script src="script.js" defer></script>
   
    <script>
-  async function loadSidebar() {
-    const res = await fetch("sidebar.html");
-    const html = await res.text();
-    document.getElementById("sidebar-container").innerHTML = html;
+ async function loadSidebar() {
+  const res = await fetch("sidebar.html");
+  const html = await res.text();
+  const container = document.getElementById("sidebar-container");
+  container.innerHTML = html;
 
-    // Highlight the active link
-    const current = location.pathname.split("/").pop();
-    document.querySelectorAll(".nav-link").forEach(link => {
-      if (link.getAttribute("href") === current) {
-        link.classList.add("active");
+  // Highlight the active link
+  const current = location.pathname.split("/").pop();
+  container.querySelectorAll(".nav-link").forEach(link => {
+    if (link.getAttribute("href") === current) {
+      link.classList.add("active");
+    }
+  });
+
+  // Attach logout listener AFTER sidebar is loaded
+  const logoutBtn = container.querySelector("#logoutBtn");
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", async (e) => {
+      e.preventDefault();
+
+      // Optional: feedback
+      const span = logoutBtn.querySelector("span") || logoutBtn;
+      const originalText = span.textContent;
+      span.textContent = "Logging out...";
+      logoutBtn.style.pointerEvents = "none";
+
+      // Clear local/session storage
+      localStorage.clear();
+      sessionStorage.clear();
+
+      // Supabase sign out
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        alert("Logout failed: " + error.message);
+        span.textContent = originalText;
+        logoutBtn.style.pointerEvents = "auto";
+        return;
       }
+
+      // Redirect
+      window.location.replace("../index.html");
     });
   }
-  loadSidebar();
+}
+loadSidebar();
+
 </script>
 </body>
 </html>
