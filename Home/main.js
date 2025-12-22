@@ -1,23 +1,66 @@
 
-    let wishlist = JSON.parse(localStorage.getItem("shophub_wishlist")) || [];
+    let wishlist = [];
 
-    function toggleWishlist(product, event) {
-  const index = wishlist.findIndex(item => item.id === product.id);
-  if (index > -1) {
-    wishlist.splice(index, 1);
-    alert(`${product.name} removed from wishlist`);
-  } else {
-    wishlist.push(product);
-    alert(`${product.name} added to wishlist ❤️`);
+async function loadWishlist() {
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    wishlist = [];
+    return;
   }
 
-  // This part runs in both cases (add or remove)
-  localStorage.setItem("shophub_wishlist", JSON.stringify(wishlist));
+  const { data, error } = await supabase
+    .from("wishlist")
+    .select("product_id")
+    .eq("user_id", user.id);
+
+  if (!error) {
+    wishlist = data.map(item => item.product_id);
+  }
+}
+
+   async function toggleWishlist(product, event) {
+  event.preventDefault();
+  event.stopPropagation();
+
+  const { data: { user } } = await supabase.auth.getUser();
+
+  if (!user) {
+    alert("Please log in to use wishlist ❤️");
+    window.location.href = "login.html";
+    return;
+  }
+
   const btn = event.target.closest('.like-btn');
-  btn.classList.toggle("liked");
   const icon = btn.querySelector('i');
-  icon.classList.toggle('fas');
-  icon.classList.toggle('far');
+
+  const isLiked = wishlist.includes(product.id);
+
+  if (isLiked) {
+    // REMOVE
+    await supabase
+      .from("wishlist")
+      .delete()
+      .eq("user_id", user.id)
+      .eq("product_id", product.id);
+
+    wishlist = wishlist.filter(id => id !== product.id);
+    btn.classList.remove("liked");
+    icon.classList.replace("fas", "far");
+
+  } else {
+    // ADD
+    await supabase
+      .from("wishlist")
+      .insert({
+        user_id: user.id,
+        product_id: product.id
+      });
+
+    wishlist.push(product.id);
+    btn.classList.add("liked");
+    icon.classList.replace("far", "fas");
+  }
 }
 
     // Mobile Nav (from top)
