@@ -94,50 +94,6 @@ function handleAddToCartClick(productId) {
   }
 }
 
-let selectedSize = null;
-
-async function openSizeSelector(product) {
-  selectedSize = null;
-
-  const { data: sizes } = await supabase
-    .from("product_sizes")
-    .select("size")
-    .eq("product_id", product.id)
-    .neq("size", "DEFAULT");
-
-  const sizeOptions = document.getElementById("sizeOptions");
-  sizeOptions.innerHTML = sizes.map(s => `
-    <div class="size-btn" onclick="selectSize('${s.size}', this)">
-      ${s.size}
-    </div>
-  `).join("");
-
-  document.getElementById("sizeSheet").classList.add("open");
-  document.getElementById("sizeSheetOverlay").classList.add("active");
-}
-
-function selectSize(size, el) {
-  selectedSize = size;
-  document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
-  el.classList.add("active");
-}
-
-document.getElementById("confirmSizeBtn").addEventListener("click", () => {
-  if (!selectedSize) {
-    alert("Please select a size");
-    return;
-  }
-
-  addToCart({ ...pendingProduct, size: selectedSize });
-
-  closeSizeSelector();
-});
-
-function closeSizeSelector() {
-  document.getElementById("sizeSheet").classList.remove("open");
-  document.getElementById("sizeSheetOverlay").classList.remove("active");
-  pendingProduct = null;
-}
     function updateCartCount() {
       const count = cart.reduce((s, i) => s + i.quantity, 0);
       document.getElementById("cartCount").textContent = count;
@@ -316,3 +272,48 @@ window.updateQuantity = (id, size, change) => {
       } catch (err) { console.error("Visitor log failed:", err); }
     }
     trackVisitor();
+
+let selectedSize = null;
+
+async function openSizeSelector(product) {
+  selectedSize = null;
+
+  const { data: sizes } = await supabase
+    .from("product_sizes")
+    .select("size")
+    .eq("product_id", product.id)
+    .neq("size", "DEFAULT");
+
+  const sizeOptions = document.getElementById("sizeOptions");
+  sizeOptions.innerHTML = sizes.map(s => `
+    <div class="size-btn" onclick="selectSize('${s.size}', this)">
+      ${s.size}
+    </div>
+  `).join("");
+
+  document.getElementById("sizeSheet").classList.add("open");
+  document.getElementById("sizeSheetOverlay").classList.add("active");
+}
+
+function selectSize(size, el) {
+  selectedSize = size;
+  document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+}
+
+document.getElementById("confirmSizeBtn").addEventListener("click", () => {
+  if (!selectedSize) {
+    alert("Please select a size");
+    return;
+  }
+
+  addToCart({ ...pendingProduct, size: selectedSize });
+
+  closeSizeSelector();
+});
+
+function closeSizeSelector() {
+  document.getElementById("sizeSheet").classList.remove("open");
+  document.getElementById("sizeSheetOverlay").classList.remove("active");
+  pendingProduct = null;
+}
