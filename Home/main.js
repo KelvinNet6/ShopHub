@@ -61,24 +61,24 @@
     closeCartBtn.addEventListener("click", () => { cartSidebar.classList.remove("open"); cartOverlay.classList.remove("active"); });
     cartOverlay.addEventListener("click", () => { cartSidebar.classList.remove("open"); cartOverlay.classList.remove("active"); });
 
- function addToCart(product) {
-  // Get selected size from the dropdown
-  const sizeSelect = document.getElementById("sizeSelect");
-  const size = sizeSelect ? sizeSelect.value : null;
+function addToCart(product) {
+  const existing = cart.find(
+    item => item.id === product.id && item.size === product.size
+  );
 
-  const productWithSize = { ...product, size };
-
-  // Check if item with same id AND size already exists
-  const existing = cart.find(item => item.id === productWithSize.id && item.size === productWithSize.size);
-
-  if (existing) existing.quantity += 1;
-  else cart.push({ ...productWithSize, quantity: 1 });
+  if (existing) {
+    existing.quantity += 1;
+  } else {
+    cart.push({ ...product, quantity: 1 });
+  }
 
   localStorage.setItem("shophub_cart", JSON.stringify(cart));
   updateCartCount();
-  alert(`${product.name}${size ? ' (Size ' + size + ')' : ''} added to bag!`);
-}
 
+  alert(
+    `${product.name}${product.size ? " (Size " + product.size + ")" : ""} added to bag!`
+  );
+}
 
     function updateCartCount() {
       const count = cart.reduce((s, i) => s + i.quantity, 0);
@@ -151,9 +151,13 @@ window.updateQuantity = (id, size, change) => {
               <div class="product-price">$${Number(p.price).toFixed(2)}</div>
               <div class="product-actions">
                 <div class="action-btn view-btn">QUICK VIEW</div>
-             <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation(); handleAddToCartClick(${p.id})">
-                  <i class="fas fa-shopping-bag"></i> ADD TO CART
-                </div>
+             <div class="action-btn cart-btn"
+  onclick="event.preventDefault();
+           event.stopPropagation();
+           handleAddToCartClick(${p.id})">
+  <i class="fas fa-shopping-bag"></i> ADD TO CART
+</div>
+
               </div>
             </div>
             <div class="product-info">
@@ -161,9 +165,13 @@ window.updateQuantity = (id, size, change) => {
               <div class="product-price">$${Number(p.price).toFixed(2)}</div>
               <div class="product-actions">
                 <div class="action-btn view-btn">QUICK VIEW</div>
-                <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation(); handleAddToCartClick(${p.id})">
-                  <i class="fas fa-shopping-bag"></i> ADD TO CART
-                </div>
+                <div class="action-btn cart-btn"
+  onclick="event.preventDefault();
+           event.stopPropagation();
+           handleAddToCartClick(${p.id})">
+  <i class="fas fa-shopping-bag"></i> ADD TO CART
+</div>
+
               </div>
             </div>
           </a>
@@ -253,8 +261,11 @@ window.updateQuantity = (id, size, change) => {
 
 let pendingProduct = null;
 
-function handleAddToCart(product, hasSizes) {
-  if (hasSizes) {
+function handleAddToCartClick(productId) {
+  const product = allProducts.find(p => p.id === productId);
+  if (!product) return;
+
+  if (product.has_sizes) {
     pendingProduct = product;
     openSizeSelector(product);
   } else {
