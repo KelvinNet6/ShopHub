@@ -151,7 +151,7 @@ window.updateQuantity = (id, size, change) => {
               <div class="product-price">$${Number(p.price).toFixed(2)}</div>
               <div class="product-actions">
                 <div class="action-btn view-btn">QUICK VIEW</div>
-                <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">
+             <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation(); handleAddToCartClick(${p.id})">
                   <i class="fas fa-shopping-bag"></i> ADD TO CART
                 </div>
               </div>
@@ -161,7 +161,7 @@ window.updateQuantity = (id, size, change) => {
               <div class="product-price">$${Number(p.price).toFixed(2)}</div>
               <div class="product-actions">
                 <div class="action-btn view-btn">QUICK VIEW</div>
-                <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">
+                <div class="action-btn cart-btn" onclick="event.preventDefault();event.stopPropagation(); handleAddToCartClick(${p.id})">
                   <i class="fas fa-shopping-bag"></i> ADD TO CART
                 </div>
               </div>
@@ -172,7 +172,10 @@ window.updateQuantity = (id, size, change) => {
     }
 
     async function loadProducts() {
-      const { data: products } = await supabase.from("products").select("id,name,price,image_url,categories(name)").order("id");
+      const { data: products } = await supabase
+      .from("products")
+      .select("id,name,price,image_url,has_sizes,categories(name)")
+      .order("id");
       allProducts = products || [];
       const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
       const options = `<option value="all">All Items</option>` + categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
@@ -247,3 +250,59 @@ window.updateQuantity = (id, size, change) => {
       } catch (err) { console.error("Visitor log failed:", err); }
     }
     trackVisitor();
+
+let pendingProduct = null;
+
+function handleAddToCart(product, hasSizes) {
+  if (hasSizes) {
+    pendingProduct = product;
+    openSizeSelector(product);
+  } else {
+    addToCart(product);
+  }
+}
+
+let selectedSize = null;
+
+async function openSizeSelector(product) {
+  selectedSize = null;
+
+  const { data: sizes } = await supabase
+    .from("product_sizes")
+    .select("size")
+    .eq("product_id", product.id)
+    .neq("size", "DEFAULT");
+
+  const sizeOptions = document.getElementById("sizeOptions");
+  sizeOptions.innerHTML = sizes.map(s => `
+    <div class="size-btn" onclick="selectSize('${s.size}', this)">
+      ${s.size}
+    </div>
+  `).join("");
+
+  document.getElementById("sizeSheet").classList.add("open");
+  document.getElementById("sizeSheetOverlay").classList.add("active");
+}
+
+function selectSize(size, el) {
+  selectedSize = size;
+  document.querySelectorAll(".size-btn").forEach(b => b.classList.remove("active"));
+  el.classList.add("active");
+}
+
+document.getElementById("confirmSizeBtn").addEventListener("click", () => {
+  if (!selectedSize) {
+    alert("Please select a size");
+    return;
+  }
+
+  addToCart({ ...pendingProduct, size: selectedSize });
+
+  closeSizeSelector();
+});
+
+function closeSizeSelector() {
+  document.getElementById("sizeSheet").classList.remove("open");
+  document.getElementById("sizeSheetOverlay").classList.remove("active");
+  pendingProduct = null;
+}
