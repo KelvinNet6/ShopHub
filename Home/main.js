@@ -27,7 +27,7 @@ async function loadWishlist() {
 
   if (!user) {
     alert("Please log in to use wishlist ❤️");
-    window.location.href = "login.html";
+    window.location.href = "Admin/adLogin.html";
     return;
   }
 
