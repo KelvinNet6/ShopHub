@@ -32,10 +32,15 @@ async function checkIfAdmin(userId) {
 }
 
 function updateUIForAuthState() {
-  const vaultLink = document.getElementById('myVaultLink');
-  if (!vaultLink) return;
-  vaultLink.textContent = currentUser ? (isAdmin ? 'Admin Dashboard' : 'My Vault') : 'My Vault';
+  document.querySelectorAll('.vault-link span').forEach(span => {
+    if (currentUser) {
+      span.textContent = isAdmin ? 'Admin Dashboard' : 'My Vault';
+    } else {
+      span.textContent = 'My Vault';
+    }
+  });
 }
+
 
 // Initial session check
 (async () => {
@@ -45,15 +50,22 @@ function updateUIForAuthState() {
   updateUIForAuthState();
 })();
 
-// Smart My Vault navigation
-document.getElementById('myVaultLink')?.addEventListener('click', (e) => {
+document.addEventListener('click', (e) => {
+  const vaultLink = e.target.closest('.vault-link');
+  if (!vaultLink) return;
+
   e.preventDefault();
+
   if (currentUser) {
-    window.location.href = isAdmin 
-      ? '/ShopHub/Admin/landing.html' 
+    window.location.href = isAdmin
+      ? '/ShopHub/Admin/landing.html'
       : '/ShopHub/user/userDashboard.html';
   } else {
-    const redirectTo = encodeURIComponent(window.location.pathname + window.location.search);
-    window.location.href = `/ShopHub/Admin/adLogin.html?redirect=${redirectTo}`;
+    const redirectTo = encodeURIComponent(
+      window.location.pathname + window.location.search
+    );
+    window.location.href =
+      `/ShopHub/Admin/adLogin.html?redirect=${redirectTo}`;
   }
 });
+
