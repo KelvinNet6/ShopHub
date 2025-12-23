@@ -16,91 +16,15 @@
 <div class="main-content">
   <h1 class="page-title">WISHLIST</h1>
   <p class="page-subtitle">Products you're craving — saved for later</p>
+  
+  --><div class="wishlist-grid" id="wishlistGrid"></div>
 
-  <!-- Empty State (uncomment if wishlist is empty) -->
-  <!--
-  <div class="empty-wishlist">
-    <i class="fas fa-heart-broken fa-5x"></i>
-    <h2>Your wishlist is empty</h2>
-    <p>Browse the store and tap the heart to save items here.</p>
-    <a href="index.html" class="btn-primary">Continue Shopping</a>
-  </div>
-  -->
-
-  <div class="wishlist-grid">
-
-    <!-- Wishlist Item 1 -->
-    <div class="wishlist-card">
-      <div class="product-image">
-        <img src="https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80" alt="OLED Gaming Monitor">
-        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
-        <div class="badge in-stock">IN STOCK</div>
-      </div>
-      <div class="product-info">
-        <h3>34" Ultrawide OLED Gaming Monitor 240Hz</h3>
-        <div class="price-current">$1,299.00</div>
-        <div class="price-original"><s>$1,599.00</s> <span class="discount">-19%</span></div>
-        <div class="actions">
-          <button class="btn-add-to-cart">Add to Cart</button>
-          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Wishlist Item 2 -->
-    <div class="wishlist-card">
-      <div class="product-image">
-        <img src="https://keychron.in/wp-content/uploads/2023/01/keychron-q1-qmk-via-75-layout-custom-mechanical-keyboard-purple-aluminum-frame-k-pro-banana-switch-1673054539765.jpg" alt="Mechanical Keyboard">
-        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
-        <div class="badge low-stock">LOW STOCK</div>
-      </div>
-      <div class="product-info">
-        <h3>Custom Mechanical Keyboard — Tactile Purple</h3>
-        <div class="price-current">$279.99</div>
-        <div class="actions">
-          <button class="btn-add-to-cart">Add to Cart</button>
-          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Wishlist Item 3 -->
-    <div class="wishlist-card">
-      <div class="product-image">
-        <img src="https://media.karousell.com/media/photos/products/2022/11/15/_herman_miller_x_logitech_g_em_1668480922_6d798966_progressive.jpg" alt="Ergonomic Chair">
-        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
-        <div class="badge out-of-stock">OUT OF STOCK</div>
-      </div>
-      <div class="product-info">
-        <h3>Herman Miller x Logitech Embody Gaming Chair</h3>
-        <div class="price-current">$1,795.00</div>
-        <div class="price-note">Notify me when back in stock</div>
-        <div class="actions">
-          <button class="btn-add-to-cart" disabled>Out of Stock</button>
-          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Wishlist Item 4 -->
-    <div class="wishlist-card">
-      <div class="product-image">
-        <img src="https://www.wexphotovideo.com/globalassets/product-images/3035000/3035497.jpg?ver=637846837180000000&width=400" alt="Noise-Cancelling Headphones">
-        <button class="wishlist-heart active"><i class="fas fa-heart"></i></button>
-        <div class="badge sale">SALE</div>
-      </div>
-      <div class="product-info">
-        <h3>Studio Pro X Noise-Cancelling Headphones</h3>
-        <div class="price-current">$349.00</div>
-        <div class="price-original"><s>$449.00</s> <span class="discount">-22%</span></div>
-        <div class="actions">
-          <button class="btn-add-to-cart">Add to Cart</button>
-          <button class="btn-remove"><i class="fas fa-trash-alt"></i></button>
-        </div>
-      </div>
-    </div>
-
-  </div>
+<div class="empty-wishlist" id="emptyWishlist" style="display:none;">
+  <i class="fas fa-heart-broken fa-5x"></i>
+  <h2>Your wishlist is empty</h2>
+  <p>Browse the store and tap the heart to save items here.</p>
+  <a href="index.html" class="btn-primary">Continue Shopping</a>
+</div>
 </div>
 
 <style>
@@ -277,35 +201,106 @@
 <script src="script.js"></script>
 
 <script>
-(async () => {
+const wishlistGrid = document.getElementById("wishlistGrid");
+const emptyWishlist = document.getElementById("emptyWishlist");
 
-  // 1. LOAD NAV HTML
-  const navRes = await fetch("nav.html");
-  const navHtml = await navRes.text();
-  document.getElementById("global-navigation").innerHTML = navHtml;
+/* ---------------- LOAD WISHLIST ---------------- */
+async function loadWishlistPage() {
+  const { data: { user } } = await supabase.auth.getUser();
 
-  // 2. EXECUTE ANY <script src=""> INSIDE nav.html
-  document.querySelectorAll("#global-navigation script[src]").forEach(s => {
-    const script = document.createElement("script");
-    script.src = s.src;
-    script.async = false;
-    document.body.appendChild(script);
-    s.remove();
-  });
+  if (!user) {
+    window.location.href = "/ShopHub/Admin/adLogin.html";
+    return;
+  }
 
-  // 3. WAIT UNTIL NAV IS READY, THEN INIT USER
-  const observer = new MutationObserver(() => {
-    if (document.getElementById("navAvatar")) {
-      if (window.updateNavUser) updateNavUser();
-      observer.disconnect();
-    }
-  });
-  observer.observe(document.getElementById("global-navigation"), {
-    childList: true,
-    subtree: true
-  });
+  const { data, error } = await supabase
+    .from("wishlist")
+    .select(`
+      product_id,
+      products (
+        id,
+        name,
+        price,
+        image_url,
+        stock
+      )
+    `)
+    .eq("user_id", user.id);
 
-})();
+  if (error) {
+    console.error("Wishlist load error:", error);
+    return;
+  }
+
+  if (!data || data.length === 0) {
+    wishlistGrid.innerHTML = "";
+    emptyWishlist.style.display = "block";
+    return;
+  }
+
+  emptyWishlist.style.display = "none";
+  renderWishlist(data.map(i => i.products));
+}
+
+/* ---------------- RENDER ---------------- */
+function renderWishlist(products) {
+  wishlistGrid.innerHTML = products.map(p => `
+    <div class="wishlist-card">
+      <div class="product-image">
+        <img src="${getPublicImageUrl(p.image_url)}" alt="${p.name}">
+        <button class="wishlist-heart active"
+          onclick="removeFromWishlist(${p.id})">
+          <i class="fas fa-heart"></i>
+        </button>
+        <div class="badge ${p.stock > 0 ? 'in-stock' : 'out-of-stock'}">
+          ${p.stock > 0 ? 'IN STOCK' : 'OUT OF STOCK'}
+        </div>
+      </div>
+
+      <div class="product-info">
+        <h3>${p.name}</h3>
+        <div class="price-current">$${Number(p.price).toFixed(2)}</div>
+
+        <div class="actions">
+          <button class="btn-add-to-cart"
+            ${p.stock <= 0 ? "disabled" : ""}
+            onclick="handleAddToCartClick(${p.id})">
+            ${p.stock > 0 ? "Add to Cart" : "Out of Stock"}
+          </button>
+
+          <button class="btn-remove"
+            onclick="removeFromWishlist(${p.id})">
+            <i class="fas fa-trash-alt"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  `).join("");
+}
+
+/* ---------------- REMOVE ---------------- */
+async function removeFromWishlist(productId) {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  await supabase
+    .from("wishlist")
+    .delete()
+    .eq("user_id", user.id)
+    .eq("product_id", productId);
+
+  loadWishlistPage();
+}
+
+/* ---------------- AUTH WATCH ---------------- */
+supabase.auth.onAuthStateChange((event) => {
+  if (event === "SIGNED_OUT") {
+    window.location.href = "/ShopHub/index.html";
+  }
+});
+
+/* ---------------- INIT ---------------- */
+loadWishlistPage();
 </script>
 </body>
 </html>
