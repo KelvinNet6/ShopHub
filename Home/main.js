@@ -362,3 +362,8 @@ function closeSizeSelector() {
   document.getElementById("sizeSheetOverlay").classList.remove("active");
   pendingProduct = null;
 }
+
+supabase.auth.onAuthStateChange(async () => {
+  await loadWishlist();
+  renderProducts(allProducts);
+});
