@@ -34,7 +34,7 @@ async function loadWishlist() {
   const btn = event.target.closest('.like-btn');
   const icon = btn.querySelector('i');
 
-  const isLiked = wishlist.includes(product.id);
+  const isLiked = wishlist.includes(p.id);
 
   if (isLiked) {
     // REMOVE
@@ -193,7 +193,7 @@ window.updateQuantity = (id, size, change) => {
     function renderProducts(products) {
       grid.innerHTML = products.map(p => {
         const imgUrl = getPublicImageUrl(p.image_url);
-        const isLiked = wishlist.some(item => item.id === p.id);
+       const isLiked = wishlist.includes(p.id);
         const heartClass = isLiked ? 'fas' : 'far';
         return `
           <a href="Home/viewproduct.html?id=${p.id}" class="product-card">
@@ -237,6 +237,8 @@ window.updateQuantity = (id, size, change) => {
     }
 
     async function loadProducts() {
+      await loadWishlist();
+        
       const { data: products } = await supabase
       .from("products")
       .select("id,name,price,image_url,has_sizes,categories(name)")
