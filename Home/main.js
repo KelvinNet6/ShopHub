@@ -302,9 +302,11 @@ window.updateQuantity = (id, size, change) => {
       filterAndSort();
     }));
 
-   supabase.auth.getSession().then(() => {
-  loadProducts();
+   supabase.auth.onAuthStateChange(async () => {
+  await loadWishlist();
+  await loadProducts();
 });
+
     updateCartCount();
 
     async function trackVisitor() {
