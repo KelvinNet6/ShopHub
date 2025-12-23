@@ -212,7 +212,7 @@ async function requireAuth() {
   const { data: { session } } = await supabase.auth.getSession();
 
   if (!session) {
-    window.location.href = "/ShopHub/Admin/adLogin.html?redirect=wishlist.html";
+    window.location.href = "../Admin/adLogin.html?redirect=wishlist.html";
     return;
   }
 
@@ -255,7 +255,7 @@ async function loadWishlist() {
         <i class="fas fa-heart-broken fa-5x"></i>
         <h2>Your wishlist is empty</h2>
         <p>Browse the store and save products.</p>
-        <a href="index.html" class="btn-primary">Continue Shopping</a>
+        <a href="../index.html" class="btn-primary">Continue Shopping</a>
       </div>
     `;
     return;
@@ -319,7 +319,7 @@ function addWishlistToCart(productId) {
 /* ---------------- AUTH STATE ---------------- */
 supabase.auth.onAuthStateChange((event) => {
   if (event === "SIGNED_OUT") {
-    window.location.href = "/ShopHub/index.html";
+    window.location.href = "../index.html";
   }
 });
 
