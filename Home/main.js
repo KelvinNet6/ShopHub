@@ -34,10 +34,9 @@ async function loadWishlist() {
   const btn = event.target.closest('.like-btn');
   const icon = btn.querySelector('i');
 
-  const isLiked = wishlist.includes(p.id);
+  const isLiked = wishlist.includes(product.id);
 
   if (isLiked) {
-    // REMOVE
     await supabase
       .from("wishlist")
       .delete()
@@ -47,9 +46,7 @@ async function loadWishlist() {
     wishlist = wishlist.filter(id => id !== product.id);
     btn.classList.remove("liked");
     icon.classList.replace("fas", "far");
-
   } else {
-    // ADD
     await supabase
       .from("wishlist")
       .insert({
