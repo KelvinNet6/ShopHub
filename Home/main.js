@@ -244,7 +244,7 @@ window.updateQuantity = (id, size, change) => {
 
 async function loadProducts() {
      
-  console.log('Loading products... User:', (await supabase.auth.getUser()).data.user?.id || 'none');
+console.log('loadProducts() called');
      
   await loadWishlist();
 
