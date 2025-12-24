@@ -8,50 +8,55 @@ let selectedSize = null;
 
 const grid = document.getElementById("productsGrid");
 
-// === INITIALIZATION ===
+// === IMPROVED INITIALIZATION – Fixes logged-in product loading ===
 let isInitialized = false;
 
-async function initializeApp() {
-  if (isInitialized) {
-    console.log("App already initialized – skipping duplicate load");
+async function initializeApp(force = false) {
+  if (isInitialized && !force) {
+    console.log("App already initialized – skipping");
     return;
   }
   isInitialized = true;
 
   console.log("Initializing app: loading wishlist + products");
 
-  await loadWishlist();
+  await loadWishlist();   // This will correctly detect user if session restored
   await loadProducts();
 
   updateCartCount();
 }
 
-// Auth state listener – main trigger for reloads
+// Main auth listener
 supabase.auth.onAuthStateChange(async (event, session) => {
-  console.log("Auth event:", event);
+  console.log("Auth event:", event, "User:", session?.user?.id || "none");
 
+  // Always reload on these events
   if (event === 'INITIAL_SESSION' ||
       event === 'SIGNED_IN' ||
       event === 'SIGNED_OUT' ||
       event === 'TOKEN_REFRESHED') {
 
-    // Allow re-init after sign out
+    // Force reload on sign-in or initial session to catch restored sessions
+    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+      await initializeApp(true);  // Force = true bypasses the flag
+    } else {
+      await initializeApp();
+    }
+
+    // Reset flag on sign out
     if (event === 'SIGNED_OUT') {
       isInitialized = false;
     }
-
-    await initializeApp();
   }
 });
 
-// Initial load (runs immediately)
-initializeApp();
+initializeApp(true);
 
-// Extra safety for bfcache (browser back/forward)
+// Extra safety for back/forward cache
 window.addEventListener('pageshow', (e) => {
   if (e.persisted) {
     isInitialized = false;
-    initializeApp();
+    initializeApp(true);
   }
 });
 
