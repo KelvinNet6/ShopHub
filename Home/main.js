@@ -1,10 +1,4 @@
 supabase.auth.onAuthStateChange(async (event, session) => {
-  // Ignore the automatic initial load when session already exists
-  if (event === 'INITIAL_SESSION') {
-    return;
-  }
-
-  // Only reload wishlist + products on actual sign in, sign out, or token refresh
   if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
     await loadWishlist();
     await loadProducts();
