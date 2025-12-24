@@ -395,3 +395,9 @@ trackVisitor();
   await loadProducts();     // Fetches and renders products immediately (public access)
   console.log('Immediate fallback load finished');
 })();
+
+document.addEventListener('DOMContentLoaded', async () => {
+  console.log('DOMContentLoaded – forcing reload for auth state');
+  await loadWishlist();
+  await loadProducts();     // Updates wishlist hearts if logged in
+});
