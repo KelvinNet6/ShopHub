@@ -382,9 +382,10 @@ function closeSizeSelector() {
   pendingProduct = null;
 }
 
-(async () => {
-  await loadWishlist();
-  await loadProducts();
-})();
 updateCartCount();
 trackVisitor();
+
+supabase.auth.getSession().then(async ({ data: { session } }) => {
+  await loadWishlist();
+  await loadProducts();
+});
