@@ -382,5 +382,9 @@ function closeSizeSelector() {
   pendingProduct = null;
 }
 
+(async () => {
+  await loadWishlist();
+  await loadProducts();
+})();
 updateCartCount();
 trackVisitor();
