@@ -382,6 +382,5 @@ function closeSizeSelector() {
   pendingProduct = null;
 }
 
-loadProducts();
 updateCartCount();
 trackVisitor();
