@@ -388,7 +388,14 @@ function closeSizeSelector() {
 updateCartCount();
 trackVisitor();
 
+await loadWishlist();  
+await loadProducts(); 
+
 supabase.auth.getSession().then(async ({ data: { session } }) => {
-  await loadWishlist();
-  await loadProducts();
+  if (session?.user) {
+    console.log('Full session restored – updating wishlist');
+    await loadWishlist();
+   
+    renderProducts(allProducts);
+  }
 });
