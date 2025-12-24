@@ -242,7 +242,10 @@ window.updateQuantity = (id, size, change) => {
       }).join("");
     }
 
-   async function loadProducts() {
+async function loadProducts() {
+     
+  console.log('Loading products... User:', (await supabase.auth.getUser()).data.user?.id || 'none');
+     
   await loadWishlist();
 
   const { data: products, error } = await supabase
