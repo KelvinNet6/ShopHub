@@ -302,12 +302,14 @@ window.updateQuantity = (id, size, change) => {
       filterAndSort();
     }));
 
-   supabase.auth.onAuthStateChange(async () => {
-  await loadWishlist();
-  await loadProducts();
+ supabase.auth.onAuthStateChange(async (event, session) => {
+  await loadWishlist();        
+  await loadProducts();        
 });
 
+    loadProducts();
     updateCartCount();
+
 
     async function trackVisitor() {
       try {
@@ -362,8 +364,7 @@ function closeSizeSelector() {
   document.getElementById("sizeSheetOverlay").classList.remove("active");
   pendingProduct = null;
 }
-
-supabase.auth.onAuthStateChange(async () => {
-  await loadWishlist();
-  renderProducts(allProducts);
+ supabase.auth.onAuthStateChange(async (event, session) => {
+  await loadWishlist();        
+  await loadProducts();        
 });
