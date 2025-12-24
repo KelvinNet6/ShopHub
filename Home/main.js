@@ -388,18 +388,10 @@ function closeSizeSelector() {
 updateCartCount();
 trackVisitor();
 
+// Immediate load: Always show products right away on every page load/navigation
 (async () => {
   console.log('Immediate fallback load started');
-  await loadWishlist();  
-  await loadProducts();   
+  await loadWishlist();     // Clears wishlist if needed
+  await loadProducts();     // Fetches and renders products immediately (public access)
   console.log('Immediate fallback load finished');
 })();
-
-supabase.auth.getSession().then(async ({ data: { session } }) => {
-  console.log('Full session restored – reloading wishlist if needed');
-  await loadWishlist();
-
-  if (allProducts.length > 0) {
-    renderProducts(allProducts);
-  }
-});
