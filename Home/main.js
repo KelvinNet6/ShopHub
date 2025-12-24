@@ -1,3 +1,15 @@
+supabase.auth.onAuthStateChange(async (event, session) => {
+  // Ignore the automatic initial load when session already exists
+  if (event === 'INITIAL_SESSION') {
+    return;
+  }
+
+  // Only reload wishlist + products on actual sign in, sign out, or token refresh
+  if (event === 'SIGNED_IN' || event === 'SIGNED_OUT' || event === 'TOKEN_REFRESHED') {
+    await loadWishlist();
+    await loadProducts();
+  }
+});
 
     let wishlist = [];
 
@@ -302,15 +314,6 @@ window.updateQuantity = (id, size, change) => {
       filterAndSort();
     }));
 
- supabase.auth.onAuthStateChange(async (event, session) => {
-  await loadWishlist();        
-  await loadProducts();        
-});
-
-    loadProducts();
-    updateCartCount();
-
-
     async function trackVisitor() {
       try {
         const ipRes = await fetch("https://api.ipify.org?format=json");
@@ -318,7 +321,7 @@ window.updateQuantity = (id, size, change) => {
         await supabase.from("visitors").insert({ ip: ipData.ip, user_agent: navigator.userAgent });
       } catch (err) { console.error("Visitor log failed:", err); }
     }
-    trackVisitor();
+   
 
 let selectedSize = null;
 
@@ -365,3 +368,6 @@ function closeSizeSelector() {
   pendingProduct = null;
 }
 
+loadProducts();
+updateCartCount();
+trackVisitor();
