@@ -245,20 +245,37 @@ window.updateQuantity = (id, size, change) => {
       }).join("");
     }
 
-    async function loadProducts() {
-      await loadWishlist();
-        
-      const { data: products } = await supabase
-      .from("products")
-      .select("id,name,price,image_url,has_sizes,categories(name)")
-      .order("id");
-      allProducts = products || [];
-      const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
-      const options = `<option value="all">All Items</option>` + categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
-      document.getElementById("filterSelect").innerHTML = options;
-      document.getElementById("mobileFilter").innerHTML = options;
-      renderProducts(allProducts);
-    }
+   async function loadProducts() {
+  await loadWishlist();
+
+  const { data: products, error } = await supabase
+    .from("products")
+    .select("id,name,price,image_url,has_sizes,categories(name)")
+    .order("id");
+
+  if (error) {
+    console.error("Product load error:", error);
+    grid.innerHTML = `<p style="text-align:center;color:#ff4444;padding:2rem;">Failed to load products. Please refresh.</p>`;
+    return;
+  }
+
+  if (!products || products.length === 0) {
+    grid.innerHTML = `<p style="text-align:center;padding:2rem;">No products available at the moment.</p>`;
+    allProducts = [];
+  } else {
+    allProducts = products;
+    // ... build categories and render as before
+    const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
+    const options = `<option value="all">All Items</option>` + categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
+
+    const filterSelectEl = document.getElementById("filterSelect");
+    const mobileFilterEl = document.getElementById("mobileFilter");
+    if (filterSelectEl) filterSelectEl.innerHTML = options;
+    if (mobileFilterEl) mobileFilterEl.innerHTML = options;
+
+    renderProducts(allProducts);
+  }
+}
 
     const searchInput = document.getElementById("searchInput");
     const filterSelect = document.getElementById("filterSelect");
