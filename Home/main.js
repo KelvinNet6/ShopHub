@@ -388,14 +388,18 @@ function closeSizeSelector() {
 updateCartCount();
 trackVisitor();
 
-await loadWishlist();  
-await loadProducts(); 
+(async () => {
+  console.log('Immediate fallback load started');
+  await loadWishlist();  
+  await loadProducts();   
+  console.log('Immediate fallback load finished');
+})();
 
 supabase.auth.getSession().then(async ({ data: { session } }) => {
-  if (session?.user) {
-    console.log('Full session restored – updating wishlist');
-    await loadWishlist();
-   
+  console.log('Full session restored – reloading wishlist if needed');
+  await loadWishlist();
+
+  if (allProducts.length > 0) {
     renderProducts(allProducts);
   }
 });
