@@ -6,12 +6,6 @@ let allProducts = [];
 let pendingProduct = null;
 let selectedSize = null;
 
-function getGrid() {
-  return document.getElementById("productsGrid");
-}
-
-let grid = null;
-
 // === IMPROVED INITIALIZATION – Fixes logged-in product loading ===
 let isInitialized = false;
 
