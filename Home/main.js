@@ -1,3 +1,6 @@
+function getGrid() {
+  return document.getElementById("productsGrid");
+}
 
 // === GLOBAL VARIABLES ===
 let wishlist = [];
@@ -5,6 +8,7 @@ let cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
 let allProducts = [];
 let pendingProduct = null;
 let selectedSize = null;
+let grid;
 
 // === IMPROVED INITIALIZATION – Fixes logged-in product loading ===
 let isInitialized = false;
@@ -43,8 +47,13 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
-  grid = getGrid();  
-});
+  grid = document.getElementById("productsGrid");
+
+  if (!grid) {
+    console.warn("productsGrid element not found!");
+    return;
+  }
+});;
 
 
 
