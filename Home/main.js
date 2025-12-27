@@ -6,7 +6,9 @@ let allProducts = [];
 let pendingProduct = null;
 let selectedSize = null;
 
-const grid = document.getElementById("productsGrid");
+function getGrid() {
+  return document.getElementById("productsGrid");
+}
 
 // === IMPROVED INITIALIZATION – Fixes logged-in product loading ===
 let isInitialized = false;
@@ -50,7 +52,10 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-initializeApp(true);
+document.addEventListener("DOMContentLoaded", () => {
+  initializeApp(true);
+});
+
 
 // Extra safety for back/forward cache
 window.addEventListener('pageshow', (e) => {
@@ -155,6 +160,13 @@ async function loadProducts() {
 }
 
 function renderProducts(products) {
+  const grid = document.getElementById("productsGrid");
+
+  if (!grid) {
+    console.warn("renderProducts: productsGrid not found yet");
+    return;
+  }
+
   if (!products || products.length === 0) {
     grid.innerHTML = `<p style="text-align:center;padding:2rem;">No products found.</p>`;
     return;
