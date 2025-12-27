@@ -34,29 +34,22 @@ async function initializeApp(force = false) {
 supabase.auth.onAuthStateChange(async (event, session) => {
   console.log("Auth event:", event, "User:", session?.user?.id || "none");
 
-  // Always reload on these events
-  if (event === 'INITIAL_SESSION' ||
-      event === 'SIGNED_IN' ||
-      event === 'SIGNED_OUT' ||
-      event === 'TOKEN_REFRESHED') {
+  if (
+    event === 'INITIAL_SESSION' ||
+    event === 'SIGNED_IN' ||
+    event === 'SIGNED_OUT' ||
+    event === 'TOKEN_REFRESHED'
+  ) {
+    // 🔑 Always reset before init to avoid race conditions
+    isInitialized = false;
 
-    // Force reload on sign-in or initial session to catch restored sessions
-    if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
-      await initializeApp(true);  // Force = true bypasses the flag
-    } else {
-      await initializeApp();
-    }
-
-    // Reset flag on sign out
-    if (event === 'SIGNED_OUT') {
-      isInitialized = false;
-    }
+    // 🔑 Always force init from auth events
+    await initializeApp(true);
   }
 });
 
 document.addEventListener("DOMContentLoaded", () => {
   grid = getGrid();  
-  initializeApp(true);
 });
 
 
