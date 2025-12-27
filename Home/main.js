@@ -10,6 +10,8 @@ function getGrid() {
   return document.getElementById("productsGrid");
 }
 
+let grid = null;
+
 // === IMPROVED INITIALIZATION – Fixes logged-in product loading ===
 let isInitialized = false;
 
@@ -53,8 +55,10 @@ supabase.auth.onAuthStateChange(async (event, session) => {
 });
 
 document.addEventListener("DOMContentLoaded", () => {
+  grid = getGrid();  
   initializeApp(true);
 });
+
 
 
 // Extra safety for back/forward cache
@@ -125,6 +129,9 @@ async function toggleWishlist(product) {
 async function loadProducts() {
   console.log("loadProducts() called");
 
+  const grid = getGrid();      
+  if (!grid) return; 
+  
   const { data: products, error } = await supabase
     .from("products")
     .select("id,name,price,image_url,has_sizes,categories(name)")
@@ -211,28 +218,30 @@ function renderProducts(products) {
   }).join("");
 }
 
-// === EVENT DELEGATION FOR BUTTONS ===
-grid.addEventListener("click", (e) => {
-  // Wishlist button
-  const likeBtn = e.target.closest(".like-btn");
-  if (likeBtn) {
-    e.preventDefault();
-    e.stopPropagation();
-    const productId = Number(likeBtn.dataset.productId);
-    const product = allProducts.find(p => p.id === productId);
-    if (product) toggleWishlist(product);
-    return;
-  }
+document.addEventListener("DOMContentLoaded", () => {
+  grid = getGrid();
+  if (!grid) return;
 
-  // Add to cart button
-  const cartBtn = e.target.closest(".cart-btn");
-  if (cartBtn) {
-    e.preventDefault();
-    e.stopPropagation();
-    const productId = Number(cartBtn.dataset.productId);
-    handleAddToCartClick(productId);
-  }
+  grid.addEventListener("click", (e) => {
+    const likeBtn = e.target.closest(".like-btn");
+    if (likeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const productId = Number(likeBtn.dataset.productId);
+      const product = allProducts.find(p => p.id === productId);
+      if (product) toggleWishlist(product);
+      return;
+    }
+
+    const cartBtn = e.target.closest(".cart-btn");
+    if (cartBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleAddToCartClick(Number(cartBtn.dataset.productId));
+    }
+  });
 });
+
 
 // === FILTERING & SORTING ===
 const searchInput = document.getElementById("searchInput");
