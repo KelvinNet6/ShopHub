@@ -432,6 +432,17 @@ document.getElementById("submit").addEventListener("click", async () => {
   text.style.display = "none";
   spinner.style.display = "inline";
 
+  // 🔴 BLOCK IF SIZE REQUIRED BUT NOT SELECTED
+const missingSize = cart.find(item => item.has_sizes && !item.size);
+
+if (missingSize) {
+  alert(`Please select a size for "${missingSize.name}"`);
+  button.disabled = false;
+  spinner.style.display = "none";
+  text.style.display = "inline";
+  return;
+}
+
   try {
     // FORM DATA
     const email = document.getElementById("email").value;
@@ -457,17 +468,6 @@ document.getElementById("submit").addEventListener("click", async () => {
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
     const tax = subtotal * 0.08;
     const totalPrice = subtotal - discount + tax;
-
-// 🔴 BLOCK IF SIZE REQUIRED BUT NOT SELECTED
-const missingSize = cart.find(item => item.has_sizes && !item.size);
-
-if (missingSize) {
-  alert(`Please select a size for "${missingSize.name}"`);
-  button.disabled = false;
-  spinner.style.display = "none";
-  text.style.display = "inline";
-  return;
-}
     
     // 🔥 1️⃣ CREATE ORDER WITH STRUCTURED FIELDS (FIX CUSTOMER NULL)
     const { data: order, error: orderError } = await supabaseClient
