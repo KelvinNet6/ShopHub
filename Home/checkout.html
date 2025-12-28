@@ -313,38 +313,96 @@ card.on('change', (event) => {
     return `https://nhyucbgjocmwrkqbjjme.supabase.co/storage/v1/object/public/products/${path}`;
   }
 
-  function renderCart() {
-    const container = document.getElementById("checkoutItems");
-    if (cart.length === 0) {
-      container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
-      document.getElementById("itemCount").textContent = "0 items";
-      document.getElementById("grandTotal").textContent = "$0.00";
-      return;
+  async function getSizesForProduct(productId) {
+  const { data, error } = await supabaseClient
+    .from("product_sizes")
+    .select("size, stock")
+    .eq("product_id", productId)
+    .gt("stock", 0)
+    .order("size");
+
+  if (error) {
+    console.error("Size load error:", error);
+    return [];
+  }
+
+  return data;
+}
+
+async function renderCart() {
+  const container = document.getElementById("checkoutItems");
+
+  if (cart.length === 0) {
+    container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
+    document.getElementById("itemCount").textContent = "0 items";
+    document.getElementById("grandTotal").textContent = "$0.00";
+    return;
+  }
+
+  let html = "";
+
+  for (let index = 0; index < cart.length; index++) {
+    const item = cart[index];
+
+    let sizeHtml = "";
+
+    // 🔥 ONLY LOAD SIZES IF PRODUCT HAS SIZES
+    if (item.has_sizes) {
+      const sizes = await getSizesForProduct(item.id);
+
+      sizeHtml = `
+        <div class="input-group" style="margin-top:0.8rem;">
+          <label style="font-size:0.85rem;opacity:0.8;">Select Size</label>
+          <select 
+            onchange="updateItemSize(${index}, this.value)"
+            style="padding:0.6rem;border-radius:10px;"
+          >
+            <option value="">Choose size</option>
+            ${sizes.map(s => `
+              <option value="${s.size}" ${item.size === s.size ? "selected" : ""}>
+                ${s.size}
+              </option>
+            `).join("")}
+          </select>
+        </div>
+      `;
     }
-    
-    container.innerHTML = cart.map(item => `
+
+    html += `
       <div class="cart-item">
-        <img src="${getPublicImageUrl(item.image_url)}" onerror="this.src='https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg'">
+        <img src="${getPublicImageUrl(item.image_url)}">
         <div class="item-info">
           <h4>${item.name}</h4>
+
+          ${sizeHtml}
+
           <div>Qty: ${item.quantity}</div>
           <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
         </div>
       </div>
-    `).join("");
-
-    const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
-    document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
-    
-    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const tax = subtotal * 0.08;
-    const total = subtotal - discount + tax;
-    
-    document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
-    document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
-    document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
-    document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
+    `;
   }
+
+  container.innerHTML = html;
+
+  // TOTALS
+  const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+  document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
+
+  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+  const tax = subtotal * 0.08;
+  const total = subtotal - discount + tax;
+
+  document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
+  document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
+  document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
+  document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
+}
+window.updateItemSize = function (index, size) {
+  cart[index].size = size;
+  localStorage.setItem("shophub_cart", JSON.stringify(cart));
+};
+
 
   window.applyDiscount = function () {
     const code = document.getElementById("discountCode").value.trim().toUpperCase();
@@ -400,6 +458,17 @@ document.getElementById("submit").addEventListener("click", async () => {
     const tax = subtotal * 0.08;
     const totalPrice = subtotal - discount + tax;
 
+// 🔴 BLOCK IF SIZE REQUIRED BUT NOT SELECTED
+const missingSize = cart.find(item => item.has_sizes && !item.size);
+
+if (missingSize) {
+  alert(`Please select a size for "${missingSize.name}"`);
+  button.disabled = false;
+  spinner.style.display = "none";
+  text.style.display = "inline";
+  return;
+}
+    
     // 🔥 1️⃣ CREATE ORDER WITH STRUCTURED FIELDS (FIX CUSTOMER NULL)
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
@@ -424,7 +493,8 @@ const orderItems = cart.map(item => ({
   price: item.price,
   subtotal: item.price * item.quantity,
   name: item.name,
-  image_url: item.image_url
+  image_url: item.image_url,
+  size: item.size || null   // ✅ STORED
 }));
 
 const { error: itemsError } = await supabaseClient
