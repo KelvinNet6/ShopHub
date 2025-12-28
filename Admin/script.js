@@ -482,6 +482,7 @@ async function loadOrders() {
       order_items (
         quantity,
         price,
+        size,
         products:product_id (
           name
         )
