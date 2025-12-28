@@ -610,10 +610,11 @@ async function fetchOrderDetails(orderId) {
     .maybeSingle();
 
   // 3. Get items + products
-  const { data: items } = await supabase
-    .from('order_items')
-    .select('quantity, price, products(name, image_url)')
-    .eq('order_id', orderId);
+ const { data: items } = await supabase
+  .from("order_items")
+  .select("quantity, price, size, products(name, image_url)")
+  .eq("order_id", orderId);
+
 
   // Return exactly what your modal expects
   return {
@@ -712,16 +713,19 @@ async function showAddressModal(orderId) {
 
   const items = order.order_items || [];
 
-  const itemsHtml = items.map(item => `
-    <tr>
-      <td><img src="${item.products?.image_url || ''}" style="width:50px;height:50px;object-fit:cover;border-radius:4px;margin-right:8px;"> 
-        ${item.products?.name || 'Unknown Product'}
-      </td>
-      <td>${item.quantity}</td>
-      <td>$${Number(item.price).toFixed(2)}</td>
-      <td>$${(item.quantity * item.price).toFixed(2)}</td>
-    </tr>
-  `).join("");
+const itemsHtml = (order.order_items || []).map(item => `
+  <tr>
+    <td>
+      ${item.products?.image_url ? `<img src="${item.products.image_url}" style="width:50px;height:50px;">` : ""}
+      ${item.products?.name || "Product"}
+      ${item.size ? `<div style="font-size:12px;color:#6b7280;">Size: ${item.size}</div>` : ""}
+    </td>
+    <td>${item.quantity}</td>
+    <td>$${Number(item.price).toFixed(2)}</td>
+    <td>$${(item.quantity * item.price).toFixed(2)}</td>
+  </tr>
+`).join("");
+
 
   const subtotal = items.reduce((sum, i) => sum + i.quantity * i.price, 0);
   const tax = (subtotal * 0.08).toFixed(2); // adjust tax rate if needed
