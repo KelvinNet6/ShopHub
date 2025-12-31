@@ -741,7 +741,7 @@ const itemsHtml = (order.order_items || []).map(item => `
       ${item.size ? `<div style="font-size:12px;color:#6b7280;">Size: ${item.size}</div>` : ""}
     </td>
     <td>${item.quantity}</td>
-    <td>MK {Number(item.price).toFixed(2)}</td>
+    <td>${formatMK(o.total)}</td>
     <td>$${(item.quantity * item.price).toFixed(2)}</td>
   </tr>
 `).join("");
