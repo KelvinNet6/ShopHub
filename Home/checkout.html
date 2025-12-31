@@ -370,7 +370,7 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
 
       // Call Edge Function to create OneKhusa payment (amount in tambala = MWK * 100)
-      const res = await fetch("https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-onekhusa-payment", {
+      const res = await fetch("https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
