@@ -1,3 +1,7 @@
+function formatMK(amount) {
+  return `MK ${Number(amount).toLocaleString("en-MW")}`;
+}
+
 function getGrid() {
   return document.getElementById("productsGrid");
 }
@@ -191,7 +195,7 @@ function renderProducts(products) {
         </div>
         <div class="product-overlay">
           <div class="product-title">${p.name.toUpperCase()}</div>
-          <div class="product-price">$${Number(p.price).toFixed(2)}</div>
+          <div class="product-price">${formatMK(p.price)}</div>
           <div class="product-actions">
             <div class="action-btn view-btn">QUICK VIEW</div>
             <div class="action-btn cart-btn" data-product-id="${p.id}">
@@ -367,7 +371,7 @@ function renderCart() {
       <div style="flex:1;">
         <div style="font-weight:700;">${item.name}</div>
         ${item.size ? `<div style="color:#aaa;font-size:0.9rem;">Size: ${item.size}</div>` : ''}
-        <div style="color:#a78bfa;font-weight:800;">$${item.price.toFixed(2)}</div>
+        <div style="color:#a78bfa;font-weight:800;">${formatMK(item.price)}</div>
         <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
           <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},'${item.size || ''}',-1)">−</button>
           <span style="min-width:30px;text-align:center;font-weight:700;">${item.quantity}</span>
@@ -379,7 +383,7 @@ function renderCart() {
   `).join("");
 
   const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  cartTotalEl.textContent = total.toFixed(2);
+  cartTotalEl.textContent = formatMK(total);
 }
 
 window.removeFromCart = (id, size) => {
