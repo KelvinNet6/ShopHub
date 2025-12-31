@@ -310,54 +310,55 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCart();
   };
 
-  // Checkout with OneKhusa redirect
-document.getElementById("submit").addEventListener("click", async () => {
-  if (cart.length === 0) return alert("Your bag is empty!");
-
+ document.getElementById("submit").addEventListener("click", async () => {
   const button = document.getElementById("submit");
   const spinner = document.getElementById("spinner");
   const text = document.getElementById("button-text");
+
+  // Disable button while processing
   button.disabled = true;
   text.style.display = "none";
   spinner.style.display = "inline";
 
   try {
-    // 1️⃣ Check sizes
-    const missingSize = cart.find(item => item.has_sizes && !item.size);
-    if (missingSize) throw new Error(`Please select a size for "${missingSize.name}"`);
-
-    // 2️⃣ Required fields
+    // --- Required fields ---
     const email = document.getElementById("email").value.trim();
     const firstName = document.getElementById("first-name").value.trim();
     const lastName = document.getElementById("last-name").value.trim();
     const phone = document.getElementById("phone").value.trim();
-    const address = document.getElementById("address").value.trim();
-    const city = document.getElementById("city").value.trim();
-    const postal = document.getElementById("postal").value.trim();
-    const country = document.getElementById("country").value;
-    const method = document.getElementById("payment-method").value;
+    const paymentMethod = document.getElementById("payment-method").value;
 
-    if (!email || !firstName || !lastName || !phone || !address || !city || !postal)
-      throw new Error("Please fill in all required fields.");
-    if (!method) throw new Error("Please select a payment method.");
+    if (!email || !firstName || !lastName || !phone) {
+      throw new Error("Please fill in all required contact fields.");
+    }
 
+    if (!paymentMethod) {
+      throw new Error("Please select a payment method.");
+    }
+
+    // --- Check product sizes ---
+    const missingSize = cart.find(item => item.has_sizes && !item.size);
+    if (missingSize) {
+      throw new Error(`Please select a size for "${missingSize.name}".`);
+    }
+
+    // --- Customer & order data ---
     const customerData = {
       name: `${firstName} ${lastName}`,
       email,
       phone,
-      address,
-      apt: document.getElementById("apt").value.trim(),
-      city,
-      postal,
-      country,
+      address: document.getElementById("address").value,
+      apt: document.getElementById("apt").value,
+      city: document.getElementById("city").value,
+      postal: document.getElementById("postal").value,
+      country: document.getElementById("country").value,
     };
 
-    // 3️⃣ Calculate totals
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const tax = subtotal * 0.16; // VAT 16%
+    const tax = subtotal * 0.16;
     const totalPrice = subtotal - discount + tax;
 
-    // 4️⃣ Create order in Supabase
+    // --- Create order in Supabase ---
     const { data: order, error: orderError } = await supabaseClient
       .from('orders')
       .insert([{
@@ -369,9 +370,10 @@ document.getElementById("submit").addEventListener("click", async () => {
       }])
       .select('id')
       .single();
+
     if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
 
-    // 5️⃣ Insert order items
+    // --- Insert order items ---
     const orderItems = cart.map(item => ({
       order_id: order.id,
       product_id: item.id,
@@ -385,37 +387,34 @@ document.getElementById("submit").addEventListener("click", async () => {
     const { error: itemsError } = await supabaseClient.from('order_items').insert(orderItems);
     if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
 
-    // 6️⃣ Call Edge Function to create OneKhusa payment
+    // --- Call Edge Function for OneKhusa ---
     const res = await fetch("https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        amount: Math.round(totalPrice * 100),  // tambala
-        currency: "MWK",
+        amount: totalPrice,       // MWK
         email,
         phone,
         order_id: order.id,
-        method,              // crucial!
-        customer_name: customerData.name
+        method: paymentMethod    // airtel_money | tnm_mpamba | bank_card
       })
     });
+
     const data = await res.json();
     if (data.error) throw new Error(data.error);
     if (!data.payment_url) throw new Error("No payment URL returned");
 
-    // 7️⃣ Redirect to OneKhusa
+    // --- Redirect to OneKhusa payment ---
     window.location.href = data.payment_url;
 
   } catch (err) {
     console.error('Checkout failed:', err);
     alert(`Error: ${err.message}`);
-  } finally {
     button.disabled = false;
     text.style.display = "inline";
     spinner.style.display = "none";
   }
 });
-
   renderCart();
 });
 </script>
