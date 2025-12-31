@@ -62,16 +62,27 @@ async function loadRecentOrders() {
     .order("id", { ascending: false })
     .limit(5);
 
-  document.getElementById("ordersTableBody").innerHTML = data.map(o => `
-    <tr>
-      <td>#${o.id}</td>
-      <td>${o.customers.name}</td>
-      <td>${fmtDate(o.created_at)}</td>
-      <td>MK {o.total}</td>
-      <td class="status ${o.status}">${o.status}</td>
-    </tr>
-  `).join("");
+  document.getElementById("ordersTableBody").innerHTML = data.map(o => {
+    // Format price in MK (Malawian Kwacha)
+    const formattedPrice = new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'MWK',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(o.total);
+
+    return `
+      <tr>
+        <td>#${o.id}</td>
+        <td>${o.customers.name}</td>
+        <td>${fmtDate(o.created_at)}</td>
+        <td>${formattedPrice}</td> <!-- Price in MK -->
+        <td class="status ${o.status}">${o.status}</td>
+      </tr>
+    `;
+  }).join("");
 }
+
 
 // =====================================
 async function loadCustomers() {
