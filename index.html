@@ -648,9 +648,9 @@
 }
 
     .hero {
-  background-image: url("../Admin/Gula!-G.jpg"); /* replace with your image */
-  background-size: cover;        /* fills screen */
-  background-position: center;   /* keeps image centered */
+  background-image: url("../Admin/Gula!-G.jpeg"); 
+  background-size: cover;        
+  background-position: center;   
   background-repeat: no-repeat;
   min-height: 80vh;              /* responsive height */
   
@@ -663,6 +663,20 @@
   color: #fff;
   padding: 2rem 1rem;
   position: relative;
+}
+@media (max-width: 768px) {
+  .hero {
+    min-height: 70vh;
+    padding: 3rem 1rem;
+  }
+
+  .hero h1 {
+    font-size: 2.5rem;
+  }
+
+  .hero p {
+    font-size: 1rem;
+  }
 }
 
   </style>
