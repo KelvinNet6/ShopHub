@@ -569,7 +569,7 @@ async function renderOrders() {
           <small style="color:#64748b;">${o.customers?.email || ''}</small>
         </td>
         <td style="font-size:13.5px; line-height:1.6;">${items}</td>
-        <td>${formatMK(item.quantity * item.price)}</td>
+        <td>${formatMK(o.total)}</td>
         <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
         <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 <td>
