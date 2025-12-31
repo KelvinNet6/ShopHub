@@ -405,8 +405,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    if (!data.payment_url) throw new Error("No payment URL returned");
-
+   if (data.requires_redirect && data.payment_url) {
+  window.location.href = data.payment_url;
+} else {
+  alert(
+    "📱 A payment prompt has been sent to your phone.\n" +
+    "Please approve the payment to complete your order."
+  );
+}
     // --- Redirect to OneKhusa payment ---
     window.location.href = data.payment_url;
 
