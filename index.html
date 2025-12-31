@@ -647,23 +647,25 @@
   color: #000;
 }
 
-    .hero {
-  background-image: url("Admin/Gula!-G.jpeg"); 
-  background-size: cover;        
-  background-position: center;   
+.hero {
+  background-image: url("Admin/Gula!-G.jpeg");
+  background-size: contain;     
+  background-position: center;
   background-repeat: no-repeat;
-  min-height: 80vh;              /* responsive height */
-  
+
+  min-height: 100vh;             /* fit screen height */
+  width: 100%;
+
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  
+
   text-align: center;
   color: #fff;
   padding: 2rem 1rem;
-  position: relative;
 }
+
 @media (max-width: 768px) {
   .hero {
     min-height: 70vh;
