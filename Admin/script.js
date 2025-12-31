@@ -659,7 +659,7 @@ function renderSingleOrderPage(order) {
         ${item.products?.name || 'Unknown Product'}
       </td>
       <td style="padding:10px;">${item.quantity}</td>
-      <td style="padding:10px;">MK {Number(item.price).toFixed(2)}</td>
+      <td>${formatMK(o.total)}</td>
       <td style="padding:10px;">$${(item.quantity * item.price).toFixed(2)}</td>
     </tr>
   `).join('');
