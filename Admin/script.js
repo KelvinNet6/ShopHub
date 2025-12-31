@@ -1,3 +1,12 @@
+function formatMK(amount) {
+  return new Intl.NumberFormat("en-MW", {
+    style: "currency",
+    currency: "MWK",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2
+  }).format(Number(amount) || 0);
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   if (typeof supabase === "undefined") {
     console.error("Supabase library not loaded. Check your script order!");
@@ -46,8 +55,8 @@ async function loadDashboard() {
   ]);
 
   const revenue = orders.reduce((s, o) => s + Number(o.total), 0);
-
-  document.getElementById("sales").textContent = `$${revenue.toFixed(2)}`;
+  
+  document.getElementById("sales").textContent = formatMK(revenue);
   document.getElementById("orders").textContent = orders.length;
   document.getElementById("products").textContent = products.length;
   document.getElementById("profiles").textContent = profiles.length;
@@ -76,7 +85,7 @@ async function loadRecentOrders() {
         <td>#${o.id}</td>
         <td>${o.customers.name}</td>
         <td>${fmtDate(o.created_at)}</td>
-        <td>${formattedPrice}</td> <!-- Price in MK -->
+        <td>${formatMK(o.total)}</td>
         <td class="status ${o.status}">${o.status}</td>
       </tr>
     `;
@@ -167,7 +176,7 @@ async function loadCustomers() {
         <td>${c.email}</td>
         <td>${c.phone}</td>
         <td>${c.orders}</td>
-        <td>$${c.spent}</td>
+        <td>${formatMK(c.spent)}</td>
         <td>${c.joined}</td>
         <td>
           <button class="btn view" onclick="openCustomer(${c.id})">
@@ -275,7 +284,7 @@ async function loadProducts() {
         </td>
         <td>${p.categories?.name || "-"}</td>
         <td>${p.brands?.name || "-"}</td>
-        <td>MK {Number(p.price).toFixed(2)}</td>
+        <td>${formatMK(p.price)}</td>
         <td>${totalStock}</td>
         <td>${sizes.map(s => `${s.size}: ${s.stock}`).join(", ")}</td>
         <td>
@@ -537,7 +546,7 @@ async function renderOrders() {
         <td>#${o.id}</td>
         <td>${o.customers?.full_name || '—'}</td>
         <td>${fmtDate(o.created_at)}</td>
-        <td>MK {Number(o.total || 0).toFixed(2)}</td>
+        <td>${formatMK(item.quantity * item.price)}</td>
         <td><span class="status ${o.status}">${o.status || 'unknown'}</span></td>
       </tr>
     `).join("");
@@ -768,11 +777,9 @@ const itemsHtml = (order.order_items || []).map(item => `
       </table>
 
       <div style="text-align:right;font-size:15px;">
-        <div>Subtotal: MK {subtotal.toFixed(2)}</div>
-        <div>Tax (8%): MK {tax}</div>
-        <div style="font-weight:bold;margin-top:8px;font-size:18px;">
-          Total: MK {total}
-        </div>
+        <div>Subtotal: ${formatMK(subtotal)}</div>
+        <div>Tax (8%): ${formatMK(tax)}</div>
+        <div><strong>Total: ${formatMK(total)}</strong></div>
       </div>
     </div>
   `;
