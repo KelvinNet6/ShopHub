@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@500;700;900&display=swap" rel="stylesheet"/>
   <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
-  <script src="https://js.stripe.com/v3/"></script>
   <style>
     :root { --primary: #6366f1; --purple: #a78bfa; --radius: 24px; --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
     * { margin:0; padding:0; box-sizing:border-box; }
@@ -27,68 +26,41 @@
     }
     h1 { font-size: 5rem; font-weight: 900; background: linear-gradient(90deg, #fff, #a78bfa); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 2rem; }
     .section-title { font-size: 1.35rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin: 3rem 0 1.5rem; opacity: 0.9; }
-    
-   .input-group { 
-  margin-bottom: 1.6rem; 
-}
-
-label { 
-  display: block; 
-  margin-bottom: 0.7rem; 
-  font-weight: 600; 
-  color: #fff;                   /* white label text */
-  opacity: 0.95;
-}
-
-input, select {
-  width: 100%;
-  padding: 1.4rem 1.8rem;
-  background: rgba(20, 20, 40, 0.88);     /* ← very dark navy-black with glass effect */
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  border-radius: 18px;
-  color: #ffffff !important;             /* ← pure white text */
-  font-size: 1.05rem;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);   /* Safari support */
-  transition: all 0.3s ease;
-}
-
-input::placeholder {
-  color: rgba(255, 255, 255, 0.55) !important;
-}
-
-input:focus, select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
-  background: rgba(20, 20, 40, 0.95);     /* slightly more solid on focus */
-}
+   
+    .input-group {
+      margin-bottom: 1.6rem;
+    }
+    label {
+      display: block;
+      margin-bottom: 0.7rem;
+      font-weight: 600;
+      color: #fff;
+      opacity: 0.95;
+    }
+    input, select {
+      width: 100%;
+      padding: 1.4rem 1.8rem;
+      background: rgba(20, 20, 40, 0.88);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      border-radius: 18px;
+      color: #ffffff !important;
+      font-size: 1.05rem;
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      transition: all 0.3s ease;
+    }
+    input::placeholder {
+      color: rgba(255, 255, 255, 0.55) !important;
+    }
+    input:focus, select:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.3);
+      background: rgba(20, 20, 40, 0.95);
+    }
     .row { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; }
     .back-link { display: inline-flex; align-items: center; gap: 0.6rem; color: #aaa; text-decoration: none; font-weight: 600; font-size: 1.1rem; margin-bottom: 1rem; }
     .back-link:hover { color: white; }
- 
-#card-element {
-  padding: 1.4rem 1.8rem;
-  background: rgba(248, 248, 252, 0.96) !important;   /* light grey glass */
-  border: 1px solid rgba(0, 0, 0, 0.12);
-  border-radius: 18px;
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  transition: all 0.3s ease;
-}
-
-#card-element.StripeElement--focus {
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.25) !important;
-}
-
-#card-errors {
-  color: #ef4444;
-  font-size: 0.9rem;
-  margin-top: 0.5rem;
-  height: 20px;
-  font-weight: 500;
-}
     .discount-box { display: flex; gap: 1rem; margin: 2rem 0; }
     .apply-btn { padding: 0 2rem; background: var(--primary); border: none; border-radius: 18px; color: white; font-weight: 800; cursor: pointer; transition: var(--transition); }
     .apply-btn:hover { background: #818cf8; }
@@ -115,21 +87,20 @@ input:focus, select:focus {
     .demo-banner {
       background: #4ade80; color: white; text-align: center; padding: 0.8rem; font-weight: bold; font-size: 0.95rem;
     }
+    .payment-info { padding: 1.4rem 1.8rem; background: rgba(20, 20, 40, 0.88); border-radius: 18px; border: 1px solid rgba(255,255,255,0.18); }
+    .payment-info p { opacity: 0.9; line-height: 1.6; }
   </style>
 </head>
 <body>
   <div class="demo-banner">
-    ✅ SUPABASE FIXED! Orders save + Cart empties + 100% Working
+    ✅ Prices now in MWK • OneKhusa Payments (Redirect Flow) • Orders Save & Cart Empties
   </div>
- 
   <nav class="navbar">
     <div class="nav-container">
       <a href="../index.html" class="logo">ShopHub</a>
       <div class="nav-links"><a href="../index.html">Continue Shopping</a></div>
     </div>
   </nav>
-
-  <!-- YOUR HTML (unchanged) -->
   <div class="checkout-wrapper">
     <div>
       <a href="../index.html" class="back-link">
@@ -154,20 +125,22 @@ input:focus, select:focus {
       </div>
       <div class="row">
         <div class="input-group">
-                      <label for="country">Country</label>
-       <select id="country">
-                    <option value="United States">United Kingdom</option>
-                    <option value="Malawi">Malawi</option>
-                    <option value="South Africa">South Africa</option>
-        </select>
-       </div>
-        <div class="input-group"><label>Phone</label><input type="tel" id="phone" placeholder="(555) 123-4567" /></div>
+          <label for="country">Country</label>
+          <select id="country">
+            <option value="United Kingdom">United Kingdom</option>
+            <option value="Malawi" selected>Malawi</option>
+            <option value="South Africa">South Africa</option>
+          </select>
+        </div>
+        <div class="input-group"><label>Phone</label><input type="tel" id="phone" placeholder="+265 ..." /></div>
       </div>
       <div class="section-title">Payment</div>
       <div class="input-group">
-        <label>Card Details</label>
-        <div id="card-element"></div>
-        <div id="card-errors" role="alert"></div>
+        <label>Secure Payment via OneKhusa</label>
+        <div class="payment-info">
+          <p>You will be redirected to OneKhusa's secure payment page to complete your order in MWK.</p>
+          <p>Supports: Airtel Money, Mpamba, Bank Cards, National Bank Mo626, and more.</p>
+        </div>
       </div>
     </div>
     <div class="order-summary">
@@ -182,128 +155,57 @@ input:focus, select:focus {
       </div>
       <div id="discountMessage" style="margin-top:0.5rem; min-height: 24px;"></div>
       <div class="summary-totals">
-        <div class="total-row"><span>Subtotal</span><span id="subtotal">$0.00</span></div>
-        <div class="total-row"><span>Discount</span><span id="discountAmount">-$0.00</span></div>
+        <div class="total-row"><span>Subtotal</span><span id="subtotal">MWK 0.00</span></div>
+        <div class="total-row"><span>Discount</span><span id="discountAmount">-MWK 0.00</span></div>
         <div class="total-row"><span>Shipping</span><span>FREE</span></div>
-        <div class="total-row"><span>Tax</span><span id="tax">$0.00</span></div>
-        <div class="total-row grand-total"><span>TOTAL</span><span id="grandTotal">$0.00</span></div>
+        <div class="total-row"><span>Tax</span><span id="tax">MWK 0.00</span></div>
+        <div class="total-row grand-total"><span>TOTAL</span><span id="grandTotal">MWK 0.00</span></div>
       </div>
       <button class="pay-btn" id="submit">
-        <span id="button-text">COMPLETE ORDER</span>
+        <span id="button-text">PROCEED TO PAYMENT</span>
         <span id="spinner" style="display:none;">PROCESSING...</span>
       </button>
       <div class="security">
         <i class="fas fa-shield-alt"></i>
-        <i class="fab fa-cc-visa"></i>
-        <i class="fab fa-cc-mastercard"></i>
-        <i class="fab fa-cc-amex"></i>
+        <i class="fas fa-mobile-alt"></i>
+        <i class="fas fa-credit-card"></i>
+        <i class="fas fa-university"></i>
       </div>
     </div>
   </div>
-
   <script>
 document.addEventListener('DOMContentLoaded', async () => {
-  console.log('🚀 ShopHub Checkout - TEXT SCHEMA ✅');
-  
+  console.log('🚀 ShopHub Checkout - MWK Prices + OneKhusa Integration');
+
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE';
   const supabaseClient = supabase.createClient(
     'https://nhyucbgjocmwrkqbjjme.supabase.co',
     supabaseKey
   );
 
-  // 🔐 LOGIN
+  // Login check
   const { data: { session } } = await supabaseClient.auth.getSession();
   if (!session || !session.user) {
     localStorage.setItem("redirect_after_login", "checkout.html");
     window.location.href = "../Admin/adLogin.html";
     return;
   }
-  
-  // 🔥 SINGLE API CALL - GET EVERYTHING
-const { data: profile, error: profileError } = await supabaseClient
-  .from("profiles")
-  .select("*")  // ✅ Get ALL fields in 1 call
-  .eq("id", session.user.id)
-  .single();
 
-if (profileError) {
-  console.error('Profile error:', profileError);
-  // Fallback customer_id = 1
-  window.customerId = 1;
-} else {
-  window.customerId = profile.id;  
-}
-
-window.loggedInUserId = session.user.id;
-
-if (profile) {
-  document.getElementById("email").value = profile.email || "";
-  document.getElementById("first-name").value = profile.first_name || "";
-  document.getElementById("last-name").value = profile.last_name || "";
-  document.getElementById("phone").value = profile.phone || "";
-}
-
-console.log('✅ Profile loaded:', { 
-  customerId: window.customerId, 
-  userId: window.loggedInUserId 
-});
-
-const stripe = Stripe('pk_test_51SXmFmKg5Grml0DZgSMUEjw6g4YZ7TQL4VJrenBASyhfTw6S0t09jlwRLUkEypn0guFX07rlstHaelLSQ3Ty8wII002z76ZIfC');
-
-const elements = stripe.elements({
-  appearance: {
-    theme: 'stripe',                    
-    variables: {
-      colorPrimary: '#6366f1',
-      colorBackground: 'rgba(248, 248, 252, 0.96)',   
-      colorText: '#111111',                      
-      colorTextPlaceholder: 'rgba(0,0,0,0.45)',
-      caretColor: '#111111',
-      colorDanger: '#ef4444',                   
-      fontFamily: 'Inter, sans-serif',
-      fontSize: '1.05rem',
-      fontWeight: '600',                           
-      borderRadius: '18px'
-    },
-    rules: {
-      '.Input': {
-        color: '#111111',
-        fontWeight: '600',
-        '::placeholder': {
-          color: 'rgba(0,0,0,0.45)'
-        }
-      },
-      '.Label': {
-        color: '#111111',
-        fontWeight: '600'
-      }
-    }
+  // Load profile
+  const { data: profile } = await supabaseClient
+    .from("profiles")
+    .select("*")
+    .eq("id", session.user.id)
+    .single();
+  window.customerId = profile?.id || 1;
+  if (profile) {
+    document.getElementById("email").value = profile.email || "";
+    document.getElementById("first-name").value = profile.first_name || "";
+    document.getElementById("last-name").value = profile.last_name || "";
+    document.getElementById("phone").value = profile.phone || "";
   }
-});
 
-const card = elements.create('card', {
-  style: {
-    base: {
-      color: '#111111',
-      fontWeight: '600',
-      fontSize: '1.05rem',
-      '::placeholder': {
-        color: 'rgba(0,0,0,0.45)'
-      }
-    },
-    invalid: {
-      color: '#ef4444'
-    }
-  }
-});
-
-card.mount('#card-element');
-
-card.on('change', (event) => {
-  document.getElementById('card-errors').textContent = event.error ? event.error.message : '';
-});
-  
-  // CART
+  // Cart from localStorage
   const cart = JSON.parse(localStorage.getItem("shophub_cart") || '[]');
   let discount = 0;
 
@@ -314,95 +216,75 @@ card.on('change', (event) => {
   }
 
   async function getSizesForProduct(productId) {
-  const { data, error } = await supabaseClient
-    .from("product_sizes")
-    .select("size, stock")
-    .eq("product_id", productId)
-    .gt("stock", 0)
-    .order("size");
-
-  if (error) {
-    console.error("Size load error:", error);
-    return [];
+    const { data } = await supabaseClient
+      .from("product_sizes")
+      .select("size, stock")
+      .eq("product_id", productId)
+      .gt("stock", 0)
+      .order("size");
+    return data || [];
   }
 
-  return data;
-}
-
-async function renderCart() {
-  const container = document.getElementById("checkoutItems");
-
-  if (cart.length === 0) {
-    container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
-    document.getElementById("itemCount").textContent = "0 items";
-    document.getElementById("grandTotal").textContent = "$0.00";
-    return;
+  function formatMWK(amount) {
+    return `MWK ${amount.toFixed(2)}`;
   }
 
-  let html = "";
+  async function renderCart() {
+    const container = document.getElementById("checkoutItems");
+    if (cart.length === 0) {
+      container.innerHTML = "<p style='text-align:center;padding:3rem 0;opacity:0.6;'>Your bag is empty</p>";
+      document.getElementById("itemCount").textContent = "0 items";
+      document.getElementById("grandTotal").textContent = "MWK 0.00";
+      return;
+    }
 
-  for (let index = 0; index < cart.length; index++) {
-    const item = cart[index];
-
-    let sizeHtml = "";
-
-    // 🔥 ONLY LOAD SIZES IF PRODUCT HAS SIZES
-    if (item.has_sizes) {
-      const sizes = await getSizesForProduct(item.id);
-
-      sizeHtml = `
-        <div class="input-group" style="margin-top:0.8rem;">
-          <label style="font-size:0.85rem;opacity:0.8;">Select Size</label>
-          <select 
-            onchange="updateItemSize(${index}, this.value)"
-            style="padding:0.6rem;border-radius:10px;"
-          >
-            <option value="">Choose size</option>
-            ${sizes.map(s => `
-              <option value="${s.size}" ${item.size === s.size ? "selected" : ""}>
-                ${s.size}
-              </option>
-            `).join("")}
-          </select>
+    let html = "";
+    for (let index = 0; index < cart.length; index++) {
+      const item = cart[index];
+      let sizeHtml = "";
+      if (item.has_sizes) {
+        const sizes = await getSizesForProduct(item.id);
+        sizeHtml = `
+          <div class="input-group" style="margin-top:0.8rem;">
+            <label style="font-size:0.85rem;opacity:0.8;">Select Size</label>
+            <select onchange="updateItemSize(${index}, this.value)" style="padding:0.6rem;border-radius:10px;">
+              <option value="">Choose size</option>
+              ${sizes.map(s => `<option value="${s.size}" ${item.size === s.size ? "selected" : ""}>${s.size}</option>`).join("")}
+            </select>
+          </div>
+        `;
+      }
+      html += `
+        <div class="cart-item">
+          <img src="${getPublicImageUrl(item.image_url)}">
+          <div class="item-info">
+            <h4>${item.name}</h4>
+            ${sizeHtml}
+            <div>Qty: ${item.quantity}</div>
+            <div class="item-price">${formatMWK(item.price * item.quantity)}</div>
+          </div>
         </div>
       `;
     }
+    container.innerHTML = html;
 
-    html += `
-      <div class="cart-item">
-        <img src="${getPublicImageUrl(item.image_url)}">
-        <div class="item-info">
-          <h4>${item.name}</h4>
+    const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
+    document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
 
-          ${sizeHtml}
+    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const tax = subtotal * 0.16; // VAT in Malawi is 16%
+    const total = subtotal - discount + tax;
 
-          <div>Qty: ${item.quantity}</div>
-          <div class="item-price">$${(item.price * item.quantity).toFixed(2)}</div>
-        </div>
-      </div>
-    `;
+    document.getElementById("subtotal").textContent = formatMWK(subtotal);
+    document.getElementById("discountAmount").textContent = `- ${formatMWK(discount)}`;
+    document.getElementById("tax").textContent = formatMWK(tax);
+    document.getElementById("grandTotal").textContent = formatMWK(total);
   }
 
-  container.innerHTML = html;
-
-  // TOTALS
-  const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
-  document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
-
-  const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-  const tax = subtotal * 0.08;
-  const total = subtotal - discount + tax;
-
-  document.getElementById("subtotal").textContent = `$${subtotal.toFixed(2)}`;
-  document.getElementById("discountAmount").textContent = `-$${discount.toFixed(2)}`;
-  document.getElementById("tax").textContent = `$${tax.toFixed(2)}`;
-  document.getElementById("grandTotal").textContent = `$${total.toFixed(2)}`;
-}
-window.updateItemSize = function (index, size) {
-  cart[index].size = size;
-  localStorage.setItem("shophub_cart", JSON.stringify(cart));
-};
-
+  window.updateItemSize = function (index, size) {
+    cart[index].size = size;
+    localStorage.setItem("shophub_cart", JSON.stringify(cart));
+  };
 
   window.applyDiscount = function () {
     const code = document.getElementById("discountCode").value.trim().toUpperCase();
@@ -420,155 +302,104 @@ window.updateItemSize = function (index, size) {
     renderCart();
   };
 
-// 🔥 COMPLETE ORDER - YOUR EXACT SCHEMA + FIXES
-document.getElementById("submit").addEventListener("click", async () => {
-  if (cart.length === 0) return alert("Your bag is empty!");
+  // Checkout with OneKhusa redirect
+  document.getElementById("submit").addEventListener("click", async () => {
+    if (cart.length === 0) return alert("Your bag is empty!");
 
-  const button = document.getElementById("submit");
-  const spinner = document.getElementById("spinner");
-  const text = document.getElementById("button-text");
+    const button = document.getElementById("submit");
+    const spinner = document.getElementById("spinner");
+    const text = document.getElementById("button-text");
+    button.disabled = true;
+    text.style.display = "none";
+    spinner.style.display = "inline";
 
-  button.disabled = true;
-  text.style.display = "none";
-  spinner.style.display = "inline";
-
-  // 🔴 BLOCK IF SIZE REQUIRED BUT NOT SELECTED
-const missingSize = cart.find(item => item.has_sizes && !item.size);
-
-if (missingSize) {
-  alert(`Please select a size for "${missingSize.name}"`);
-  button.disabled = false;
-  spinner.style.display = "none";
-  text.style.display = "inline";
-  return;
-}
-
-  try {
-    // FORM DATA
-    const email = document.getElementById("email").value;
-    const firstName = document.getElementById("first-name").value;
-    const lastName = document.getElementById("last-name").value;
-
-    if (!email || !firstName || !lastName) {
-      throw new Error("Please fill in all required fields.");
+    const missingSize = cart.find(item => item.has_sizes && !item.size);
+    if (missingSize) {
+      alert(`Please select a size for "${missingSize.name}"`);
+      button.disabled = false;
+      spinner.style.display = "none";
+      text.style.display = "inline";
+      return;
     }
 
-    const customerData = {
-      name: `${firstName} ${lastName}`,
-      email,
-      phone: document.getElementById("phone").value,
-      address: document.getElementById("address").value,
-      apt: document.getElementById("apt").value,
-      city: document.getElementById("city").value,
-      postal: document.getElementById("postal").value,
-      country: document.getElementById("country").value,
-    };
+    try {
+      const email = document.getElementById("email").value;
+      const firstName = document.getElementById("first-name").value;
+      const lastName = document.getElementById("last-name").value;
+      if (!email || !firstName || !lastName) throw new Error("Please fill in all required fields.");
 
-    // CALCULATE TOTAL
-    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const tax = subtotal * 0.08;
-    const totalPrice = subtotal - discount + tax;
-    
-    // 🔥 1️⃣ CREATE ORDER WITH STRUCTURED FIELDS (FIX CUSTOMER NULL)
-    const { data: order, error: orderError } = await supabaseClient
-      .from('orders')
-      .insert([{
-        customer_id: window.customerId,
-        total: totalPrice,
-        status: 'pending',
-        payment_method: 'stripe',
-        shipping_address: JSON.stringify(customerData)
-      }])
-      .select('id')
-      .single();
+      const customerData = {
+        name: `${firstName} ${lastName}`,
+        email,
+        phone: document.getElementById("phone").value,
+        address: document.getElementById("address").value,
+        apt: document.getElementById("apt").value,
+        city: document.getElementById("city").value,
+        postal: document.getElementById("postal").value,
+        country: document.getElementById("country").value,
+      };
 
-    if (orderError) throw new Error(`Order failed: ${orderError.message}`);
-    console.log('✅ Order created:', order.id);
+      const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+      const tax = subtotal * 0.16;
+      const totalPrice = subtotal - discount + tax;
 
-// 🔥 2️⃣ INSERT ORDER ITEMS WITH IMAGE & NAME
-const orderItems = cart.map(item => ({
-  order_id: order.id,
-  product_id: item.id,
-  quantity: item.quantity,
-  price: item.price,
-  subtotal: item.price * item.quantity,
-  name: item.name,
-  image_url: item.image_url,
-  size: item.size || null   // ✅ STORED
-}));
+      // Create order in Supabase
+      const { data: order, error: orderError } = await supabaseClient
+        .from('orders')
+        .insert([{
+          customer_id: window.customerId,
+          total: totalPrice,
+          status: 'pending',
+          payment_method: 'onekhusa',
+          shipping_address: JSON.stringify(customerData)
+        }])
+        .select('id')
+        .single();
+      if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
 
-const { error: itemsError } = await supabaseClient
-  .from('order_items')
-  .insert(orderItems);
+      // Insert order items
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+        name: item.name,
+        image_url: item.image_url,
+        size: item.size || null
+      }));
+      const { error: itemsError } = await supabaseClient.from('order_items').insert(orderItems);
+      if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
 
-if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
-console.log('✅ Order items inserted:', orderItems.length);
-
-
-    if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
-    console.log('✅ Order items inserted:', orderItems.length);
-
-    // 🔥 3️⃣ EDGE FUNCTION FOR PAYMENT INTENT
-    const paymentRes = await fetch(
-      "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent",
-      {
+      // Call Edge Function to create OneKhusa payment (amount in tambala = MWK * 100)
+      const res = await fetch("https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-onekhusa-payment", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          amount: Math.round(totalPrice * 100),
-          email
+          amount: Math.round(totalPrice * 100),  // tambala (smallest unit)
+          currency: "MWK",
+          email,
+          order_id: order.id,
+          customer_name: customerData.name
         })
-      }
-    );
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      if (!data.payment_url) throw new Error("No payment URL returned");
 
-    const paymentData = await paymentRes.json();
-    if (paymentData.error) throw new Error(paymentData.error);
+      // Redirect to OneKhusa
+      window.location.href = data.payment_url;
 
-    const { clientSecret } = paymentData;
-    if (!clientSecret) throw new Error("Failed to create PaymentIntent");
+    } catch (err) {
+      console.error('Checkout failed:', err);
+      alert(`Error: ${err.message}`);
+    } finally {
+      button.disabled = false;
+      text.style.display = "inline";
+      spinner.style.display = "none";
+    }
+  });
 
-    // 🔥 4️⃣ STRIPE CONFIRM
-    const paymentResult = await stripe.confirmCardPayment(clientSecret, {
-      payment_method: {
-        card: card,
-        billing_details: { name: customerData.name, email: customerData.email }
-      }
-    });
-
-    if (paymentResult.error) throw new Error(paymentResult.error.message);
-    console.log('✅ Payment succeeded:', paymentResult.paymentIntent.id);
-
-    // 🔥 5️⃣ UPDATE ORDER
-    const updatedAddress = {
-      ...customerData,
-      payment_id: paymentResult.paymentIntent.id,
-      payment_status: paymentResult.paymentIntent.status
-    };
-
-    await supabaseClient
-      .from("orders")
-      .update({
-        status: "paid",
-        payment_method: 'stripe',
-        shipping_address: JSON.stringify(updatedAddress) // ✅ TEXT
-      })
-      .eq("id", order.id);
-
-    // 🔥 6️⃣ SUCCESS
-    localStorage.removeItem("shophub_cart");
-    const orderIdDisplay = String(order.id).padStart(6, '0');
-    alert(`✅ Order #${orderIdDisplay} PAID!\n\n💳 $${totalPrice.toFixed(2)}`);
-
-    window.location.href = `thank-you.html?order_id=${order.id}`;
-  } catch (err) {
-    console.error('❌ Checkout failed:', err);
-    document.getElementById("card-errors").textContent = err.message;
-  } finally {
-    button.disabled = false;
-    text.style.display = "inline";
-    spinner.style.display = "none";
-  }
-});
   renderCart();
 });
 </script>
