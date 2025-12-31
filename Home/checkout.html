@@ -134,6 +134,16 @@
       </div>
       <div class="section-title">Payment</div>
       <div class="input-group">
+  <label for="payment-method">Select Payment Method</label>
+  <select id="payment-method" required>
+    <option value="">Choose a payment method</option>
+    <option value="airtel_money">Airtel Money</option>
+    <option value="tnm_mpamba">TNM Mpamba</option>
+    <option value="bank_card">Bank Card</option>
+  </select>
+</div>
+
+      <div class="input-group">
         <label>Secure Payment via OneKhusa</label>
         <div class="payment-info">
           <p>You will be redirected to OneKhusa's secure payment page to complete your order in MWK.</p>
@@ -301,102 +311,110 @@ document.addEventListener('DOMContentLoaded', async () => {
   };
 
   // Checkout with OneKhusa redirect
-  document.getElementById("submit").addEventListener("click", async () => {
-    if (cart.length === 0) return alert("Your bag is empty!");
+document.getElementById("submit").addEventListener("click", async () => {
+  if (cart.length === 0) return alert("Your bag is empty!");
 
-    const button = document.getElementById("submit");
-    const spinner = document.getElementById("spinner");
-    const text = document.getElementById("button-text");
-    button.disabled = true;
-    text.style.display = "none";
-    spinner.style.display = "inline";
+  const button = document.getElementById("submit");
+  const spinner = document.getElementById("spinner");
+  const text = document.getElementById("button-text");
+  button.disabled = true;
+  text.style.display = "none";
+  spinner.style.display = "inline";
 
+  try {
+    // 1️⃣ Check sizes
     const missingSize = cart.find(item => item.has_sizes && !item.size);
-    if (missingSize) {
-      alert(`Please select a size for "${missingSize.name}"`);
-      button.disabled = false;
-      spinner.style.display = "none";
-      text.style.display = "inline";
-      return;
-    }
+    if (missingSize) throw new Error(`Please select a size for "${missingSize.name}"`);
 
-    try {
-      const email = document.getElementById("email").value;
-      const firstName = document.getElementById("first-name").value;
-      const lastName = document.getElementById("last-name").value;
-      if (!email || !firstName || !lastName) throw new Error("Please fill in all required fields.");
+    // 2️⃣ Required fields
+    const email = document.getElementById("email").value.trim();
+    const firstName = document.getElementById("first-name").value.trim();
+    const lastName = document.getElementById("last-name").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const address = document.getElementById("address").value.trim();
+    const city = document.getElementById("city").value.trim();
+    const postal = document.getElementById("postal").value.trim();
+    const country = document.getElementById("country").value;
+    const method = document.getElementById("payment-method").value;
 
-      const customerData = {
-        name: `${firstName} ${lastName}`,
+    if (!email || !firstName || !lastName || !phone || !address || !city || !postal)
+      throw new Error("Please fill in all required fields.");
+    if (!method) throw new Error("Please select a payment method.");
+
+    const customerData = {
+      name: `${firstName} ${lastName}`,
+      email,
+      phone,
+      address,
+      apt: document.getElementById("apt").value.trim(),
+      city,
+      postal,
+      country,
+    };
+
+    // 3️⃣ Calculate totals
+    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+    const tax = subtotal * 0.16; // VAT 16%
+    const totalPrice = subtotal - discount + tax;
+
+    // 4️⃣ Create order in Supabase
+    const { data: order, error: orderError } = await supabaseClient
+      .from('orders')
+      .insert([{
+        customer_id: window.customerId,
+        total: totalPrice,
+        status: 'pending',
+        payment_method: 'onekhusa',
+        shipping_address: JSON.stringify(customerData)
+      }])
+      .select('id')
+      .single();
+    if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
+
+    // 5️⃣ Insert order items
+    const orderItems = cart.map(item => ({
+      order_id: order.id,
+      product_id: item.id,
+      quantity: item.quantity,
+      price: item.price,
+      subtotal: item.price * item.quantity,
+      name: item.name,
+      image_url: item.image_url,
+      size: item.size || null
+    }));
+    const { error: itemsError } = await supabaseClient.from('order_items').insert(orderItems);
+    if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
+
+    // 6️⃣ Call Edge Function to create OneKhusa payment
+    const res = await fetch("https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        amount: Math.round(totalPrice * 100),  // tambala
+        currency: "MWK",
         email,
-        phone: document.getElementById("phone").value,
-        address: document.getElementById("address").value,
-        apt: document.getElementById("apt").value,
-        city: document.getElementById("city").value,
-        postal: document.getElementById("postal").value,
-        country: document.getElementById("country").value,
-      };
-
-      const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-      const tax = subtotal * 0.16;
-      const totalPrice = subtotal - discount + tax;
-
-      // Create order in Supabase
-      const { data: order, error: orderError } = await supabaseClient
-        .from('orders')
-        .insert([{
-          customer_id: window.customerId,
-          total: totalPrice,
-          status: 'pending',
-          payment_method: 'onekhusa',
-          shipping_address: JSON.stringify(customerData)
-        }])
-        .select('id')
-        .single();
-      if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
-
-      // Insert order items
-      const orderItems = cart.map(item => ({
+        phone,
         order_id: order.id,
-        product_id: item.id,
-        quantity: item.quantity,
-        price: item.price,
-        subtotal: item.price * item.quantity,
-        name: item.name,
-        image_url: item.image_url,
-        size: item.size || null
-      }));
-      const { error: itemsError } = await supabaseClient.from('order_items').insert(orderItems);
-      if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
+        method,              // crucial!
+        customer_name: customerData.name
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    if (!data.payment_url) throw new Error("No payment URL returned");
 
-      // Call Edge Function to create OneKhusa payment (amount in tambala = MWK * 100)
-      const res = await fetch("https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/create-payment-intent", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: Math.round(totalPrice * 100),  // tambala (smallest unit)
-          currency: "MWK",
-          email,
-          order_id: order.id,
-          customer_name: customerData.name
-        })
-      });
-      const data = await res.json();
-      if (data.error) throw new Error(data.error);
-      if (!data.payment_url) throw new Error("No payment URL returned");
+    // 7️⃣ Redirect to OneKhusa
+    window.location.href = data.payment_url;
 
-      // Redirect to OneKhusa
-      window.location.href = data.payment_url;
-
-    } catch (err) {
-      console.error('Checkout failed:', err);
-      alert(`Error: ${err.message}`);
-    } finally {
-      button.disabled = false;
-      text.style.display = "inline";
-      spinner.style.display = "none";
-    }
-  });
+  } catch (err) {
+    console.error('Checkout failed:', err);
+    alert(`Error: ${err.message}`);
+  } finally {
+    button.disabled = false;
+    text.style.display = "inline";
+    spinner.style.display = "none";
+  }
+});
 
   renderCart();
 });
