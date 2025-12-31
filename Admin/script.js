@@ -954,12 +954,12 @@ async function loadAnalytics() {
   }
 
   // 1️⃣ Revenue
-  const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-  document.getElementById("totalRevenue").textContent = `MK {revenue.toFixed(2)}`;
+const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
+document.getElementById("totalRevenue").textContent = formatMK(revenue);
 
-  // 2️⃣ AOV
-  const aov = revenue / orders.length;
-  document.getElementById("avgOrderValue").textContent = `MK {aov.toFixed(2)}`;
+// AOV
+const aov = orders.length ? revenue / orders.length : 0;
+document.getElementById("avgOrderValue").textContent = formatMK(aov);
 
   // 3️⃣ Conversion Rate
   const { data: visitors } = await supabase
