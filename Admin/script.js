@@ -65,31 +65,26 @@ async function loadDashboard() {
 }
 
 async function loadRecentOrders() {
-  const { data } = await supabase
+  const { data, error } = await supabase
     .from("orders")
     .select("*, customers(name)")
     .order("id", { ascending: false })
     .limit(5);
 
-  document.getElementById("ordersTableBody").innerHTML = data.map(o => {
-    // Format price in MK (Malawian Kwacha)
-    const formattedPrice = new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'MWK',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(o.total);
+  if (error) {
+    console.error("Orders load error:", error);
+    return;
+  }
 
-    return `
-      <tr>
-        <td>#${o.id}</td>
-        <td>${o.customers.name}</td>
-        <td>${fmtDate(o.created_at)}</td>
-        <td>${formatMK(o.total)}</td>
-        <td class="status ${o.status}">${o.status}</td>
-      </tr>
-    `;
-  }).join("");
+  document.getElementById("ordersTableBody").innerHTML = data.map(o => `
+    <tr>
+      <td>#${o.id}</td>
+      <td>${o.customers?.name || "Guest"}</td>
+      <td>${fmtDate(o.created_at)}</td>
+      <td>${formatMK(o.total)}</td>
+      <td class="status ${o.status}">${o.status}</td>
+    </tr>
+  `).join("");
 }
 
 
@@ -546,7 +541,7 @@ async function renderOrders() {
         <td>#${o.id}</td>
         <td>${o.customers?.full_name || '—'}</td>
         <td>${fmtDate(o.created_at)}</td>
-        <td>${formatMK(item.quantity * item.price)}</td>
+        <td>${formatMK(o.total)}</td>
         <td><span class="status ${o.status}">${o.status || 'unknown'}</span></td>
       </tr>
     `).join("");
@@ -574,7 +569,7 @@ async function renderOrders() {
           <small style="color:#64748b;">${o.customers?.email || ''}</small>
         </td>
         <td style="font-size:13.5px; line-height:1.6;">${items}</td>
-        <td style="color:#10b981; font-weight:600;">MK {Number(o.total || 0).toFixed(2)}</td>
+        <td>${formatMK(item.quantity * item.price)}</td>
         <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
         <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 <td>
@@ -741,7 +736,7 @@ const itemsHtml = (order.order_items || []).map(item => `
       ${item.size ? `<div style="font-size:12px;color:#6b7280;">Size: ${item.size}</div>` : ""}
     </td>
     <td>${item.quantity}</td>
-    <td>${formatMK(o.total)}</td>
+    <td>${formatMK(item.quantity * item.price)}</td>
     <td>$${(item.quantity * item.price).toFixed(2)}</td>
   </tr>
 `).join("");
