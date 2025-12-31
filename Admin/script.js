@@ -67,7 +67,7 @@ async function loadRecentOrders() {
       <td>#${o.id}</td>
       <td>${o.customers.name}</td>
       <td>${fmtDate(o.created_at)}</td>
-      <td>$${o.total}</td>
+      <td>MK {o.total}</td>
       <td class="status ${o.status}">${o.status}</td>
     </tr>
   `).join("");
@@ -216,7 +216,7 @@ async function openCustomer(id) {
   document.getElementById("customerModalSpent").textContent = "$" + spent;
 
   document.getElementById("customerOrdersList").innerHTML = orders
-    .map(o => `<div>#${o.id} — $${o.total} (${o.status}) – ${fmtDate(o.created_at)}</div>`)
+    .map(o => `<div>#${o.id} — $MWK{o.total} (${o.status}) – ${fmtDate(o.created_at)}</div>`)
     .join("") || "<div>No orders</div>";
 
   document.getElementById("customerModalBg").style.display = "flex";
@@ -264,7 +264,7 @@ async function loadProducts() {
         </td>
         <td>${p.categories?.name || "-"}</td>
         <td>${p.brands?.name || "-"}</td>
-        <td>$${Number(p.price).toFixed(2)}</td>
+        <td>MK {Number(p.price).toFixed(2)}</td>
         <td>${totalStock}</td>
         <td>${sizes.map(s => `${s.size}: ${s.stock}`).join(", ")}</td>
         <td>
@@ -526,7 +526,7 @@ async function renderOrders() {
         <td>#${o.id}</td>
         <td>${o.customers?.full_name || '—'}</td>
         <td>${fmtDate(o.created_at)}</td>
-        <td>$${Number(o.total || 0).toFixed(2)}</td>
+        <td>MK {Number(o.total || 0).toFixed(2)}</td>
         <td><span class="status ${o.status}">${o.status || 'unknown'}</span></td>
       </tr>
     `).join("");
@@ -554,7 +554,7 @@ async function renderOrders() {
           <small style="color:#64748b;">${o.customers?.email || ''}</small>
         </td>
         <td style="font-size:13.5px; line-height:1.6;">${items}</td>
-        <td style="color:#10b981; font-weight:600;">$${Number(o.total || 0).toFixed(2)}</td>
+        <td style="color:#10b981; font-weight:600;">MK {Number(o.total || 0).toFixed(2)}</td>
         <td style="text-transform:capitalize;">${o.payment_method || '—'}</td>
         <td><span class="status ${o.status}">${o.status || 'pending'}</span></td>
 <td>
@@ -639,7 +639,7 @@ function renderSingleOrderPage(order) {
         ${item.products?.name || 'Unknown Product'}
       </td>
       <td style="padding:10px;">${item.quantity}</td>
-      <td style="padding:10px;">$${Number(item.price).toFixed(2)}</td>
+      <td style="padding:10px;">MK {Number(item.price).toFixed(2)}</td>
       <td style="padding:10px;">$${(item.quantity * item.price).toFixed(2)}</td>
     </tr>
   `).join('');
@@ -721,7 +721,7 @@ const itemsHtml = (order.order_items || []).map(item => `
       ${item.size ? `<div style="font-size:12px;color:#6b7280;">Size: ${item.size}</div>` : ""}
     </td>
     <td>${item.quantity}</td>
-    <td>$${Number(item.price).toFixed(2)}</td>
+    <td>MK {Number(item.price).toFixed(2)}</td>
     <td>$${(item.quantity * item.price).toFixed(2)}</td>
   </tr>
 `).join("");
@@ -757,10 +757,10 @@ const itemsHtml = (order.order_items || []).map(item => `
       </table>
 
       <div style="text-align:right;font-size:15px;">
-        <div>Subtotal: $${subtotal.toFixed(2)}</div>
-        <div>Tax (8%): $${tax}</div>
+        <div>Subtotal: MK {subtotal.toFixed(2)}</div>
+        <div>Tax (8%): MK {tax}</div>
         <div style="font-weight:bold;margin-top:8px;font-size:18px;">
-          Total: $${total}
+          Total: MK {total}
         </div>
       </div>
     </div>
@@ -942,11 +942,11 @@ async function loadAnalytics() {
 
   // 1️⃣ Revenue
   const revenue = orders.reduce((sum, o) => sum + Number(o.total || 0), 0);
-  document.getElementById("totalRevenue").textContent = `$${revenue.toFixed(2)}`;
+  document.getElementById("totalRevenue").textContent = `MK {revenue.toFixed(2)}`;
 
   // 2️⃣ AOV
   const aov = revenue / orders.length;
-  document.getElementById("avgOrderValue").textContent = `$${aov.toFixed(2)}`;
+  document.getElementById("avgOrderValue").textContent = `MK {aov.toFixed(2)}`;
 
   // 3️⃣ Conversion Rate
   const { data: visitors } = await supabase
