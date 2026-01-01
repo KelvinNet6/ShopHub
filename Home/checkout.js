@@ -210,7 +210,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${supabaseKey}` // ✅ REQUIRED
     },
     body: JSON.stringify({
       amount: totalPrice,
