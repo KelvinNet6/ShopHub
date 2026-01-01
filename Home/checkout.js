@@ -236,4 +236,5 @@ document.getElementById("submit").addEventListener("click", async () => {
     spinner.style.display = "none";
   }
 });
-
+renderCart(); 
+});
