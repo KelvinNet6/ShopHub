@@ -193,24 +193,39 @@ document.getElementById("submit").addEventListener("click", async () => {
       size: item.size || null
     }));
 
-    const { error: itemsError } = await supabaseClient.from("order_items").insert(orderItems);
-    if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
+// Get current user session
+const { data: { session } } = await supabaseClient.auth.getSession();
+const token = session?.access_token;
 
-    // --- Call Edge Function ---
-    const res = await fetch(
-      "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/oneKhusa-payment-intent",
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          amount: totalPrice,
-          email,
-          phone,
-          order_id: order.id,
-          method: paymentMethod
-        })
-      }
-    );
+if (!token) throw new Error("User not authenticated");
+
+// Call Edge Function with Authorization header
+const res = await fetch(
+  "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/oneKhusa-payment-intent",
+  {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${token}`   // ⚠️ THIS IS REQUIRED
+    },
+    body: JSON.stringify({
+      amount: totalPrice,
+      email,
+      phone,
+      order_id: order.id,
+      method: paymentMethod
+    })
+  }
+);
+
+if (!res.ok) {
+  const errData = await res.json().catch(() => ({}));
+  throw new Error(errData.error || `Edge function failed with status ${res.status}`);
+}
+
+const data = await res.json();
+console.log("OneKhusa response:", data);
+
 
     const data = await res.json();
     if (data.error) throw new Error(data.error);
