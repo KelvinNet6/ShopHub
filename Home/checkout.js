@@ -204,11 +204,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
 
     // --- Call Edge Function for OneKhusa ---
-    const res = await fetch(
+  const res = await fetch(
   "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/oneKhusa-payment-intent",
   {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      "Authorization": `Bearer ${supabaseKey}` // ✅ REQUIRED
+    },
     body: JSON.stringify({
       amount: totalPrice,
       email,
