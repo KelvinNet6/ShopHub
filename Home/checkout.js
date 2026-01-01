@@ -126,12 +126,11 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCart();
   };
 
- document.getElementById("submit").addEventListener("click", async () => {
+document.getElementById("submit").addEventListener("click", async () => {
   const button = document.getElementById("submit");
   const spinner = document.getElementById("spinner");
   const text = document.getElementById("button-text");
 
-  // Disable button while processing
   button.disabled = true;
   text.style.display = "none";
   spinner.style.display = "inline";
@@ -144,19 +143,12 @@ document.addEventListener('DOMContentLoaded', async () => {
     const phone = document.getElementById("phone").value.trim();
     const paymentMethod = document.getElementById("payment-method").value;
 
-    if (!email || !firstName || !lastName || !phone) {
-      throw new Error("Please fill in all required contact fields.");
-    }
-
-    if (!paymentMethod) {
-      throw new Error("Please select a payment method.");
-    }
+    if (!email || !firstName || !lastName || !phone) throw new Error("Please fill in all required contact fields.");
+    if (!paymentMethod) throw new Error("Please select a payment method.");
 
     // --- Check product sizes ---
     const missingSize = cart.find(item => item.has_sizes && !item.size);
-    if (missingSize) {
-      throw new Error(`Please select a size for "${missingSize.name}".`);
-    }
+    if (missingSize) throw new Error(`Please select a size for "${missingSize.name}".`);
 
     // --- Customer & order data ---
     const customerData = {
@@ -176,15 +168,15 @@ document.addEventListener('DOMContentLoaded', async () => {
 
     // --- Create order in Supabase ---
     const { data: order, error: orderError } = await supabaseClient
-      .from('orders')
+      .from("orders")
       .insert([{
         customer_id: window.customerId,
         total: totalPrice,
-        status: 'pending',
-        payment_method: 'onekhusa',
+        status: "pending",
+        payment_method: "onekhusa",
         shipping_address: JSON.stringify(customerData)
       }])
-      .select('id')
+      .select("id")
       .single();
 
     if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
@@ -200,49 +192,48 @@ document.addEventListener('DOMContentLoaded', async () => {
       image_url: item.image_url,
       size: item.size || null
     }));
-    const { error: itemsError } = await supabaseClient.from('order_items').insert(orderItems);
+
+    const { error: itemsError } = await supabaseClient.from("order_items").insert(orderItems);
     if (itemsError) throw new Error(`Order items failed: ${itemsError.message}`);
 
-    // --- Call Edge Function for OneKhusa ---
-  const res = await fetch(
-  "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/oneKhusa-payment-intent",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      amount: totalPrice,
-      email,
-      phone,
-      order_id: order.id,
-      method: paymentMethod
-    })
-  }
-);
+    // --- Call Edge Function ---
+    const res = await fetch(
+      "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/oneKhusa-payment-intent",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          amount: totalPrice,
+          email,
+          phone,
+          order_id: order.id,
+          method: paymentMethod
+        })
+      }
+    );
 
-const data = await res.json();
-if (data.error) throw new Error(data.error);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
 
-// Bank card → redirect
-if (data.payment_url) {
-  window.location.href = data.payment_url;
-} else {
-  // Mobile money → prompt
-  alert(
-    "📱 A payment prompt has been sent to your phone.\n" +
-    "Please approve the payment to complete your order."
-  );
-}
+    console.log("OneKhusa response:", data);
 
+    // --- Bank card → redirect ---
+    if (data.payment_url) {
+      window.location.href = data.payment_url;
+    } else {
+      // --- Mobile money → prompt user ---
+      alert(
+        "📱 A payment prompt has been sent to your phone.\n" +
+        "Please approve the payment to complete your order."
+      );
+    }
 
   } catch (err) {
-    console.error('Checkout failed:', err);
+    console.error("Checkout failed:", err);
     alert(`Error: ${err.message}`);
     button.disabled = false;
     text.style.display = "inline";
     spinner.style.display = "none";
   }
 });
-  renderCart();
-});
+
