@@ -206,7 +206,7 @@ const res = await fetch(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`   // ⚠️ THIS IS REQUIRED
+      "Authorization": `Bearer ${token}`   
     },
     body: JSON.stringify({
       amount: totalPrice,
@@ -225,12 +225,6 @@ if (!res.ok) {
 
 const data = await res.json();
 console.log("OneKhusa response:", data);
-
-
-    const data = await res.json();
-    if (data.error) throw new Error(data.error);
-
-    console.log("OneKhusa response:", data);
 
     // --- Bank card → redirect ---
     if (data.payment_url) {
