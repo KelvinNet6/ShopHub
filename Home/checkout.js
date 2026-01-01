@@ -219,22 +219,20 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 );
 
-    const data = await res.json();
+const data = await res.json();
 if (data.error) throw new Error(data.error);
 
-// Sandbox: Bank card gets redirect, Mobile Money does not
+// Bank card → redirect
 if (data.payment_url) {
-  // Bank card: redirect to checkout page
   window.location.href = data.payment_url;
 } else {
-  // Mobile money: alert user to approve payment on phone
+  // Mobile money → prompt
   alert(
     "📱 A payment prompt has been sent to your phone.\n" +
     "Please approve the payment to complete your order."
   );
 }
-    // --- Redirect to OneKhusa payment ---
-    window.location.href = data.payment_url;
+
 
   } catch (err) {
     console.error('Checkout failed:', err);
