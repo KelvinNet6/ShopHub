@@ -94,12 +94,13 @@ async function loadWishlist() {
       return;
     }
 
-    wishlist = (data || []).map(item => item.product_id);
+    wishlist = (data || []).map(item => String(item.product_id));
   } catch (err) {
     console.error("Wishlist crashed:", err);
     wishlist = [];
   }
 }
+
 
 async function toggleWishlist(product) {
   const { data: { user } } = await supabase.auth.getUser();
@@ -110,7 +111,7 @@ async function toggleWishlist(product) {
     return;
   }
 
-  const isLiked = wishlist.includes(product.id);
+  const isLiked = wishlist.includes(String(p.id));
 
   if (isLiked) {
     const { error } = await supabase
