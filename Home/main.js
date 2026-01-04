@@ -111,7 +111,7 @@ async function toggleWishlist(product) {
     return;
   }
 
-  const isLiked = wishlist.includes(String(p.id));
+  const isLiked = wishlist.includes(String(product.id));
 
   if (isLiked) {
     const { error } = await supabase
@@ -121,7 +121,7 @@ async function toggleWishlist(product) {
       .eq("product_id", product.id);
 
     if (!error) {
-      wishlist = wishlist.filter(id => id !== product.id);
+      wishlist = wishlist.filter(id => id !== String(product.id));
     }
   } else {
     const { error } = await supabase
@@ -129,13 +129,13 @@ async function toggleWishlist(product) {
       .insert({ user_id: user.id, product_id: product.id });
 
     if (!error) {
-      wishlist.push(product.id);
+      wishlist.push(String(product.id));
     }
   }
 
-  // Re-render current view to update all hearts
   filterAndSort();
 }
+
 
 // === PRODUCT LOADING & RENDERING ===
 async function loadProducts() {
