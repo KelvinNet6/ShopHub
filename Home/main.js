@@ -75,21 +75,28 @@ window.addEventListener('pageshow', (e) => {
 
 // === WISHLIST FUNCTIONS ===
 async function loadWishlist() {
-  const { data: { user } } = await supabase.auth.getUser();
+  try {
+    const { data: { user }, error: userError } = await supabase.auth.getUser();
 
-  if (!user) {
-    wishlist = [];
-    return;
-  }
+    if (userError || !user) {
+      wishlist = [];
+      return;
+    }
 
-  const { data, error } = await supabase
-    .from("wishlist")
-    .select("product_id")
-    .eq("user_id", user.id);
+    const { data, error } = await supabase
+      .from("wishlist")
+      .select("product_id")
+      .eq("user_id", user.id);
 
-  if (!error && data) {
-    wishlist = data.map(item => item.product_id);
-  } else {
+    if (error) {
+      console.warn("Wishlist select error:", error.message);
+      wishlist = [];
+      return;
+    }
+
+    wishlist = (data || []).map(item => item.product_id);
+  } catch (err) {
+    console.error("Wishlist crashed:", err);
     wishlist = [];
   }
 }
