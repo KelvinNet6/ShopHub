@@ -111,7 +111,7 @@ async function toggleWishlist(product) {
     return;
   }
 
-  const isLiked = wishlist.includes(String(product.id));
+  const isLiked = wishlist.includes(String(p.id));
 
   if (isLiked) {
     const { error } = await supabase
