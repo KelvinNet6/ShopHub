@@ -18,19 +18,23 @@ let grid;
 let isInitialized = false;
 
 async function initializeApp(force = false) {
-  if (isInitialized && !force) {
-    console.log("App already initialized – skipping");
-    return;
-  }
+  if (isInitialized && !force) return;
   isInitialized = true;
 
-  console.log("Initializing app: loading wishlist + products");
+  console.log("Initializing app");
 
-  await loadWishlist();   // This will correctly detect user if session restored
+  // 🔥 DO NOT await wishlist
+  loadWishlist().catch(err => {
+    console.warn("Wishlist failed, continuing:", err);
+    wishlist = [];
+  });
+
+  // ✅ Products must always load
   await loadProducts();
 
   updateCartCount();
 }
+
 
 // Main auth listener
 supabase.auth.onAuthStateChange(async (event, session) => {
