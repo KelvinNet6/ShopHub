@@ -54,16 +54,33 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-document.addEventListener("DOMContentLoaded", () => {
-  grid = document.getElementById("productsGrid");
+grid.addEventListener("click", (e) => {
+  const likeBtn = e.target.closest(".like-btn");
+  if (likeBtn) {
+    e.preventDefault();
+    e.stopPropagation();
 
-  if (!grid) {
-    console.warn("productsGrid element not found!");
+    const productId = likeBtn.dataset.productId;
+    const product = allProducts.find(p => String(p.id) === productId);
+
+    if (product) {
+      toggleWishlist(product);
+    } else {
+      console.warn("Product not found for wishlist:", productId);
+    }
     return;
   }
-});;
 
+  const cartBtn = e.target.closest(".cart-btn");
+  if (cartBtn) {
+    e.preventDefault();
+    e.stopPropagation();
 
+    const productId = cartBtn.dataset.productId;
+    handleAddToCartClick(productId);
+  }
+});
+;;
 
 // Extra safety for back/forward cache
 window.addEventListener('pageshow', (e) => {
@@ -111,7 +128,7 @@ async function toggleWishlist(product) {
     return;
   }
 
-  const isLiked = wishlist.includes(String(p.id));
+  const isLiked = wishlist.includes(String(product.id));
 
   if (isLiked) {
     const { error } = await supabase
@@ -135,6 +152,7 @@ async function toggleWishlist(product) {
 
   filterAndSort();
 }
+
 
 
 // === PRODUCT LOADING & RENDERING ===
@@ -193,7 +211,7 @@ function renderProducts(products) {
 
   grid.innerHTML = products.map(p => {
     const imgUrl = getPublicImageUrl(p.image_url);
-    const isLiked = wishlist.includes(p.id);
+    const isLiked = wishlist.includes(String(p.id));
     const heartClass = isLiked ? 'fas' : 'far';
     const likedClass = isLiked ? 'liked' : '';
 
@@ -239,8 +257,10 @@ document.addEventListener("DOMContentLoaded", () => {
     if (likeBtn) {
       e.preventDefault();
       e.stopPropagation();
-      const productId = Number(likeBtn.dataset.productId);
-      const product = allProducts.find(p => p.id === productId);
+
+      const productId = likeBtn.dataset.productId;
+      const product = allProducts.find(p => String(p.id) === productId);
+
       if (product) toggleWishlist(product);
       return;
     }
@@ -249,7 +269,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (cartBtn) {
       e.preventDefault();
       e.stopPropagation();
-      handleAddToCartClick(Number(cartBtn.dataset.productId));
+      handleAddToCartClick(cartBtn.dataset.productId);
     }
   });
 });
