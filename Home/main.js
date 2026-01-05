@@ -14,7 +14,7 @@ let pendingProduct = null;
 let selectedSize = null;
 let grid;
 
-// === IMPROVED INITIALIZATION ===
+// === INITIALIZATION ===
 let isInitialized = false;
 
 async function initializeApp(force = false) {
@@ -23,19 +23,19 @@ async function initializeApp(force = false) {
 
   console.log("Initializing app");
 
-  // Load wishlist in background (don't block)
+  // Load wishlist in background
   loadWishlist().catch(err => {
     console.warn("Wishlist failed, continuing:", err);
     wishlist = [];
   });
 
-  // Products are critical — always await
+  // Always load products
   await loadProducts();
 
   updateCartCount();
 }
 
-// Main auth listener
+// Auth state listener
 supabase.auth.onAuthStateChange(async (event, session) => {
   console.log("Auth event:", event, "User:", session?.user?.id || "none");
 
@@ -50,7 +50,7 @@ supabase.auth.onAuthStateChange(async (event, session) => {
   }
 });
 
-// Handle back/forward cache
+// Handle page cache restoration
 window.addEventListener('pageshow', (e) => {
   if (e.persisted) {
     isInitialized = false;
@@ -58,7 +58,7 @@ window.addEventListener('pageshow', (e) => {
   }
 });
 
-// === WISHLIST FUNCTIONS ===
+// === WISHLIST ===
 async function loadWishlist() {
   try {
     const { data: { user }, error: userError } = await supabase.auth.getUser();
@@ -73,7 +73,7 @@ async function loadWishlist() {
       .eq("user_id", user.id);
 
     if (error) {
-      console.warn("Wishlist select error:", error.message);
+      console.warn("Wishlist error:", error.message);
       wishlist = [];
       return;
     }
@@ -94,7 +94,8 @@ async function toggleWishlist(product) {
     return;
   }
 
-  const isLiked = wishlist.includes(String(product.id));
+  const idStr = String(product.id);
+  const isLiked = wishlist.includes(idStr);
 
   if (isLiked) {
     const { error } = await supabase
@@ -104,7 +105,7 @@ async function toggleWishlist(product) {
       .eq("product_id", product.id);
 
     if (!error) {
-      wishlist = wishlist.filter(id => id !== String(product.id));
+      wishlist = wishlist.filter(id => id !== idStr);
     }
   } else {
     const { error } = await supabase
@@ -112,23 +113,25 @@ async function toggleWishlist(product) {
       .insert({ user_id: user.id, product_id: product.id });
 
     if (!error) {
-      wishlist.push(String(product.id));
+      wishlist.push(idStr);
     }
   }
 
-  // Re-render with current filters
+  // Always update UI — safe fallback
   if (typeof window.filterAndSort === "function") {
     window.filterAndSort();
+  } else if (allProducts.length > 0) {
+    renderProducts(allProducts);
   }
 }
 
-// === PRODUCT LOADING & RENDERING ===
+// === PRODUCT LOADING ===
 async function loadProducts() {
   console.log("loadProducts() called");
 
-  const grid = getGrid();
-  if (!grid) {
-    console.warn("productsGrid not found during loadProducts");
+  const gridEl = getGrid();
+  if (!gridEl) {
+    console.warn("productsGrid not found");
     return;
   }
 
@@ -139,20 +142,20 @@ async function loadProducts() {
 
   if (error) {
     console.error("Product load error:", error);
-    grid.innerHTML = `<p style="text-align:center;color:#ff4444;padding:2rem;">Failed to load products. Please refresh.</p>`;
+    gridEl.innerHTML = `<p style="text-align:center;color:#ff4444;padding:2rem;">Failed to load products. Please refresh.</p>`;
     allProducts = [];
     return;
   }
 
   if (!products || products.length === 0) {
-    grid.innerHTML = `<p style="text-align:center;padding:2rem;">No products available at the moment.</p>`;
+    gridEl.innerHTML = `<p style="text-align:center;padding:2rem;">No products available at the moment.</p>`;
     allProducts = [];
     return;
   }
 
   allProducts = products;
 
-  // Build category filters
+  // Update category filters
   const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
   const options = `<option value="all">All Items</option>` +
     categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
@@ -162,29 +165,29 @@ async function loadProducts() {
   if (filterSelectEl) filterSelectEl.innerHTML = options;
   if (mobileFilterEl) mobileFilterEl.innerHTML = options;
 
-  // Initial render — safe call after DOM is ready
+  // ROBUST RENDERING: Always show products, even if filters not ready
   if (typeof window.filterAndSort === "function") {
     window.filterAndSort();
   } else {
-    // Fallback if DOM not ready yet
     renderProducts(allProducts);
+    console.log("Products rendered via fallback (early load)");
   }
 }
 
 function renderProducts(products) {
-  const grid = document.getElementById("productsGrid");
+  const gridEl = document.getElementById("productsGrid");
 
-  if (!grid) {
-    console.warn("renderProducts: productsGrid not found yet");
+  if (!gridEl) {
+    console.warn("renderProducts: grid not found");
     return;
   }
 
   if (!products || products.length === 0) {
-    grid.innerHTML = `<p style="text-align:center;padding:2rem;">No products found.</p>`;
+    gridEl.innerHTML = `<p style="text-align:center;padding:2rem;">No products found.</p>`;
     return;
   }
 
-  grid.innerHTML = products.map(p => {
+  gridEl.innerHTML = products.map(p => {
     const imgUrl = getPublicImageUrl(p.image_url);
     const isLiked = wishlist.includes(String(p.id));
     const heartClass = isLiked ? 'fas' : 'far';
@@ -223,7 +226,7 @@ function renderProducts(products) {
   }).join("");
 }
 
-// === ALL DOM-RELATED CODE INSIDE DOMContentLoaded ===
+// === DOM READY: ALL INTERACTIVE FEATURES ===
 document.addEventListener("DOMContentLoaded", () => {
   grid = getGrid();
   if (!grid) {
@@ -231,7 +234,17 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // Grid click delegation (like & add to cart)
+  // SAFETY RE-RENDER: If products loaded before DOM was ready (e.g. logged in)
+  if (allProducts.length > 0) {
+    if (typeof window.filterAndSort === "function") {
+      window.filterAndSort();
+    } else {
+      renderProducts(allProducts);
+    }
+    console.log("Safety re-render applied for early-loaded products");
+  }
+
+  // Grid click handling
   grid.addEventListener("click", (e) => {
     const likeBtn = e.target.closest(".like-btn");
     if (likeBtn) {
@@ -251,7 +264,7 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // DOM elements for filters
+  // Filter elements
   const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filterSelect");
   const sortSelect = document.getElementById("sortSelect");
@@ -259,23 +272,20 @@ document.addEventListener("DOMContentLoaded", () => {
   const mobileFilter = document.getElementById("mobileFilter");
   const mobileSort = document.getElementById("mobileSort");
 
-  // Filter & Sort function
+  // Core filter & sort function
   function filterAndSort() {
     let filtered = [...allProducts];
 
-    // Search
     const query = searchInput?.value.toLowerCase().trim() || "";
     if (query) {
       filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
     }
 
-    // Category
     const cat = filterSelect?.value || "all";
     if (cat !== "all") {
       filtered = filtered.filter(p => (p.categories?.name || '').toLowerCase() === cat);
     }
 
-    // Sorting
     const sort = sortSelect?.value || "";
     if (sort === "price-low") filtered.sort((a, b) => a.price - b.price);
     else if (sort === "price-high") filtered.sort((a, b) => b.price - a.price);
@@ -284,38 +294,38 @@ document.addEventListener("DOMContentLoaded", () => {
     renderProducts(filtered);
   }
 
-  // Expose globally so loadProducts and toggleWishlist can use it
+  // Expose globally
   window.filterAndSort = filterAndSort;
 
-  // Attach listeners
+  // Listeners
   searchInput?.addEventListener("input", filterAndSort);
   filterSelect?.addEventListener("change", filterAndSort);
   sortSelect?.addEventListener("change", filterAndSort);
 
-  // Sync mobile ↔ desktop controls
+  // Mobile sync
   [mobileSearch, searchInput].forEach(el => {
     el?.addEventListener("input", () => {
-      const value = el.value;
-      if (searchInput) searchInput.value = value;
-      if (mobileSearch) mobileSearch.value = value;
+      const val = el.value;
+      if (searchInput) searchInput.value = val;
+      if (mobileSearch) mobileSearch.value = val;
       filterAndSort();
     });
   });
 
   [mobileFilter, filterSelect].forEach(el => {
     el?.addEventListener("change", () => {
-      const value = el.value;
-      if (filterSelect) filterSelect.value = value;
-      if (mobileFilter) mobileFilter.value = value;
+      const val = el.value;
+      if (filterSelect) filterSelect.value = val;
+      if (mobileFilter) mobileFilter.value = val;
       filterAndSort();
     });
   });
 
   [mobileSort, sortSelect].forEach(el => {
     el?.addEventListener("change", () => {
-      const value = el.value;
-      if (sortSelect) sortSelect.value = value;
-      if (mobileSort) mobileSort.value = value;
+      const val = el.value;
+      if (sortSelect) sortSelect.value = val;
+      if (mobileSort) mobileSort.value = val;
       filterAndSort();
     });
   });
@@ -355,7 +365,7 @@ document.addEventListener("DOMContentLoaded", () => {
     cartOverlay?.classList.remove("active");
   });
 
-  // Size Selector Confirm Button
+  // Size Selector Confirm
   document.getElementById("confirmSizeBtn")?.addEventListener("click", () => {
     if (!selectedSize) {
       alert("Please select a size");
@@ -392,11 +402,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// === CART FUNCTIONS ===
+// === CART ===
 function addToCart(product) {
-  const existing = cart.find(item =>
-    item.id === product.id && item.size === product.size
-  );
+  const existing = cart.find(item => item.id === product.id && item.size === product.size);
 
   if (existing) {
     existing.quantity += 1;
@@ -423,23 +431,22 @@ function handleAddToCartClick(productId) {
 
 function updateCartCount() {
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-  document.getElementById("cartCount")?.replaceChildren(count);
-  document.getElementById("mobileCartCount")?.replaceChildren(count);
+  document.getElementById("cartCount")?.textContent = count;
+  document.getElementById("mobileCartCount")?.textContent = count;
 }
 
 function renderCart() {
-  const cartItemsEl = document.getElementById("cartItems");
-  const cartTotalEl = document.getElementById("cartTotal");
-
-  if (!cartItemsEl || !cartTotalEl) return;
+  const itemsEl = document.getElementById("cartItems");
+  const totalEl = document.getElementById("cartTotal");
+  if (!itemsEl || !totalEl) return;
 
   if (cart.length === 0) {
-    cartItemsEl.innerHTML = `<p class="empty-cart">Your bag is empty</p>`;
-    cartTotalEl.textContent = "0.00";
+    itemsEl.innerHTML = `<p class="empty-cart">Your bag is empty</p>`;
+    totalEl.textContent = "0.00";
     return;
   }
 
-  cartItemsEl.innerHTML = cart.map(item => `
+  itemsEl.innerHTML = cart.map(item => `
     <div style="display:flex; gap:1rem; padding:1rem 0; border-bottom:1px solid #222;">
       <img src="${getPublicImageUrl(item.image_url)}" style="width:80px;height:120px;object-fit:cover;border-radius:12px;">
       <div style="flex:1;">
@@ -457,7 +464,7 @@ function renderCart() {
   `).join("");
 
   const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
-  cartTotalEl.textContent = formatMK(total);
+  totalEl.textContent = formatMK(total);
 }
 
 window.removeFromCart = (id, size) => {
@@ -490,12 +497,14 @@ async function openSizeSelector(product) {
     .neq("size", "DEFAULT");
 
   const sizeOptions = document.getElementById("sizeOptions");
-  if (sizeOptions && sizes && sizes.length > 0) {
-    sizeOptions.innerHTML = sizes.map(s => `
-      <div class="size-btn" onclick="selectSize('${s.size}', this)">${s.size}</div>
-    `).join("");
-  } else {
-    sizeOptions.innerHTML = "<p>No sizes available</p>";
+  if (sizeOptions) {
+    if (sizes && sizes.length > 0) {
+      sizeOptions.innerHTML = sizes.map(s => `
+        <div class="size-btn" onclick="selectSize('${s.size}', this)">${s.size}</div>
+      `).join("");
+    } else {
+      sizeOptions.innerHTML = "<p>No sizes available</p>";
+    }
   }
 
   document.getElementById("sizeSheet")?.classList.add("open");
@@ -518,14 +527,11 @@ function closeSizeSelector() {
 // === VISITOR TRACKING ===
 async function trackVisitor() {
   try {
-    const ipRes = await fetch("https://api.ipify.org?format=json");
-    const ipData = await ipRes.json();
-    await supabase.from("visitors").insert({
-      ip: ipData.ip,
-      user_agent: navigator.userAgent
-    });
+    const res = await fetch("https://api.ipify.org?format=json");
+    const { ip } = await res.json();
+    await supabase.from("visitors").insert({ ip, user_agent: navigator.userAgent });
   } catch (err) {
-    console.error("Visitor log failed:", err);
+    console.error("Visitor tracking failed:", err);
   }
 }
 
