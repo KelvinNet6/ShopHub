@@ -128,7 +128,6 @@ async function toggleWishlist(product) {
 // === PRODUCT LOADING ===
 async function loadProducts() {
   console.log("loadProducts() called");
-
   const gridEl = getGrid();
   if (!gridEl) {
     console.warn("productsGrid not found");
@@ -154,23 +153,48 @@ async function loadProducts() {
   }
 
   allProducts = products;
+  console.log(`[PRODUCTS] Loaded ${products.length} products`);
 
   // Update category filters
   const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
   const options = `<option value="all">All Items</option>` +
     categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
-
   const filterSelectEl = document.getElementById("filterSelect");
   const mobileFilterEl = document.getElementById("mobileFilter");
   if (filterSelectEl) filterSelectEl.innerHTML = options;
   if (mobileFilterEl) mobileFilterEl.innerHTML = options;
+  console.log("[CATEGORIES] Updated filters");
 
-  // ROBUST RENDERING: Always show products, even if filters not ready
-  if (typeof window.filterAndSort === "function") {
-    window.filterAndSort();
-  } else {
-    renderProducts(allProducts);
-    console.log("Products rendered via fallback (early load)");
+  // ── ROBUST RENDERING ───────────────────────────────────────────────
+  const renderSafely = () => {
+    if (typeof window.filterAndSort === "function") {
+      console.log("[RENDER] Using filterAndSort");
+      window.filterAndSort();
+    } else {
+      console.log("[RENDER] Fallback: direct renderProducts");
+      renderProducts(allProducts);
+    }
+  };
+
+  // Try immediately
+  renderSafely();
+
+  // If filterAndSort or grid isn't ready yet (common on login redirect), retry
+  if (typeof window.filterAndSort !== "function" || !document.getElementById("productsGrid")) {
+    console.log("[RENDER] filterAndSort or grid not ready → starting retry");
+    let attempts = 0;
+    const maxAttempts = 60; // ~6 seconds
+    const retryInterval = setInterval(() => {
+      attempts++;
+      if (typeof window.filterAndSort === "function" && document.getElementById("productsGrid")) {
+        clearInterval(retryInterval);
+        console.log(`[RENDER] Success after ${attempts} attempts`);
+        renderSafely();
+      } else if (attempts >= maxAttempts) {
+        clearInterval(retryInterval);
+        console.warn("[RENDER] Retry timeout after 6s – DOM still not ready");
+      }
+    }, 100);
   }
 }
 
@@ -264,6 +288,15 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
+  // Safety re-render if products were loaded before DOM was ready
+if (allProducts.length > 0) {
+  console.log("[DOMContentLoaded] Safety render for pre-loaded products");
+  if (typeof window.filterAndSort === "function") {
+    window.filterAndSort();
+  } else {
+    renderProducts(allProducts);
+  }
+}
   // Filter elements
   const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filterSelect");
@@ -296,6 +329,16 @@ document.addEventListener("DOMContentLoaded", () => {
 
   // Expose globally
   window.filterAndSort = filterAndSort;
+
+// Safety: If products were loaded early (e.g. during login redirect), render them now
+if (allProducts.length > 0) {
+  console.log("[DOMContentLoaded] Safety render for pre-loaded products");
+  if (typeof window.filterAndSort === "function") {
+    window.filterAndSort();
+  } else {
+    renderProducts(allProducts);
+  }
+}
 
   // Listeners
   searchInput?.addEventListener("input", filterAndSort);
