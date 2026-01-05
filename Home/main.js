@@ -211,16 +211,16 @@ function renderProducts(products) {
             </div>
           </div>
         </div>
-        <div class="product-info">
-          <div class="product-title">${p.name.toUpperCase()}</div>
-          <div class="product-price">$${Number(p.price).toFixed(2)}</div>
-          <div class="product-actions">
-            <div class="action-btn view-btn">QUICK VIEW</div>
-            <div class="action-btn cart-btn" data-product-id="${p.id}">
-              <i class="fas fa-shopping-bag"></i> ADD TO CART
-            </div>
-          </div>
-        </div>
+       <div class="product-info">
+  <div class="product-title">${p.name.toUpperCase()}</div>
+  <div class="product-price">${formatMK(p.price)}</div>
+  <div class="product-actions">
+    <div class="action-btn view-btn">QUICK VIEW</div>
+    <div class="action-btn cart-btn" data-product-id="${p.id}">
+      <i class="fas fa-shopping-bag"></i> ADD TO CART
+    </div>
+  </div>
+</div>
       </a>
     `;
   }).join("");
