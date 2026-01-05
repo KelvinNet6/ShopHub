@@ -431,8 +431,11 @@ function handleAddToCartClick(productId) {
 
 function updateCartCount() {
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-  document.getElementById("cartCount")?.textContent = count;
-  document.getElementById("mobileCartCount")?.textContent = count;
+  const cartCountEl = document.getElementById("cartCount");
+  const mobileCountEl = document.getElementById("mobileCartCount");
+
+  if (cartCountEl) cartCountEl.textContent = count;
+  if (mobileCountEl) mobileCountEl.textContent = count;
 }
 
 function renderCart() {
