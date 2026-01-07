@@ -1,27 +1,28 @@
 document.addEventListener('DOMContentLoaded', async () => {
   console.log('🚀 ShopHub Checkout - MWK Prices + OneKhusa Integration');
 
+  const supabaseUrl = 'https://nhyucbgjocmwrkqbjjme.supabase.co';
   const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5oeXVjYmdqb2Ntd3JrcWJqam1lIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjM0OTQzNjAsImV4cCI6MjA3OTA3MDM2MH0.uu5ZzSf1CHnt_l4TKNIxWoVN_2YCCoxEZiilB1Xz0eE';
-  const supabaseClient = supabase.createClient(
-    'https://nhyucbgjocmwrkqbjjme.supabase.co',
-    supabaseKey
-  );
 
-  // Login check
-  const { data: { session } } = await supabaseClient.auth.getSession();
+  const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+  // 1. Check authentication
+  const { data: { session } } = await supabase.auth.getSession();
   if (!session || !session.user) {
     localStorage.setItem("redirect_after_login", "checkout.html");
     window.location.href = "../Admin/adLogin.html";
     return;
   }
 
-  // Load profile
-  const { data: profile } = await supabaseClient
+  // 2. Load user profile & pre-fill form
+  const { data: profile } = await supabase
     .from("profiles")
     .select("*")
     .eq("id", session.user.id)
     .single();
+
   window.customerId = profile?.id || 1;
+
   if (profile) {
     document.getElementById("email").value = profile.email || "";
     document.getElementById("first-name").value = profile.first_name || "";
@@ -29,18 +30,18 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById("phone").value = profile.phone || "";
   }
 
-  // Cart from localStorage
-  const cart = JSON.parse(localStorage.getItem("shophub_cart") || '[]');
+  // 3. Cart from localStorage
+  let cart = JSON.parse(localStorage.getItem("shophub_cart") || '[]');
   let discount = 0;
 
   function getPublicImageUrl(path) {
     if (!path) return 'https://i.pinimg.com/736x/4a/d8/f3/4ad8f37a3820e656419f4dd0b417e3c4.jpg';
     if (path.startsWith("http")) return path;
-    return `https://nhyucbgjocmwrkqbjjme.supabase.co/storage/v1/object/public/products/${path}`;
+    return `${supabaseUrl}/storage/v1/object/public/products/${path}`;
   }
 
   async function getSizesForProduct(productId) {
-    const { data } = await supabaseClient
+    const { data } = await supabase
       .from("product_sizes")
       .select("size, stock")
       .eq("product_id", productId)
@@ -66,6 +67,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     for (let index = 0; index < cart.length; index++) {
       const item = cart[index];
       let sizeHtml = "";
+
       if (item.has_sizes) {
         const sizes = await getSizesForProduct(item.id);
         sizeHtml = `
@@ -78,6 +80,7 @@ document.addEventListener('DOMContentLoaded', async () => {
           </div>
         `;
       }
+
       html += `
         <div class="cart-item">
           <img src="${getPublicImageUrl(item.image_url)}">
@@ -90,13 +93,14 @@ document.addEventListener('DOMContentLoaded', async () => {
         </div>
       `;
     }
+
     container.innerHTML = html;
 
     const totalItems = cart.reduce((sum, i) => sum + i.quantity, 0);
     document.getElementById("itemCount").textContent = `${totalItems} item${totalItems !== 1 ? "s" : ""}`;
 
     const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const tax = subtotal * 0.16; // VAT in Malawi is 16%
+    const tax = subtotal * 0.16; // VAT 16%
     const total = subtotal - discount + tax;
 
     document.getElementById("subtotal").textContent = formatMWK(subtotal);
@@ -113,6 +117,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.applyDiscount = function () {
     const code = document.getElementById("discountCode").value.trim().toUpperCase();
     const msg = document.getElementById("discountMessage");
+
     if (code === "VAULT20") {
       discount = cart.reduce((s, i) => s + i.price * i.quantity, 0) * 0.20;
       msg.innerHTML = `<div style="color:#4ade80;">20% OFF Applied</div>`;
@@ -126,124 +131,143 @@ document.addEventListener('DOMContentLoaded', async () => {
     renderCart();
   };
 
-document.getElementById("submit").addEventListener("click", async () => {
-  const button = document.getElementById("submit");
-  const spinner = document.getElementById("spinner");
-  const text = document.getElementById("button-text");
+  // Submit handler
+  document.getElementById("submit").addEventListener("click", async () => {
+    const button = document.getElementById("submit");
+    const spinner = document.getElementById("spinner");
+    const text = document.getElementById("button-text");
 
-  button.disabled = true;
-  text.style.display = "none";
-  spinner.style.display = "inline";
+    button.disabled = true;
+    text.style.display = "none";
+    spinner.style.display = "inline";
 
-  try {
-    // --- Required fields ---
-    const email = document.getElementById("email").value.trim();
-    const firstName = document.getElementById("first-name").value.trim();
-    const lastName = document.getElementById("last-name").value.trim();
-    const phone = document.getElementById("phone").value.trim();
-    const paymentMethod = document.getElementById("payment-method").value;
+    try {
+      // Validate required fields
+      const email = document.getElementById("email").value.trim();
+      const firstName = document.getElementById("first-name").value.trim();
+      const lastName = document.getElementById("last-name").value.trim();
+      const phone = document.getElementById("phone").value.trim();
+      const paymentMethod = document.getElementById("payment-method").value;
 
-    if (!email || !firstName || !lastName || !phone) throw new Error("Please fill in all required contact fields.");
-    if (!paymentMethod) throw new Error("Please select a payment method.");
+      if (!email || !firstName || !lastName || !phone) {
+        throw new Error("Please fill in all required contact fields.");
+      }
+      if (!paymentMethod) {
+        throw new Error("Please select a payment method.");
+      }
 
-    // --- Check product sizes ---
-    const missingSize = cart.find(item => item.has_sizes && !item.size);
-    if (missingSize) throw new Error(`Please select a size for "${missingSize.name}".`);
+      // Check sizes
+      const missingSize = cart.find(item => item.has_sizes && !item.size);
+      if (missingSize) {
+        throw new Error(`Please select a size for "${missingSize.name}".`);
+      }
 
-    // --- Customer & order data ---
-    const customerData = {
-      name: `${firstName} ${lastName}`,
-      email,
-      phone,
-      address: document.getElementById("address").value,
-      apt: document.getElementById("apt").value,
-      city: document.getElementById("city").value,
-      postal: document.getElementById("postal").value,
-      country: document.getElementById("country").value,
-    };
+      // Prepare customer data
+      const customerData = {
+        name: `${firstName} ${lastName}`,
+        email,
+        phone,
+        address: document.getElementById("address").value.trim(),
+        apt: document.getElementById("apt").value.trim(),
+        city: document.getElementById("city").value.trim(),
+        postal: document.getElementById("postal").value.trim(),
+        country: document.getElementById("country").value,
+      };
 
-    const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
-    const tax = subtotal * 0.16;
-    const totalPrice = subtotal - discount + tax;
+      const subtotal = cart.reduce((s, i) => s + i.price * i.quantity, 0);
+      const tax = subtotal * 0.16;
+      const totalPrice = subtotal - discount + tax;
 
-    // --- Create order in Supabase ---
-    const { data: order, error: orderError } = await supabaseClient
-      .from("orders")
-      .insert([{
-        customer_id: window.customerId,
-        total: totalPrice,
-        status: "pending",
-        payment_method: "onekhusa",
-        shipping_address: JSON.stringify(customerData)
-      }])
-      .select("id")
-      .single();
+      // Step 1: Create the order
+      const { data: order, error: orderError } = await supabase
+        .from("orders")
+        .insert([{
+          customer_id: window.customerId,
+          total: totalPrice,
+          status: "pending",
+          payment_method: "onekhusa",
+          shipping_address: JSON.stringify(customerData)
+        }])
+        .select("id")
+        .single();
 
-    if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
+      if (orderError) throw new Error(`Order creation failed: ${orderError.message}`);
+      if (!order?.id) throw new Error("No order ID returned");
 
-    // --- Insert order items ---
-    const orderItems = cart.map(item => ({
-      order_id: order.id,
-      product_id: item.id,
-      quantity: item.quantity,
-      price: item.price,
-      subtotal: item.price * item.quantity,
-      name: item.name,
-      image_url: item.image_url,
-      size: item.size || null
-    }));
+      // Step 2: Save order items (THIS WAS MISSING / UNREACHABLE BEFORE)
+      const orderItems = cart.map(item => ({
+        order_id: order.id,
+        product_id: item.id,
+        quantity: item.quantity,
+        price: item.price,
+        subtotal: item.price * item.quantity,
+        name: item.name,
+        image_url: item.image_url,
+        size: item.size || null
+      }));
 
-// Get current user session
-const { data: { session } } = await supabaseClient.auth.getSession();
-const token = session?.access_token;
+      const { error: itemsError } = await supabase
+        .from("order_items")
+        .insert(orderItems);
 
-if (!token) throw new Error("User not authenticated");
+      if (itemsError) {
+        console.error("Order items insert failed:", itemsError);
+        throw new Error(`Failed to save order items: ${itemsError.message}`);
+      }
 
-// Call Edge Function with Authorization header
-const res = await fetch(
-  "https://nhyucbgjocmwrkqbjjme.supabase.co/functions/v1/oneKhusa-payment-intent",
-  {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${token}`   
-    },
-    body: JSON.stringify({
-      amount: totalPrice,
-      email,
-      phone,
-      order_id: order.id,
-      method: paymentMethod
-    })
-  }
-);
+      // Step 3: Initiate payment
+      const token = session.access_token;
+      if (!token) throw new Error("User not authenticated");
 
-if (!res.ok) {
-  const errData = await res.json().catch(() => ({}));
-  throw new Error(errData.error || `Edge function failed with status ${res.status}`);
-}
-
-const data = await res.json();
-console.log("OneKhusa response:", data);
-
-    // --- Bank card → redirect ---
-    if (data.payment_url) {
-      window.location.href = data.payment_url;
-    } else {
-      // --- Mobile money → prompt user ---
-      alert(
-        "📱 A payment prompt has been sent to your phone.\n" +
-        "Please approve the payment to complete your order."
+      const res = await fetch(
+        `${supabaseUrl}/functions/v1/oneKhusa-payment-intent`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${token}`
+          },
+          body: JSON.stringify({
+            amount: totalPrice,
+            email,
+            phone,
+            order_id: order.id,
+            method: paymentMethod
+          })
+        }
       );
-    }
 
-  } catch (err) {
-    console.error("Checkout failed:", err);
-    alert(`Error: ${err.message}`);
-    button.disabled = false;
-    text.style.display = "inline";
-    spinner.style.display = "none";
-  }
-});
-renderCart(); 
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.error || `Payment initiation failed (${res.status})`);
+      }
+
+      const paymentData = await res.json();
+      console.log("OneKhusa response:", paymentData);
+
+      // Step 4: Handle redirect or mobile prompt
+      if (paymentData.payment_url) {
+        // Clear cart only after successful order creation (before redirect)
+        localStorage.removeItem("shophub_cart");
+        window.location.href = paymentData.payment_url;
+      } else {
+        alert(
+          "📱 A payment prompt has been sent to your phone.\n" +
+          "Please approve the payment to complete your order."
+        );
+        localStorage.removeItem("shophub_cart");
+      }
+
+    } catch (err) {
+      console.error("Checkout failed:", err);
+      alert(`Error: ${err.message}`);
+    } finally {
+      button.disabled = false;
+      text.style.display = "inline";
+      spinner.style.display = "none";
+    }
+  });
+
+  // Initial render
+  await renderCart();
 });
