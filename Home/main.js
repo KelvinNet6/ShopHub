@@ -6,6 +6,11 @@ function getGrid() {
   return document.getElementById("productsGrid");
 }
 
+function getPublicImageUrl(filename) {
+  // Replace with your actual Supabase storage URL logic
+  return filename ? `https://your-project.supabase.co/storage/v1/object/public/products/${filename}` : '';
+}
+
 // === GLOBAL VARIABLES ===
 let wishlist = [];
 let cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
@@ -117,7 +122,7 @@ async function toggleWishlist(product) {
     }
   }
 
-  // Always update UI — safe fallback
+  // Update UI safely
   if (typeof window.filterAndSort === "function") {
     window.filterAndSort();
   } else if (allProducts.length > 0) {
@@ -159,42 +164,17 @@ async function loadProducts() {
   const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
   const options = `<option value="all">All Items</option>` +
     categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
+  
   const filterSelectEl = document.getElementById("filterSelect");
   const mobileFilterEl = document.getElementById("mobileFilter");
   if (filterSelectEl) filterSelectEl.innerHTML = options;
   if (mobileFilterEl) mobileFilterEl.innerHTML = options;
-  console.log("[CATEGORIES] Updated filters");
 
-  // ── ROBUST RENDERING ───────────────────────────────────────────────
-  const renderSafely = () => {
-    if (typeof window.filterAndSort === "function") {
-      console.log("[RENDER] Using filterAndSort");
-      window.filterAndSort();
-    } else {
-      console.log("[RENDER] Fallback: direct renderProducts");
-      renderProducts(allProducts);
-    }
-  };
-
-  // Try immediately
-  renderSafely();
-
-  // If filterAndSort or grid isn't ready yet (common on login redirect), retry
-  if (typeof window.filterAndSort !== "function" || !document.getElementById("productsGrid")) {
-    console.log("[RENDER] filterAndSort or grid not ready → starting retry");
-    let attempts = 0;
-    const maxAttempts = 60; // ~6 seconds
-    const retryInterval = setInterval(() => {
-      attempts++;
-      if (typeof window.filterAndSort === "function" && document.getElementById("productsGrid")) {
-        clearInterval(retryInterval);
-        console.log(`[RENDER] Success after ${attempts} attempts`);
-        renderSafely();
-      } else if (attempts >= maxAttempts) {
-        clearInterval(retryInterval);
-        console.warn("[RENDER] Retry timeout after 6s – DOM still not ready");
-      }
-    }, 100);
+  // Try to render immediately (may not work if DOM not ready yet)
+  if (typeof window.filterAndSort === "function") {
+    window.filterAndSort();
+  } else {
+    renderProducts(allProducts);
   }
 }
 
@@ -235,16 +215,6 @@ function renderProducts(products) {
             </div>
           </div>
         </div>
-       <div class="product-info">
-  <div class="product-title">${p.name.toUpperCase()}</div>
-  <div class="product-price">${formatMK(p.price)}</div>
-  <div class="product-actions">
-    <div class="action-btn view-btn">QUICK VIEW</div>
-    <div class="action-btn cart-btn" data-product-id="${p.id}">
-      <i class="fas fa-shopping-bag"></i> ADD TO CART
-    </div>
-  </div>
-</div>
       </a>
     `;
   }).join("");
@@ -252,62 +222,27 @@ function renderProducts(products) {
 
 // === DOM READY: ALL INTERACTIVE FEATURES ===
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("[DOMContentLoaded] DOM is ready");
+
   grid = getGrid();
   if (!grid) {
     console.error("productsGrid element not found!");
     return;
   }
 
-  // SAFETY RE-RENDER: If products loaded before DOM was ready (e.g. logged in)
+  // Critical: Render products if they were loaded early (e.g., during login redirect)
   if (allProducts.length > 0) {
-    if (typeof window.filterAndSort === "function") {
-      window.filterAndSort();
-    } else {
-      renderProducts(allProducts);
-    }
-    console.log("Safety re-render applied for early-loaded products");
+    console.log("[DOMContentLoaded] Products pre-loaded → rendering now");
+    renderProducts(allProducts); // Fallback render first
   }
 
-  // Grid click handling
-  grid.addEventListener("click", (e) => {
-    const likeBtn = e.target.closest(".like-btn");
-    if (likeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const productId = likeBtn.dataset.productId;
-      const product = allProducts.find(p => String(p.id) === productId);
-      if (product) toggleWishlist(product);
-      return;
-    }
-
-    const cartBtn = e.target.closest(".cart-btn");
-    if (cartBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleAddToCartClick(cartBtn.dataset.productId);
-    }
-  });
-
-  // Safety re-render if products were loaded before DOM was ready
-if (allProducts.length > 0) {
-  console.log("[DOMContentLoaded] Safety render for pre-loaded products");
-  if (typeof window.filterAndSort === "function") {
-    window.filterAndSort();
-  } else {
-    renderProducts(allProducts);
-  }
-}
-  // Filter elements
-  const searchInput = document.getElementById("searchInput");
-  const filterSelect = document.getElementById("filterSelect");
-  const sortSelect = document.getElementById("sortSelect");
-  const mobileSearch = document.getElementById("mobileSearch");
-  const mobileFilter = document.getElementById("mobileFilter");
-  const mobileSort = document.getElementById("mobileSort");
-
-  // Core filter & sort function
+  // Define filterAndSort
   function filterAndSort() {
     let filtered = [...allProducts];
+
+    const searchInput = document.getElementById("searchInput");
+    const filterSelect = document.getElementById("filterSelect");
+    const sortSelect = document.getElementById("sortSelect");
 
     const query = searchInput?.value.toLowerCase().trim() || "";
     if (query) {
@@ -327,53 +262,72 @@ if (allProducts.length > 0) {
     renderProducts(filtered);
   }
 
-  // Expose globally
   window.filterAndSort = filterAndSort;
 
-// Safety: If products were loaded early (e.g. during login redirect), render them now
-if (allProducts.length > 0) {
-  console.log("[DOMContentLoaded] Safety render for pre-loaded products");
-  if (typeof window.filterAndSort === "function") {
+  // Final render now that filterAndSort exists
+  if (allProducts.length > 0) {
+    console.log("[DOMContentLoaded] Final render with filterAndSort ready");
     window.filterAndSort();
-  } else {
-    renderProducts(allProducts);
   }
-}
 
-  // Listeners
-  searchInput?.addEventListener("input", filterAndSort);
-  filterSelect?.addEventListener("change", filterAndSort);
-  sortSelect?.addEventListener("change", filterAndSort);
+  // Event Listeners
+  grid.addEventListener("click", (e) => {
+    const likeBtn = e.target.closest(".like-btn");
+    if (likeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const productId = likeBtn.dataset.productId;
+      const product = allProducts.find(p => String(p.id) === productId);
+      if (product) toggleWishlist(product);
+      return;
+    }
+
+    const cartBtn = e.target.closest(".cart-btn");
+    if (cartBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleAddToCartClick(cartBtn.dataset.productId);
+    }
+  });
+
+  // Filter listeners
+  document.getElementById("searchInput")?.addEventListener("input", filterAndSort);
+  document.getElementById("filterSelect")?.addEventListener("change", filterAndSort);
+  document.getElementById("sortSelect")?.addEventListener("change", filterAndSort);
 
   // Mobile sync
-  [mobileSearch, searchInput].forEach(el => {
+  const mobileSearch = document.getElementById("mobileSearch");
+  const mobileFilter = document.getElementById("mobileFilter");
+  const mobileSort = document.getElementById("mobileSort");
+
+  [mobileSearch, document.getElementById("searchInput")].forEach(el => {
     el?.addEventListener("input", () => {
       const val = el.value;
-      if (searchInput) searchInput.value = val;
       if (mobileSearch) mobileSearch.value = val;
+      document.getElementById("searchInput")?.setAttribute("value", val);
       filterAndSort();
     });
   });
 
-  [mobileFilter, filterSelect].forEach(el => {
+  [mobileFilter, document.getElementById("filterSelect")].forEach(el => {
     el?.addEventListener("change", () => {
       const val = el.value;
-      if (filterSelect) filterSelect.value = val;
       if (mobileFilter) mobileFilter.value = val;
+      if (document.getElementById("filterSelect")) document.getElementById("filterSelect").value = val;
       filterAndSort();
     });
   });
 
-  [mobileSort, sortSelect].forEach(el => {
+  [mobileSort, document.getElementById("sortSelect")].forEach(el => {
     el?.addEventListener("change", () => {
       const val = el.value;
-      if (sortSelect) sortSelect.value = val;
       if (mobileSort) mobileSort.value = val;
+      if (document.getElementById("sortSelect")) document.getElementById("sortSelect").value = val;
       filterAndSort();
     });
   });
 
-  // Bottom Sheet
+  // UI Components (Bottom Sheet, Cart, Size Selector, Mobile Nav)
   const trigger = document.getElementById('floatingTrigger');
   const overlay = document.getElementById('bottomSheetOverlay');
   const sheet = document.getElementById('bottomSheet');
@@ -387,7 +341,6 @@ if (allProducts.length > 0) {
     overlay?.classList.remove('active');
   });
 
-  // Cart Sidebar
   const cartSidebar = document.getElementById("cartSidebar");
   const cartOverlay = document.getElementById("cartOverlay");
   const openCartBtn = document.getElementById("openCart");
@@ -408,7 +361,6 @@ if (allProducts.length > 0) {
     cartOverlay?.classList.remove("active");
   });
 
-  // Size Selector Confirm
   document.getElementById("confirmSizeBtn")?.addEventListener("click", () => {
     if (!selectedSize) {
       alert("Please select a size");
@@ -418,7 +370,6 @@ if (allProducts.length > 0) {
     closeSizeSelector();
   });
 
-  // Mobile Nav
   const openMobileNavBtn = document.getElementById("openMobileNav");
   const closeMobileNavBtn = document.getElementById("closeMobileNav");
   const mobileNavOverlay = document.getElementById("mobileNavOverlay");
@@ -492,37 +443,38 @@ function renderCart() {
     return;
   }
 
-  itemsEl.innerHTML = cart.map(item => `
-    <div style="display:flex; gap:1rem; padding:1rem 0; border-bottom:1px solid #222;">
-      <img src="${getPublicImageUrl(item.image_url)}" style="width:80px;height:120px;object-fit:cover;border-radius:12px;">
-      <div style="flex:1;">
-        <div style="font-weight:700;">${item.name}</div>
-        ${item.size ? `<div style="color:#aaa;font-size:0.9rem;">Size: ${item.size}</div>` : ''}
-        <div style="color:#a78bfa;font-weight:800;">${formatMK(item.price)}</div>
-        <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
-          <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},'${item.size || ''}',-1)">−</button>
-          <span style="min-width:30px;text-align:center;font-weight:700;">${item.quantity}</span>
-          <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},'${item.size || ''}',1)">+</button>
+  itemsEl.innerHTML = cart.map(item => {
+    const sizeParam = item.size ? `'${item.size}'` : 'null';
+    return `
+      <div style="display:flex; gap:1rem; padding:1rem 0; border-bottom:1px solid #222;">
+        <img src="${getPublicImageUrl(item.image_url)}" style="width:80px;height:120px;object-fit:cover;border-radius:12px;">
+        <div style="flex:1;">
+          <div style="font-weight:700;">${item.name}</div>
+          ${item.size ? `<div style="color:#aaa;font-size:0.9rem;">Size: ${item.size}</div>` : ''}
+          <div style="color:#a78bfa;font-weight:800;">${formatMK(item.price)}</div>
+          <div style="display:flex;align-items:center;gap:1rem;margin-top:0.5rem;">
+            <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},${sizeParam},-1)">−</button>
+            <span style="min-width:30px;text-align:center;font-weight:700;">${item.quantity}</span>
+            <button style="width:36px;height:36px;background:#222;border:none;border-radius:50%;color:white;" onclick="updateQuantity(${item.id},${sizeParam},1)">+</button>
+          </div>
+          <div style="color:#ff4444;font-size:0.9rem;cursor:pointer;margin-top:0.5rem;" onclick="removeFromCart(${item.id},${sizeParam})">Remove</div>
         </div>
-        <div style="color:#ff4444;font-size:0.9rem;cursor:pointer;margin-top:0.5rem;" onclick="removeFromCart(${item.id},'${item.size || ''}')">Remove</div>
       </div>
-    </div>
-  `).join("");
+    `;
+  }).join("");
 
   const total = cart.reduce((sum, i) => sum + i.price * i.quantity, 0);
   totalEl.textContent = formatMK(total);
 }
 
-window.removeFromCart = (id, size) => {
-  size = size === '' ? undefined : size;
+window.removeFromCart = (id, size = null) => {
   cart = cart.filter(i => !(i.id === id && i.size === size));
   localStorage.setItem("shophub_cart", JSON.stringify(cart));
   updateCartCount();
   renderCart();
 };
 
-window.updateQuantity = (id, size, change) => {
-  size = size === '' ? undefined : size;
+window.updateQuantity = (id, size = null, change) => {
   const item = cart.find(i => i.id === id && i.size === size);
   if (item) {
     item.quantity = Math.max(1, item.quantity + change);
