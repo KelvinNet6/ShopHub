@@ -124,16 +124,9 @@ async function toggleWishlist(product) {
   } else if (allProducts.length > 0) {
     renderProducts(allProducts);
   }
-}
-
-// === PRODUCT LOADING ===
+}// === PRODUCT LOADING ===
 async function loadProducts() {
   console.log("loadProducts() called");
-  const gridEl = getGrid();
-  if (!gridEl) {
-    console.warn("productsGrid not found");
-    return;
-  }
 
   const { data: products, error } = await supabase
     .from("products")
@@ -142,13 +135,19 @@ async function loadProducts() {
 
   if (error) {
     console.error("Product load error:", error);
-    gridEl.innerHTML = `<p style="text-align:center;color:#ff4444;padding:2rem;">Failed to load products. Please refresh.</p>`;
+    const gridEl = getGrid();
+    if (gridEl) {
+      gridEl.innerHTML = `<p style="text-align:center;color:#ff4444;padding:2rem;">Failed to load products. Please refresh.</p>`;
+    }
     allProducts = [];
     return;
   }
 
   if (!products || products.length === 0) {
-    gridEl.innerHTML = `<p style="text-align:center;padding:2rem;">No products available at the moment.</p>`;
+    const gridEl = getGrid();
+    if (gridEl) {
+      gridEl.innerHTML = `<p style="text-align:center;padding:2rem;">No products available at the moment.</p>`;
+    }
     allProducts = [];
     return;
   }
@@ -164,40 +163,19 @@ async function loadProducts() {
   const mobileFilterEl = document.getElementById("mobileFilter");
   if (filterSelectEl) filterSelectEl.innerHTML = options;
   if (mobileFilterEl) mobileFilterEl.innerHTML = options;
-  console.log("[CATEGORIES] Updated filters");
 
-  // ── ROBUST RENDERING ───────────────────────────────────────────────
-  const renderSafely = () => {
-    if (typeof window.filterAndSort === "function") {
-      console.log("[RENDER] Using filterAndSort");
-      window.filterAndSort();
-    } else {
-      console.log("[RENDER] Fallback: direct renderProducts");
-      renderProducts(allProducts);
-    }
-  };
-
-  // Try immediately
-  renderSafely();
-
-  // If filterAndSort or grid isn't ready yet (common on login redirect), retry
-  if (typeof window.filterAndSort !== "function" || !document.getElementById("productsGrid")) {
-    console.log("[RENDER] filterAndSort or grid not ready → starting retry");
-    let attempts = 0;
-    const maxAttempts = 60; // ~6 seconds
-    const retryInterval = setInterval(() => {
-      attempts++;
-      if (typeof window.filterAndSort === "function" && document.getElementById("productsGrid")) {
-        clearInterval(retryInterval);
-        console.log(`[RENDER] Success after ${attempts} attempts`);
-        renderSafely();
-      } else if (attempts >= maxAttempts) {
-        clearInterval(retryInterval);
-        console.warn("[RENDER] Retry timeout after 6s – DOM still not ready");
-      }
-    }, 100);
+  // === THIS IS THE KEY FIX ===
+  // Now that products are actually loaded, render them
+  if (typeof window.filterAndSort === "function") {
+    console.log("[LOAD] Products loaded → running filterAndSort");
+    window.filterAndSort();
+  } else {
+    console.log("[LOAD] Products loaded → fallback render");
+    renderProducts(allProducts);
   }
 }
+
+
 
 function renderProducts(products) {
   const gridEl = document.getElementById("productsGrid");
@@ -253,52 +231,21 @@ function renderProducts(products) {
 
 // === DOM READY: ALL INTERACTIVE FEATURES ===
 document.addEventListener("DOMContentLoaded", () => {
+  console.log("[DOMContentLoaded] DOM is ready");
+
   grid = getGrid();
   if (!grid) {
     console.error("productsGrid element not found!");
     return;
   }
 
-  // SAFETY RE-RENDER: If products loaded before DOM was ready (e.g. logged in)
+  // === SAFETY RENDER: If products were loaded early (e.g., during login redirect) ===
   if (allProducts.length > 0) {
-    if (typeof window.filterAndSort === "function") {
-      window.filterAndSort();
-    } else {
-      renderProducts(allProducts);
-    }
-    console.log("Safety re-render applied for early-loaded products");
+    console.log("[DOMContentLoaded] Products pre-loaded → forcing render");
+    renderProducts(allProducts);  // Direct render first (safe fallback)
   }
 
-  // Grid click handling
-  grid.addEventListener("click", (e) => {
-    const likeBtn = e.target.closest(".like-btn");
-    if (likeBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      const productId = likeBtn.dataset.productId;
-      const product = allProducts.find(p => String(p.id) === productId);
-      if (product) toggleWishlist(product);
-      return;
-    }
-
-    const cartBtn = e.target.closest(".cart-btn");
-    if (cartBtn) {
-      e.preventDefault();
-      e.stopPropagation();
-      handleAddToCartClick(cartBtn.dataset.productId);
-    }
-  });
-
-  // Safety re-render if products were loaded before DOM was ready
-if (allProducts.length > 0) {
-  console.log("[DOMContentLoaded] Safety render for pre-loaded products");
-  if (typeof window.filterAndSort === "function") {
-    window.filterAndSort();
-  } else {
-    renderProducts(allProducts);
-  }
-}
-  // Filter elements
+  // === Define filterAndSort function ===
   const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filterSelect");
   const sortSelect = document.getElementById("sortSelect");
@@ -306,7 +253,6 @@ if (allProducts.length > 0) {
   const mobileFilter = document.getElementById("mobileFilter");
   const mobileSort = document.getElementById("mobileSort");
 
-  // Core filter & sort function
   function filterAndSort() {
     let filtered = [...allProducts];
 
@@ -331,22 +277,38 @@ if (allProducts.length > 0) {
   // Expose globally
   window.filterAndSort = filterAndSort;
 
-// Safety: If products were loaded early (e.g. during login redirect), render them now
-if (allProducts.length > 0) {
-  console.log("[DOMContentLoaded] Safety render for pre-loaded products");
-  if (typeof window.filterAndSort === "function") {
+  // === Final render now that filterAndSort is defined ===
+  if (allProducts.length > 0) {
+    console.log("[DOMContentLoaded] Final render using filterAndSort");
     window.filterAndSort();
-  } else {
-    renderProducts(allProducts);
   }
-}
 
-  // Listeners
+  // === Grid click handling ===
+  grid.addEventListener("click", (e) => {
+    const likeBtn = e.target.closest(".like-btn");
+    if (likeBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      const productId = likeBtn.dataset.productId;
+      const product = allProducts.find(p => String(p.id) === productId);
+      if (product) toggleWishlist(product);
+      return;
+    }
+
+    const cartBtn = e.target.closest(".cart-btn");
+    if (cartBtn) {
+      e.preventDefault();
+      e.stopPropagation();
+      handleAddToCartClick(cartBtn.dataset.productId);
+    }
+  });
+
+  // === Filter listeners ===
   searchInput?.addEventListener("input", filterAndSort);
   filterSelect?.addEventListener("change", filterAndSort);
   sortSelect?.addEventListener("change", filterAndSort);
 
-  // Mobile sync
+  // === Mobile sync ===
   [mobileSearch, searchInput].forEach(el => {
     el?.addEventListener("input", () => {
       const val = el.value;
@@ -373,7 +335,7 @@ if (allProducts.length > 0) {
       filterAndSort();
     });
   });
-
+  
   // Bottom Sheet
   const trigger = document.getElementById('floatingTrigger');
   const overlay = document.getElementById('bottomSheetOverlay');
