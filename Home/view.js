@@ -161,7 +161,7 @@ async function loadProduct() {
           </div>
           <div class="more-info">
             <div class="more-title">${p.name.toUpperCase()}</div>
-            <div class="more-price">$${Number(p.price).toFixed(2)}</div>
+            <div class="more-price">${formatMK(p.price)}</div>
             <div class="more-actions">
               <div class="more-action-btn more-view-btn">QUICK VIEW</div>
               <div class="more-action-btn more-cart-btn" onclick="event.preventDefault();event.stopPropagation();addToCart({id:${p.id},name:'${p.name.replace(/'/g,"\\'")}',price:${p.price},image_url:'${p.image_url}'});">
