@@ -153,5 +153,31 @@
 <!-- Finally auth & navigation -->
 <script src="Home/script.js"></script>
   
+  <style> 
+  .hero {
+  /* Replace 'your-image.jpg' with your actual image path */
+  background-image: url('your-image.jpg');
+  
+  /* This ensures the image covers the entire area without stretching */
+  background-size: cover;
+  
+  /* This keeps the image centered even if the screen is narrow */
+  background-position: center;
+  
+  /* This prevents the image from repeating if the div is larger than the image */
+  background-repeat: no-repeat;
+  
+  /* Set the height. Use 100vh for full screen height, or 500px for a fixed banner */
+  min-height: 100vh;
+  
+  /* Optional: Ensures text stays readable on top of the image */
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: white; /* Make text white to pop against the image */
+  text-align: center;
+}
+  </style>
 </body>
 </html>
