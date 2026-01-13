@@ -63,23 +63,32 @@
   </div>
 
   <!-- Hero -->
-  <div class="hero">
-    <h1></h1>
-    <p></p>
-    <div class="search-controls">
-      <select id="filterSelect" class="filter-sort"><option value="all">All Items</option></select>
-      <div class="search-wrapper">
-        <input type="text" id="searchInput" class="search-box" placeholder="Search the vault..." />
-        <i class="fas fa-search search-icon"></i>
-      </div>
-      <select id="sortSelect" class="filter-sort">
-        <option value="default">Featured</option>
-        <option value="price-low">Price: Low to High</option>
-        <option value="price-high">Price: High to Low</option>
-        <option value="name">Name A to Z</option>
-      </select>
+<div class="hero">
+  <h1>uBuyIt!</h1>
+  <p>Curated drops. Limited stock. For the culture.</p>
+  
+  <button class="filter-toggle" onclick="toggleFilters()">
+    <i class="fas fa-sliders-h"></i> Filters & Search
+  </button>
+
+  <div id="mobileCollapse" class="search-controls">
+    <select id="filterSelect" class="filter-sort">
+      <option value="all">All Items</option>
+    </select>
+    
+    <div class="search-wrapper">
+      <input type="text" id="searchInput" class="search-box" placeholder="Search the vault..." />
+      <i class="fas fa-search search-icon"></i>
     </div>
+    
+    <select id="sortSelect" class="filter-sort">
+      <option value="default">Featured</option>
+      <option value="price-low">Price: Low to High</option>
+      <option value="price-high">Price: High to Low</option>
+      <option value="name">Name A to Z</option>
+    </select>
   </div>
+</div>
 
   <!-- Products Grid -->
   <div class="container">
@@ -152,6 +161,15 @@
 
 <!-- Finally auth & navigation -->
 <script src="Home/script.js"></script>
+
+  <script>
+
+      function toggleFilters() {
+      const controls = document.getElementById('mobileCollapse');
+      controls.classList.toggle('active');
+   }
+     
+  </script>
   
   <style> 
   .hero {
