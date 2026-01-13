@@ -631,7 +631,52 @@
   margin: .3rem;
   cursor: pointer;
 }
+/* Default Desktop Styles */
+.filter-toggle {
+  display: none; /* Hide toggle button on desktop */
+}
 
+.search-controls {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
+}
+
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+  .filter-toggle {
+    display: block; /* Show toggle button on mobile */
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    border: 1px solid white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-bottom: 15px;
+  }
+
+  .search-controls {
+    display: none; /* Hide the controls by default on mobile */
+    flex-direction: column; /* Stack items vertically */
+    width: 90%;
+    background: rgba(0, 0, 0, 0.8); /* Dark background for the dropdown */
+    padding: 20px;
+    border-radius: 10px;
+    position: absolute;
+    top: 70%; /* Position it below the title */
+    z-index: 10;
+  }
+
+  /* This class will be toggled by JavaScript */
+  .search-controls.active {
+    display: flex;
+  }
+
+  .search-wrapper, .filter-sort {
+    width: 100%; /* Make inputs full width on mobile */
+  }
+}
 .size-btn.active {
   background: #a78bfa;
   color: #000;
