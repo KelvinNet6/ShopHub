@@ -1,4 +1,3 @@
-
 let wishlist = [];
 let cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
 let allProducts = [];
@@ -20,66 +19,74 @@ function getPublicImageUrl(path) {
   if (!path) return 'https://via.placeholder.com/300x400?text=No+Image';
   if (path.startsWith('http')) return path;
   const { data } = supabase.storage.from('product-images').getPublicUrl(path);
-  return data.publicUrl;
+  return data.publicUrl || 'https://via.placeholder.com/300x400?text=Image+Error';
 }
 
 async function initializeApp(force = false) {
-  // Prevent concurrent or repeated runs
   if (isInitialized && !force) return;
 
   isInitialized = true;
   console.log("🚀 Initializing app...");
 
   try {
-    // ✅ Ensure DOM is ready before any rendering logic
+    // Make sure DOM is really ready
     if (document.readyState !== "complete") {
-      await new Promise(resolve =>
-        window.addEventListener("DOMContentLoaded", resolve, { once: true })
-      );
+      await new Promise(resolve => window.addEventListener("DOMContentLoaded", resolve, { once: true }));
     }
 
-    // ✅ Load products FIRST (UI critical)
+    showProductsLoading();
+
     await loadProducts();
 
-    // ✅ Load wishlist AFTER products, non-blocking
-    loadWishlist()
-      .then(() => {
-        console.log("✅ Wishlist updated");
-
-        // Guard: only re-render if products exist
-        if (allProducts.length && typeof window.filterAndSort === "function") {
-          window.filterAndSort();
-        }
-      })
-      .catch(err => console.warn("Wishlist failed:", err));
+    // Wishlist is less critical → fire and forget with UI refresh
+    loadWishlist().catch(err => console.warn("Wishlist failed:", err));
 
     updateCartCount();
   } catch (err) {
     console.error("Initialization error:", err);
+    showProductsError("Failed to initialize shop");
   }
 }
 
-// === AUTH STATE LISTENER (Debounced) ===
+function showProductsLoading() {
+  const gridEl = getGrid();
+  if (gridEl) {
+    gridEl.innerHTML = `
+      <div style="text-align:center; padding:5rem 1rem; color:#777;">
+        <div style="font-size:2.5rem; margin-bottom:1rem;">🌀</div>
+        Loading products...
+      </div>
+    `;
+  }
+}
+
+function showProductsError(message) {
+  const gridEl = getGrid();
+  if (gridEl) {
+    gridEl.innerHTML = `
+      <div style="text-align:center; padding:4rem 1rem; color:#ff5555;">
+        <h3>Error</h3>
+        <p>${message}</p>
+        <small>Please try refreshing the page</small>
+      </div>
+    `;
+  }
+}
+
+// Auth state change with debounce
 supabase.auth.onAuthStateChange((event, session) => {
   console.log("🔑 Auth event:", event);
 
-  // Clear previous timer - prevents multiple rapid initializations
   clearTimeout(authTimeout);
-
-  // Wait 200ms for auth state to "settle" before refreshing data
   authTimeout = setTimeout(async () => {
-   const relevantEvents = [
-  'SIGNED_IN',
-  'SIGNED_OUT'
-];
-    
+    const relevantEvents = ['SIGNED_IN', 'SIGNED_OUT', 'USER_UPDATED'];
     if (relevantEvents.includes(event)) {
       await initializeApp(false);
     }
-  }, 200);
+  }, 250);
 });
 
-// Handle page cache restoration
+// Handle page restored from bfcache (back/forward)
 window.addEventListener('pageshow', (e) => {
   if (e.persisted) {
     isInitialized = false;
@@ -87,11 +94,11 @@ window.addEventListener('pageshow', (e) => {
   }
 });
 
-// === WISHLIST ===
+// ── WISHLIST ────────────────────────────────────────
 async function loadWishlist() {
   try {
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
       wishlist = [];
       return;
     }
@@ -101,15 +108,16 @@ async function loadWishlist() {
       .select("product_id")
       .eq("user_id", user.id);
 
-    if (error) {
-      console.warn("Wishlist error:", error.message);
-      wishlist = [];
-      return;
-    }
+    if (error) throw error;
 
     wishlist = (data || []).map(item => String(item.product_id));
+    
+    // Refresh UI if filter function exists
+    if (typeof window.filterAndSort === "function") {
+      window.filterAndSort();
+    }
   } catch (err) {
-    console.error("Wishlist crashed:", err);
+    console.warn("Wishlist load failed:", err.message);
     wishlist = [];
   }
 }
@@ -126,95 +134,99 @@ async function toggleWishlist(product) {
   const idStr = String(product.id);
   const isLiked = wishlist.includes(idStr);
 
+  let success = false;
+
   if (isLiked) {
     const { error } = await supabase
       .from("wishlist")
       .delete()
       .eq("user_id", user.id)
       .eq("product_id", product.id);
-
-    if (!error) {
-      wishlist = wishlist.filter(id => id !== idStr);
-    }
+    if (!error) success = true;
   } else {
     const { error } = await supabase
       .from("wishlist")
       .insert({ user_id: user.id, product_id: product.id });
+    if (!error) success = true;
+  }
 
-    if (!error) {
+  if (success) {
+    if (isLiked) {
+      wishlist = wishlist.filter(id => id !== idStr);
+    } else {
       wishlist.push(idStr);
     }
   }
 
-  // Always update UI — safe fallback
+  // Always try to refresh display
   if (typeof window.filterAndSort === "function") {
     window.filterAndSort();
   } else if (allProducts.length > 0) {
     renderProducts(allProducts);
   }
-}// === PRODUCT LOADING ===
+}
+
+// ── PRODUCTS ────────────────────────────────────────
 async function loadProducts() {
   console.log("loadProducts() called");
 
   const { data: products, error } = await supabase
     .from("products")
-    .select("id,name,price,image_url,has_sizes,categories(name)")
+    .select("id, name, price, image_url, has_sizes, categories(name)")
     .order("id");
+
+  console.log("Products query result:", {
+    count: products?.length ?? 0,
+    error: error?.message ?? null
+  });
 
   if (error) {
     console.error("Product load error:", error);
-    const gridEl = getGrid();
-    if (gridEl) {
-      gridEl.innerHTML = `<p style="text-align:center;color:#ff4444;padding:2rem;">Failed to load products. Please refresh.</p>`;
-    }
+    showProductsError("Failed to load products. Please refresh.");
     allProducts = [];
     return;
   }
 
-  if (!products || products.length === 0) {
+  allProducts = products || [];
+
+  if (allProducts.length === 0) {
     const gridEl = getGrid();
     if (gridEl) {
-      gridEl.innerHTML = `<p style="text-align:center;padding:2rem;">No products available at the moment.</p>`;
+      gridEl.innerHTML = `<p style="text-align:center;padding:3rem;color:#888;">
+        No products available at the moment
+      </p>`;
     }
-    allProducts = [];
     return;
   }
 
-  allProducts = products;
-  console.log(`[PRODUCTS] Loaded ${products.length} products`);
+  console.log(`[PRODUCTS] Loaded ${allProducts.length} products`);
 
   // Update category filters
   const categories = [...new Set(allProducts.map(p => p.categories?.name).filter(Boolean))];
   const options = `<option value="all">All Items</option>` +
     categories.map(c => `<option value="${c.toLowerCase()}">${c}</option>`).join("");
+
   const filterSelectEl = document.getElementById("filterSelect");
   const mobileFilterEl = document.getElementById("mobileFilter");
   if (filterSelectEl) filterSelectEl.innerHTML = options;
   if (mobileFilterEl) mobileFilterEl.innerHTML = options;
 
-  // === THIS IS THE KEY FIX ===
-  // Now that products are actually loaded, render them
+  // Try to render using filterAndSort if available, otherwise fallback
   if (typeof window.filterAndSort === "function") {
-    console.log("[LOAD] Products loaded → running filterAndSort");
+    console.log("[LOAD] Running filterAndSort");
     window.filterAndSort();
   } else {
-    console.log("[LOAD] Products loaded → fallback render");
+    console.log("[LOAD] filterAndSort not ready → fallback render");
     renderProducts(allProducts);
   }
 }
 
-
-
 function renderProducts(products) {
-  const gridEl = document.getElementById("productsGrid");
+  const gridEl = getGrid();
+  if (!gridEl) return;
 
-  if (!gridEl) {
-    console.warn("renderProducts: grid not found");
-    return;
-  }
-
-  if (!products || products.length === 0) {
-    gridEl.innerHTML = `<p style="text-align:center;padding:2rem;">No products found.</p>`;
+  if (!products?.length) {
+    gridEl.innerHTML = `<p style="text-align:center;padding:3rem;color:#888;">No products found</p>`;
     return;
   }
 
@@ -242,22 +254,22 @@ function renderProducts(products) {
             </div>
           </div>
         </div>
-       <div class="product-info">
-  <div class="product-title">${p.name.toUpperCase()}</div>
-  <div class="product-price">${formatMK(p.price)}</div>
-  <div class="product-actions">
-    <div class="action-btn view-btn">QUICK VIEW</div>
-    <div class="action-btn cart-btn" data-product-id="${p.id}">
-      <i class="fas fa-shopping-bag"></i> ADD TO CART
-    </div>
-  </div>
-</div>
+        <div class="product-info">
+          <div class="product-title">${p.name.toUpperCase()}</div>
+          <div class="product-price">${formatMK(p.price)}</div>
+          <div class="product-actions">
+            <div class="action-btn view-btn">QUICK VIEW</div>
+            <div class="action-btn cart-btn" data-product-id="${p.id}">
+              <i class="fas fa-shopping-bag"></i> ADD TO CART
+            </div>
+          </div>
+        </div>
       </a>
     `;
   }).join("");
 }
 
-// === DOM READY: ALL INTERACTIVE FEATURES ===
+// ── DOM READY ────────────────────────────────────────
 document.addEventListener("DOMContentLoaded", () => {
   console.log("[DOMContentLoaded] DOM is ready");
 
@@ -267,12 +279,7 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  if (allProducts.length > 0) {
-    console.log("[DOMContentLoaded] Products pre-loaded → forcing render");
-    renderProducts(allProducts);  // Direct render first (safe fallback)
-  }
-
-  // === Define filterAndSort function ===
+  // Define filter function early
   const searchInput = document.getElementById("searchInput");
   const filterSelect = document.getElementById("filterSelect");
   const sortSelect = document.getElementById("sortSelect");
@@ -281,19 +288,24 @@ document.addEventListener("DOMContentLoaded", () => {
   const mobileSort = document.getElementById("mobileSort");
 
   function filterAndSort() {
+    if (!allProducts?.length) {
+      renderProducts([]);
+      return;
+    }
+
     let filtered = [...allProducts];
 
-    const query = searchInput?.value.toLowerCase().trim() || "";
+    const query = (searchInput?.value || mobileSearch?.value || "").toLowerCase().trim();
     if (query) {
       filtered = filtered.filter(p => p.name.toLowerCase().includes(query));
     }
 
-    const cat = filterSelect?.value || "all";
+    const cat = (filterSelect?.value || mobileFilter?.value || "all").toLowerCase();
     if (cat !== "all") {
       filtered = filtered.filter(p => (p.categories?.name || '').toLowerCase() === cat);
     }
 
-    const sort = sortSelect?.value || "";
+    const sort = sortSelect?.value || mobileSort?.value || "";
     if (sort === "price-low") filtered.sort((a, b) => a.price - b.price);
     else if (sort === "price-high") filtered.sort((a, b) => b.price - a.price);
     else if (sort === "name") filtered.sort((a, b) => a.name.localeCompare(b.name));
@@ -301,16 +313,15 @@ document.addEventListener("DOMContentLoaded", () => {
     renderProducts(filtered);
   }
 
-  // Expose globally
   window.filterAndSort = filterAndSort;
 
-  // === Final render now that filterAndSort is defined ===
+  // Initial render attempt
   if (allProducts.length > 0) {
-    console.log("[DOMContentLoaded] Final render using filterAndSort");
-    window.filterAndSort();
+    console.log("[DOMContentLoaded] Products already loaded → rendering");
+    filterAndSort();
   }
 
-  // === Grid click handling ===
+  // ── Event listeners ──────────────────────────────
   grid.addEventListener("click", (e) => {
     const likeBtn = e.target.closest(".like-btn");
     if (likeBtn) {
@@ -330,39 +341,28 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   });
 
-  // === Filter listeners ===
-  searchInput?.addEventListener("input", filterAndSort);
-  filterSelect?.addEventListener("change", filterAndSort);
-  sortSelect?.addEventListener("change", filterAndSort);
+  // Filter events + mobile/desktop sync
+  const filterElements = [
+    { el: searchInput, mobile: mobileSearch, event: "input" },
+    { el: filterSelect, mobile: mobileFilter, event: "change" },
+    { el: sortSelect, mobile: mobileSort, event: "change" }
+  ];
 
-  // === Mobile sync ===
-  [mobileSearch, searchInput].forEach(el => {
-    el?.addEventListener("input", () => {
-      const val = el.value;
-      if (searchInput) searchInput.value = val;
-      if (mobileSearch) mobileSearch.value = val;
+  filterElements.forEach(({ el, mobile, event: type }) => {
+    if (!el) return;
+    el.addEventListener(type, () => {
+      if (mobile) mobile.value = el.value;
       filterAndSort();
     });
+    if (mobile) {
+      mobile.addEventListener(type, () => {
+        if (el) el.value = mobile.value;
+        filterAndSort();
+      });
+    }
   });
 
-  [mobileFilter, filterSelect].forEach(el => {
-    el?.addEventListener("change", () => {
-      const val = el.value;
-      if (filterSelect) filterSelect.value = val;
-      if (mobileFilter) mobileFilter.value = val;
-      filterAndSort();
-    });
-  });
-
-  [mobileSort, sortSelect].forEach(el => {
-    el?.addEventListener("change", () => {
-      const val = el.value;
-      if (sortSelect) sortSelect.value = val;
-      if (mobileSort) mobileSort.value = val;
-      filterAndSort();
-    });
-  });
-  
+  // ... (rest of your listeners - bottom sheet, cart sidebar, size selector, mobile nav ...)
   // Bottom Sheet
   const trigger = document.getElementById('floatingTrigger');
   const overlay = document.getElementById('bottomSheetOverlay');
@@ -435,7 +435,9 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 
-// === CART ===
+// The rest of your code (cart, size selector, visitor tracking) remains unchanged
+// =============================================================================
+
 function addToCart(product) {
   const existing = cart.find(item => item.id === product.id && item.size === product.size);
 
@@ -464,12 +466,10 @@ function handleAddToCartClick(productId) {
 
 function updateCartCount() {
   const count = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const cartCountEl = document.getElementById("cartCount");
-  const mobileCountEl = document.getElementById("mobileCartCount");
-
-  if (cartCountEl) cartCountEl.textContent = count;
-  if (mobileCountEl) mobileCountEl.textContent = count;
+  document.getElementById("cartCount")?.textContent = count;
+  document.getElementById("mobileCartCount")?.textContent = count;
 }
+
 
 function renderCart() {
   const itemsEl = document.getElementById("cartItems");
