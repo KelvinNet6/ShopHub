@@ -1,4 +1,13 @@
 
+let wishlist = [];
+let cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
+let allProducts = [];
+let pendingProduct = null;
+let selectedSize = null;
+let grid;
+let isInitialized = false;
+let authTimeout = null;
+
 function formatMK(amount) {
   return `MK ${Number(amount).toLocaleString("en-MW")}`;
 }
@@ -7,44 +16,49 @@ function getGrid() {
   return document.getElementById("productsGrid");
 }
 
-// === GLOBAL VARIABLES ===
-let wishlist = [];
-let cart = JSON.parse(localStorage.getItem("shophub_cart")) || [];
-let allProducts = [];
-let pendingProduct = null;
-let selectedSize = null;
-let grid;
-
-// === INITIALIZATION ===
-let isInitialized = false;
-let authTimeout = null; // Added to handle debouncing
+function getPublicImageUrl(path) {
+  if (!path) return 'https://via.placeholder.com/300x400?text=No+Image';
+  if (path.startsWith('http')) return path;
+  const { data } = supabase.storage.from('product-images').getPublicUrl(path);
+  return data.publicUrl;
+}
 
 async function initializeApp(force = false) {
-  // Lock to prevent concurrent runs
+  // Prevent concurrent or repeated runs
   if (isInitialized && !force) return;
-  isInitialized = true;
 
+  isInitialized = true;
   console.log("🚀 Initializing app...");
 
   try {
-    // 1. Load products first - this is the priority for the UI
+    // ✅ Ensure DOM is ready before any rendering logic
+    if (document.readyState !== "complete") {
+      await new Promise(resolve =>
+        window.addEventListener("DOMContentLoaded", resolve, { once: true })
+      );
+    }
+
+    // ✅ Load products FIRST (UI critical)
     await loadProducts();
 
-    // 2. Load wishlist in the background
-    // We don't 'await' this so that products show up even if wishlist is slow
-    loadWishlist().then(() => {
-      console.log("✅ Wishlist updated");
-      // Re-render once wishlist data is in to show the red hearts
-      if (typeof window.filterAndSort === "function") {
-        window.filterAndSort();
-      }
-    }).catch(err => console.warn("Wishlist failed:", err));
+    // ✅ Load wishlist AFTER products, non-blocking
+    loadWishlist()
+      .then(() => {
+        console.log("✅ Wishlist updated");
+
+        // Guard: only re-render if products exist
+        if (allProducts.length && typeof window.filterAndSort === "function") {
+          window.filterAndSort();
+        }
+      })
+      .catch(err => console.warn("Wishlist failed:", err));
 
     updateCartCount();
   } catch (err) {
     console.error("Initialization error:", err);
   }
 }
+
 
 // === AUTH STATE LISTENER (Debounced) ===
 supabase.auth.onAuthStateChange((event, session) => {
@@ -55,11 +69,13 @@ supabase.auth.onAuthStateChange((event, session) => {
 
   // Wait 200ms for auth state to "settle" before refreshing data
   authTimeout = setTimeout(async () => {
-    const relevantEvents = ['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'];
+   const relevantEvents = [
+  'SIGNED_IN',
+  'SIGNED_OUT'
+];
     
     if (relevantEvents.includes(event)) {
-      isInitialized = false; 
-      await initializeApp(true);
+      await initializeApp(false);
     }
   }, 200);
 });
