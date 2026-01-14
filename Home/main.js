@@ -267,7 +267,6 @@ document.addEventListener("DOMContentLoaded", () => {
     return;
   }
 
-  // === SAFETY RENDER: If products were loaded early (e.g., during login redirect) ===
   if (allProducts.length > 0) {
     console.log("[DOMContentLoaded] Products pre-loaded → forcing render");
     renderProducts(allProducts);  // Direct render first (safe fallback)
