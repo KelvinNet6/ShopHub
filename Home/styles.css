@@ -257,7 +257,9 @@
       color: white;
       outline: none;
     }
-    .search-box::placeholder { color: rgba(255,255,255,0.7); }
+    .search-box::placeholder { 
+      color: rgba(255,255,255,0.7); 
+    }
     .search-icon {
       position: absolute;
       left: 1.8rem;
