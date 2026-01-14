@@ -59,7 +59,6 @@ async function initializeApp(force = false) {
   }
 }
 
-
 // === AUTH STATE LISTENER (Debounced) ===
 supabase.auth.onAuthStateChange((event, session) => {
   console.log("🔑 Auth event:", event);
