@@ -17,38 +17,51 @@ let grid;
 
 // === INITIALIZATION ===
 let isInitialized = false;
+let authTimeout = null; // Added to handle debouncing
 
 async function initializeApp(force = false) {
+  // Lock to prevent concurrent runs
   if (isInitialized && !force) return;
   isInitialized = true;
 
-  console.log("Initializing app");
+  console.log("🚀 Initializing app...");
 
-  // Load wishlist in background
-  loadWishlist().catch(err => {
-    console.warn("Wishlist failed, continuing:", err);
-    wishlist = [];
-  });
+  try {
+    // 1. Load products first - this is the priority for the UI
+    await loadProducts();
 
-  // Always load products
-  await loadProducts();
+    // 2. Load wishlist in the background
+    // We don't 'await' this so that products show up even if wishlist is slow
+    loadWishlist().then(() => {
+      console.log("✅ Wishlist updated");
+      // Re-render once wishlist data is in to show the red hearts
+      if (typeof window.filterAndSort === "function") {
+        window.filterAndSort();
+      }
+    }).catch(err => console.warn("Wishlist failed:", err));
 
-  updateCartCount();
+    updateCartCount();
+  } catch (err) {
+    console.error("Initialization error:", err);
+  }
 }
 
-// Auth state listener
-supabase.auth.onAuthStateChange(async (event, session) => {
-  console.log("Auth event:", event, "User:", session?.user?.id || "none");
+// === AUTH STATE LISTENER (Debounced) ===
+supabase.auth.onAuthStateChange((event, session) => {
+  console.log("🔑 Auth event:", event);
 
-  if (
-    event === 'INITIAL_SESSION' ||
-    event === 'SIGNED_IN' ||
-    event === 'SIGNED_OUT' ||
-    event === 'TOKEN_REFRESHED'
-  ) {
-    isInitialized = false;
-    await initializeApp(true);
-  }
+  // Clear previous timer - prevents multiple rapid initializations
+  clearTimeout(authTimeout);
+
+  // Wait 200ms for auth state to "settle" before refreshing data
+  authTimeout = setTimeout(async () => {
+    const relevantEvents = ['INITIAL_SESSION', 'SIGNED_IN', 'SIGNED_OUT', 'TOKEN_REFRESHED'];
+    
+    if (relevantEvents.includes(event)) {
+      isInitialized = false; 
+      await initializeApp(true);
+    }
+  }, 200);
 });
 
 // Handle page cache restoration
