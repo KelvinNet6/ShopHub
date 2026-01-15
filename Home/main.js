@@ -470,7 +470,7 @@ function updateCartCount() {
   document.getElementById("mobileCartCount")?.textContent = count;
 }
 
-
+v
 function renderCart() {
   const itemsEl = document.getElementById("cartItems");
   const totalEl = document.getElementById("cartTotal");
